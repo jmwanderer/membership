@@ -8,6 +8,7 @@ class Attestation:
 
     def __init__(self):
         self.file_name: str = ""
+        self.web_view_link: str = ""
         self.adults: list[str] = []
         self.minors: list[str] = []
 

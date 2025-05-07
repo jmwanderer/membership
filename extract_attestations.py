@@ -51,7 +51,7 @@ def get_file_list(drive, folder_name):
             pageSize=10,
             includeItemsFromAllDrives=True,
             supportsAllDrives=True,
-            fields="nextPageToken, files(id, name)",
+            fields="nextPageToken, files(id, name, webViewLink)",
         )
         .execute()
     )
@@ -66,7 +66,7 @@ def get_file_list(drive, folder_name):
         .list(
             q="'" + fid + "' in parents",
             pageSize=1000,
-            fields="nextPageToken, files(id, name)",
+            fields="nextPageToken, files(id, name, webViewLink)",
         )
         .execute()
     )
@@ -100,6 +100,7 @@ def main():
             file_data = download_file(drive, file['id'])
             attestation = attestation_pdf.parse_attestation(file_data)
             attestation.file_name = file['name']
+            attestation.web_view_link = file['webViewLink']
             print(attestation)
             attestations.append(attestation)
 
@@ -116,4 +117,4 @@ def main1():
 
 
 if __name__ == "__main__":
-    main1()
+    main()
