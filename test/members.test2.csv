@@ -1,0 +1,8 @@
+﻿Acct #,Member ID,Member Type,First Name,Last Name,Photo,Payment Status,Birthdate,Email
+
+3,5000,Adult,Mark,Twain,,paid,1997-03-04,,mtwain@gmail.com
+3,503967,Child,Mark Jr,Twain,,paid,2007-01-11,
+4,5001,Adult,Bob,Bob,,paid,,Bob@gmail.com
+5,5002,Adult,Katie,Perry,,paid,,kperry@gmail.com
+6,5003,Adult,Lady,Gaga,,paid,,steph@gmail.com
+
