@@ -23,6 +23,9 @@ class MemberName:
     first_name: str
     last_name: str
 
+    def fullname(self):
+        return f"{first_name} {last_name}"
+
     def __eq__(self, other):
         return self.first_name == other.first_name and self.last_name == other.last_name
 
@@ -115,6 +118,7 @@ class Membership:
 
     def __init__(self) -> None:
         self.member_map: dict[MemberName, list[MemberEntry]] = {}
+        self.member_name_map: dict[str, list[MemberEntry]] = {}
         self.account_map: dict[str, AccountEntry] = {}
 
     def read_csv_files(self, accounts_file=ACCOUNTS_CSV, members_file=MEMBERS_CSV):
@@ -136,6 +140,9 @@ class Membership:
 
     def get_members_by_name(self, member_name: MemberName) -> list[MemberEntry]:
         return self.member_map[member_name]
+
+    def get_members_by_fullname(self, member_name: str) -> list[MemberEntry]:
+        return self.member_name_map[member_name]
 
     def accounts(self) -> list[AccountEntry]:
         result: list[AccountEntry]
@@ -164,6 +171,7 @@ class Membership:
     def _read_members_csv(self, filename):
         print(f"Note: reading member list '{filename}'")
         self.member_map = {}
+        self.member_name_map = {}
         count = 0
         with open(filename, newline="", encoding="utf-8-sig") as csvfile:
             reader = csv.DictReader(csvfile)
@@ -204,6 +212,7 @@ class Membership:
                 )
                 if name not in self.member_map:
                     self.member_map[name] = []
+                    self.member_name_map[name.fullname()] = []
                 self.member_map[name].append(member)
 
                 # Birthday stuff
