@@ -16,22 +16,28 @@ def review_attestation(membership, attestation):
     members = membership.get_members_for_account_num(account.account_num)
     member_names = [ member.name.fullname().lower() for member in members ]
 
-    entries = attestation.adults.copy()
-    entries.extend(attestation.minors)
-    attest_names = [ entry.name.lower() for entry in entries ]
+    attest_entries = { entry.name.lower():entry for entry in attestation.adults }
+    attest_entries.update({ entry.name.lower():entry for entry in attestation.minors })
 
     # Check all entries are members
-    for entry in entries:
+    for entry in attest_entries.values():
         if entry.name.lower() not in member_names:
             print(f"\tAttested name is not a member: {entry.name}")
+
     # Check all members are attested
     for member in members:
-        if member.name.fullname().lower() not in attest_names:
+        if member.name.fullname().lower() not in attest_entries:
             print(f"\tMember {member.name.fullname()} is not attested")
 
     # Check if attestation have emails when memberdata does not and check
     # if birthdays differ
-
+    for member in members:
+        if (entry := attest_entries.get(member.name.fullname().lower())) is not None:
+            if len(member.email) == 0 and len(entry.email) > 0:
+                print(f"\tEmail for {member.name} available: {entry.email}")
+            if (member.birthdate == datetime.date.min and 
+                entry.birthdate != datetime.date.min):
+                print(f"\tBrithday for {member.name} available: {entry.birthdate}")
 
             
     

@@ -61,5 +61,5 @@ Compare attestations.csv (built with extract_attest.py) with member data in the 
 files. 
 
 ## TODO
-- Download status files from gdrive automatically: https://devnodes.in/blog/web/python-export-google-sheet-to-csv/
+- Download status files from gdrive automatically: https://devnodes.in/blog/web/python-export-google-sheet-to-csv/. Try files.export: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/export
 - 
