@@ -48,11 +48,18 @@ Output:
 - new_email.csv: members that need an email added to the member database
 - change_email.csv: notes that email in the member database is different than the key
 
-### extract_attestation.py
+### extract_attest.py
 
 Extract information from signed PDF documents in the 2025 Household Attestations and Household Waiver files
 
 Note: need credentials.json to access gdrive data
 See: https://developers.google.com/workspace/drive/api/quickstart/python
 
+### review_attestations.py
 
+Compare attestations.csv (built with extract_attest.py) with member data in the member.csv and account.csv
+files. 
+
+## TODO
+- Download status files from gdrive automatically: https://devnodes.in/blog/web/python-export-google-sheet-to-csv/
+- 

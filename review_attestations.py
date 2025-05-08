@@ -29,6 +29,10 @@ def review_attestation(membership, attestation):
         if member.name.fullname().lower() not in attest_names:
             print(f"\tMember {member.name.fullname()} is not attested")
 
+    # Check if attestation have emails when memberdata does not and check
+    # if birthdays differ
+
+
             
     
 

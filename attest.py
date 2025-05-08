@@ -27,6 +27,17 @@ class Attestation:
         self.adults: list[AttestEntry] = []
         self.minors: list[AttestEntry] = []
 
+    def __str__(self):
+        result = self.file_name
+        result += "\n\t" + self.web_view_link
+        for adult in self.adults:
+            result += "\n\t" + str(adult)
+        for minor in self.minors:
+            result += "\n\t" + str(minor)
+
+        return result
+        
+
     # CSV fields
     FIELD_ADULT1 = "adult1"
     FIELD_ADULT1_EMAIL = "adult1_email"
@@ -204,7 +215,20 @@ class AttestationPDF:
         name = line[0:start]
         return AttestEntry(name.strip(), '', birthdate)
 
+MONTHS = [ "january", "february", "march", "april", "may", "june",
+           "july", "august", "september", "october", "november", "december" ]
+ABV_MONTHS = [ "jan", "feb", "mar", "apr", "may", "jun",
+               "jul", "aug", "sept", "oct", "nov", "dec" ]
 
+
+def lookup_month(month: str) -> int:
+    month = month.lower()
+    if month in MONTHS:
+        return MONTHS.index(month) + 1
+    if month in ABV_MONTHS:
+        return ABV_MONTHS.index(month) + 1
+    return 0
+    
 
 def find_date(line: str) -> tuple[int, datetime.date]:
     """
@@ -231,16 +255,39 @@ def find_date(line: str) -> tuple[int, datetime.date]:
         year = int(m.group(3))
         start = m.span()[0]
 
-    MONTHS = [ "January", "February", "March", "April", "May", "June",
-               "July", "August", "September", "October", "November", "December" ]
-    ABV_MONTHS = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                    "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" ]
+    if m is None:
+        # Try Month Day, Year or Month Day Year
+        m = re.search(r'(\w+)\s+(\d+),?\s+(\d+)', line)
+        if m is not None:
+            month = lookup_month(m.group(1))
+            if month != 0:
+                day = int(m.group(2))
+                year = int(m.group(3))
+                start = m.span()[0]
+            else:
+                m = None
 
+    if m is None:
+        # Try Day Month Year
+        m = re.search(r'(\d+)\s+(\w+)\s+(\d+)', line)
+        if m is not None:
+            month = lookup_month(m.group(2))
+            if month != 0:
+                day = int(m.group(1))
+                year = int(m.group(3))
+                start = m.span()[0]
+            else:
+                m = None
 
-    # TODO: Handle Month Day, Year format  (Month and Abbr Month and Abbr Month.)
-    # TODO: Handle Day Month Year
-    # TODO: Handle Year
-
+    if m is None:
+        # Try just Year
+        m = re.search(r'(\d+)\Z', line)
+        if m is not None:
+            year = int(m.group(1))
+            day = 1
+            month = 1
+            start = m.span()[0]
+ 
     date = datetime.date.min
 
     if year < 1900:
@@ -267,7 +314,7 @@ markers = [
     "Adult 4 (if applicable)",
     "Minor 1",
     "Minor 2",
-    "Minor 4",
+    "Minor 3",
     "Minor 4",
     "Minor 5",
 ]
@@ -291,9 +338,9 @@ def parse_attestation_pdf(in_file) -> AttestationPDF:
     adult = True
 
     for line in lines:
-        # print(line)
-        if markers[marker] == line.strip():
-            # print(f"found marker {markers[marker]}")
+        #print(line)
+        if marker < len(markers) and markers[marker] == line.strip():
+            #print(f"found marker {markers[marker]}")
             marker_found = True
             if marker > 3:
                 adult = False
@@ -311,5 +358,7 @@ def parse_attestation_pdf(in_file) -> AttestationPDF:
 
 if __name__ == "__main__":
     with open(sys.argv[1], "rb") as f:
-        attestation = parse_attestation_pdf(f)
+        attestation_pdf = parse_attestation_pdf(f)
+        print(attestation_pdf)
+        attestation = attestation_pdf.parse_attestation()
         print(attestation)
