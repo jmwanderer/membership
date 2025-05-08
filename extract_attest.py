@@ -76,6 +76,10 @@ def get_file_list(drive, folder_name):
     return items
 
 def download_file(drive, file_id) -> io.BytesIO():
+    """
+    Get a GDrive file by ID and return a bytes stream
+    """
+
     request = drive.files().get_media(fileId=file_id)
     file = io.BytesIO()
     downloader = MediaIoBaseDownload(file, request)
@@ -87,6 +91,13 @@ def download_file(drive, file_id) -> io.BytesIO():
 
 
 def main():
+    """
+    Scrape all attestation PDF files and create a CSV file
+    
+    TODO: update operation. Read CSV, scrape files, update, Write CSV
+    TODO: handle multiple copies of one attestation?
+    TODO: at least check for duplicates
+    """
     attestations = []
 
     login()

@@ -6,7 +6,7 @@ Scripts read input from input/
 
 - members.csv : export member list with email addresses
 - accounts.csv : export account list 
-- keys.csv : Key entries
+- keys.csv : key entries
 
 ## Tools
 

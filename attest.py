@@ -17,12 +17,17 @@ class AttestEntry:
 
 
 class Attestation:
+    """
+    Attestaton represtened as a line in a CSV file
+    """
+
     def __init__(self):
         self.file_name: str = ""
         self.web_view_link: str = ""
         self.adults: list[AttestEntry] = []
         self.minors: list[AttestEntry] = []
 
+    # CSV fields
     FIELD_ADULT1 = "adult1"
     FIELD_ADULT1_EMAIL = "adult1_email"
     FIELD_ADULT1_BIRTHDATE = "adult1_birthdate"
@@ -61,6 +66,9 @@ class Attestation:
                FIELD_NAME ]
 
     def get_row(self):
+        """
+        Generate a CSV row for this attestation
+        """
         row = [ '' ] * 24
         row[22] = self.file_name
         row[23] = self.web_view_link
@@ -83,6 +91,10 @@ class Attestation:
         return row
 
     def parse_row(self, row):
+        """
+        Initialize an attestation from a CSV row
+        """
+
         self.file_name = row[22]
         self.web_view_link = row[23]
         for index in range(0,4):
@@ -104,7 +116,11 @@ class Attestation:
                 self.minors.append(AttestEntry(name, '', date))
 
 def read_attestations_csv(attestations_csv_file = attestations_csv_filename) -> list[Attestation]:
+    """
+    Read attestations from a CSV file
+    """ 
     result = []
+    print(f"Note: reading attestations file '{attestations_csv_file}'")
 
     with open(attestations_csv_file, "r", newline="") as f:
         reader = csv.reader(f)
@@ -116,12 +132,13 @@ def read_attestations_csv(attestations_csv_file = attestations_csv_filename) -> 
             attestation = Attestation()
             attestation.parse_row(row)
             result.append(attestation)
+    print(f"Note: read {count} attestations")
     return result
 
 
 
 class AttestationPDF:
-    """Data from attestation
+    """Data from attestation PDF file
        Constains knowledge on how to extract information from lines in a PDF
     """
 
@@ -142,6 +159,9 @@ class AttestationPDF:
         return result
 
     def parse_attestation(self) -> Attestation:
+        """
+        Parse lines from the PDF file and return an Attestation class
+        """
         result = Attestation()
         result.file_name = self.file_name
         result.web_view_link = self.web_view_link
@@ -195,13 +215,15 @@ def find_date(line: str) -> tuple[int, datetime.date]:
     month = 0
     day = 0
     year = 0
-    start = -1
+    start = len(line)
 
     m = re.search(r'(\d+)/(\d+)/(\d+)', line) 
     if m is None:
         m = re.search(r'(\d+)-(\d+)-(\d+)', line)
     if m is None:
         m = re.search(r'(\d\d)(\d\d)(\d+)', line)
+    if m is None:
+        m = re.search(r'(\d\d).(\d\d).(\d+)', line)
 
     if m is not None:
         month = int(m.group(1))
@@ -209,7 +231,15 @@ def find_date(line: str) -> tuple[int, datetime.date]:
         year = int(m.group(3))
         start = m.span()[0]
 
-    # TODO: Handle Month Day, Year format
+    MONTHS = [ "January", "February", "March", "April", "May", "June",
+               "July", "August", "September", "October", "November", "December" ]
+    ABV_MONTHS = [ "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sept", "Oct", "Nov", "Dec" ]
+
+
+    # TODO: Handle Month Day, Year format  (Month and Abbr Month and Abbr Month.)
+    # TODO: Handle Day Month Year
+    # TODO: Handle Year
 
     date = datetime.date.min
 
@@ -221,7 +251,7 @@ def find_date(line: str) -> tuple[int, datetime.date]:
             year += 2000
 
     try:
-        if start > -1:
+        if start < len(line):
             date = datetime.date(year, month, day)
     except ValueError:
         pass
@@ -229,7 +259,7 @@ def find_date(line: str) -> tuple[int, datetime.date]:
 
         
             
-
+# Strings in the PDF file to scrape
 markers = [
     "Proprietary Member Name:",
     "Adult 2 (if applicable):",
@@ -244,6 +274,11 @@ markers = [
 
 
 def parse_attestation_pdf(in_file) -> AttestationPDF:
+    """
+    Read a PDF file and extract specific lines
+    
+    Note: mostly works. Will fail when values wrap to two lines.
+    """
     attestation = AttestationPDF()
     lines = []
     with pdfplumber.open(in_file) as pdf:

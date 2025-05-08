@@ -24,7 +24,7 @@ class MemberName:
     last_name: str
 
     def fullname(self):
-        return f"{first_name} {last_name}"
+        return f"{self.first_name} {self.last_name}"
 
     def __eq__(self, other):
         return self.first_name == other.first_name and self.last_name == other.last_name
@@ -142,13 +142,27 @@ class Membership:
         return self.member_map[member_name]
 
     def get_members_by_fullname(self, member_name: str) -> list[MemberEntry]:
-        return self.member_name_map[member_name]
+        return self.member_name_map[member_name.lower()]
 
     def accounts(self) -> list[AccountEntry]:
         result: list[AccountEntry]
         result = list(self.account_map.values())
         return result
 
+    def get_account_by_fullname(self, fullname) -> AccountEntry | None:
+        members = self.member_name_map.get(fullname.lower())
+        if members is None or len(members) == 0:
+            return None
+
+        account_num = None
+        for member in members:
+            if account_num == None:
+                account_num = member.account_num
+            else:
+                if account_num != member.account_num:
+                    print("Error: multiple accounts for {fullname}")
+        return self.account_map[account_num]
+            
     def get_members_for_account_num(self, account_num: str) -> list[MemberEntry]:
         if account_num not in self.account_map:
             print("Warning: Account {account_num} does not exist.")
@@ -212,8 +226,9 @@ class Membership:
                 )
                 if name not in self.member_map:
                     self.member_map[name] = []
-                    self.member_name_map[name.fullname()] = []
+                    self.member_name_map[name.fullname().lower()] = []
                 self.member_map[name].append(member)
+                self.member_name_map[name.fullname().lower()].append(member)
 
                 # Birthday stuff
                 # if member.hasBirthdate():
