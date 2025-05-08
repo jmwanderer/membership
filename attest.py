@@ -217,16 +217,21 @@ class AttestationPDF:
 
 MONTHS = [ "january", "february", "march", "april", "may", "june",
            "july", "august", "september", "october", "november", "december" ]
-ABV_MONTHS = [ "jan", "feb", "mar", "apr", "may", "jun",
-               "jul", "aug", "sept", "oct", "nov", "dec" ]
+ABV1_MONTHS = [ "jan", "feb", "mar", "apr", "may", "jun",
+                "jul", "aug", "sept", "oct", "nov", "dec" ]
+ABV2_MONTHS = [ "jan", "feb", "mar", "apr", "may", "jun",
+                "jul", "aug", "sep", "oct", "nov", "dec" ]
+
 
 
 def lookup_month(month: str) -> int:
     month = month.lower()
     if month in MONTHS:
         return MONTHS.index(month) + 1
-    if month in ABV_MONTHS:
-        return ABV_MONTHS.index(month) + 1
+    if month in ABV1_MONTHS:
+        return ABV1_MONTHS.index(month) + 1
+    if month in ABV2_MONTHS:
+        return ABV2_MONTHS.index(month) + 1
     return 0
     
 
@@ -236,6 +241,7 @@ def find_date(line: str) -> tuple[int, datetime.date]:
     Return the starting point of the date in the string and
     a date in standard format.
     """
+    # TODO: consider handling spaces:  XX XX XXXX
     month = 0
     day = 0
     year = 0
@@ -247,7 +253,7 @@ def find_date(line: str) -> tuple[int, datetime.date]:
     if m is None:
         m = re.search(r'(\d\d)(\d\d)(\d+)', line)
     if m is None:
-        m = re.search(r'(\d\d).(\d\d).(\d+)', line)
+        m = re.search(r'(\d\d)\.(\d\d)\.(\d+)', line)
 
     if m is not None:
         month = int(m.group(1))
@@ -256,8 +262,16 @@ def find_date(line: str) -> tuple[int, datetime.date]:
         start = m.span()[0]
 
     if m is None:
+        # Try month / year
+        m = re.search(r'(\d+)/(\d+)', line) 
+        if m is not None:
+            month = int(m.group(1))
+            day = 1
+            year = int(m.group(2))
+ 
+    if m is None:
         # Try Month Day, Year or Month Day Year
-        m = re.search(r'(\w+)\s+(\d+),?\s+(\d+)', line)
+        m = re.search(r'(\w+)\.?\s+(\d+),?\s+(\d+)', line)
         if m is not None:
             month = lookup_month(m.group(1))
             if month != 0:
@@ -265,11 +279,12 @@ def find_date(line: str) -> tuple[int, datetime.date]:
                 year = int(m.group(3))
                 start = m.span()[0]
             else:
+                print(f"month lookup failed {m.group(1)}")
                 m = None
 
     if m is None:
         # Try Day Month Year
-        m = re.search(r'(\d+)\s+(\w+)\s+(\d+)', line)
+        m = re.search(r'(\d+)\s+(\w+)\.?\s+(\d+)', line)
         if m is not None:
             month = lookup_month(m.group(2))
             if month != 0:

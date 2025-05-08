@@ -38,8 +38,6 @@ def review_attestation(membership, attestation):
             if (member.birthdate == datetime.date.min and 
                 entry.birthdate != datetime.date.min):
                 print(f"\tBrithday for {member.name} available: {entry.birthdate}")
-
-            
     
 
 def main():
