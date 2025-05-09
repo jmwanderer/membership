@@ -18,17 +18,35 @@ import attest
 import memberdata
 
 waiver_out_filename = "output/signed_waivers.csv"
-WAIVER_CSV_HEADER = [ "Acct#", "Member#", "First Name", "Last Name", "Type", "Signed", "Doc Link" ]
-
-
 @dataclass
 class SignedWaiver:
     """Represents an member covered by a waiver"""
 
     member: memberdata.MemberEntry
     doc_link: str
+    waiver_signed: bool
     
-    
+    FIELD_ACCOUNT_NUM = "Acct#"
+    FIELD_MEMBER_ID = "Member#"
+    FIELD_FIRST_NAME = "First Name"
+    FIELD_LAST_NAME  = "Last Name"
+    FIELD_MEMBER_TYPE = "Type"
+    FIELD_WAIVER_SIGNED = "Signed"
+    FIELD_DOC_LINK = "Doc Link"
+
+    def get_header():
+        return [ SignedWaiver.FIELD_ACCOUNT_NUM, SignedWaiver.FIELD_MEMBER_ID, SignedWaiver.FIELD_FIRST_NAME, SignedWaiver.FIELD_LAST_NAME , SignedWaiver.FIELD_MEMBER_TYPE, SignedWaiver.FIELD_WAIVER_SIGNED, SignedWaiver.FIELD_DOC_LINK ]
+
+    def get_row(self) -> dict[str,str]:
+        row = { SignedWaiver.FIELD_ACCOUNT_NUM: self.member.account_num,
+                SignedWaiver.FIELD_MEMBER_ID: self.member.member_id, 
+                SignedWaiver.FIELD_FIRST_NAME: self.member.name.first_name, 
+                SignedWaiver.FIELD_LAST_NAME: self.member.name.last_name, 
+                SignedWaiver.FIELD_MEMBER_TYPE: self.member.member_type,
+                SignedWaiver.FIELD_WAIVER_SIGNED: "YES", 
+                SignedWaiver.FIELD_DOC_LINK:self.doc_link }
+        return row
+
 
 
 def main():
@@ -50,17 +68,13 @@ def main():
             print(f"Error: unable to determine signer {signing_name} in doc {entry.web_view_link}")
             continue
 
-        waivers.append(SignedWaiver(members[0], entry.web_view_link))
+        waivers.append(SignedWaiver(members[0], entry.web_view_link, True))
 
     output_file = open(waiver_out_filename, "w", newline="")
-    output_csv = csv.writer(output_file)
-    output_csv.writerow(WAIVER_CSV_HEADER)
+    output_csv = csv.DictWriter(output_file, fieldnames=SignedWaiver.get_header())
     
     for waiver in waivers:
-        output_csv.writerow([ waiver.member.account_num,
-                              waiver.member.member_id, waiver.member.name.first_name, 
-                              waiver.member.name.last_name, waiver.member.member_type,
-                              "YES", waiver.doc_link ])
+        output_csv.writerow(waiver.get_row())
     output_file.close()
     print(f"Note: created {waiver_out_filename}")
 
