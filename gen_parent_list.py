@@ -1,29 +1,23 @@
 """
 Generate list of member parents with minor children.
 
-Create two lists - one for single parent and one for double parent households
-
-Input: members.csv, accounts.csv
-Output: parents.csv
+Output: parent_list.csv
 """
 
 import csv
 import memberdata
 
 
-def has_minor_children(membership: memberdata.Membership, account_num: str) -> bool:
-    for member in membership.get_members_for_account_num(account_num):
-        if member.is_minor():
-            return True
-    return False
 
-
-def select_parents(
+def select_possible_parents(
     membership: memberdata.Membership, account: memberdata.AccountEntry
 ) -> list[memberdata.MemberEntry]:
     """
-    Guess which members are the parents of minor children.
+    Identify adults that may be parents of minor children.
     """
+    if not membership.has_minor_children(account.account_num):
+        return []
+
     members = membership.get_members_for_account_num(account.account_num)
 
     # get minor min age
@@ -53,6 +47,17 @@ def select_parents(
 
         possible_parents.append(member)
 
+    return possible_parents
+   
+
+def select_parents(
+    membership: memberdata.Membership, account: memberdata.AccountEntry
+) -> list[memberdata.MemberEntry]:
+    """
+    Guess which members are the parents of minor children.
+    """
+    possible_parents = select_possible_parents(membership, account)
+
     # if > 15 years between parents, not sure
     if len(possible_parents) == 2:
         member1 = possible_parents[0]
@@ -77,7 +82,7 @@ def dump_results(membership: memberdata.Membership):
 
     # Iterate over all accounts
     for account_entry in membership.accounts():
-        if not has_minor_children(membership, account_entry.account_num):
+        if not membership.has_minor_children(account_entry.account_num):
             no_minors += 1
             continue
 
@@ -129,7 +134,7 @@ membership.read_csv_files()
 # Create a list of parents of minor children
 output_file = open(output_filename, "w", newline="")
 output_csv = csv.writer(output_file)
-row = ["Account#", "name", "email_address", "name2", "email_address2", "minors"]
+row = ["Account#", "name", "email_address", "name2", "email_address2", "minor1", "minor2", "minor3", "minor4", "minor5" ]
 output_csv.writerow(row)
 
 no_minors_count = 0
@@ -141,7 +146,7 @@ for account_entry in membership.accounts():
     if account_entry.is_staff():
         continue
 
-    if not has_minor_children(membership, account_entry.account_num):
+    if not membership.has_minor_children(account_entry.account_num):
         no_minors_count += 1
         continue
 
@@ -152,27 +157,26 @@ for account_entry in membership.accounts():
     email = ""
     name2 = ""
     email2 = ""
-    minors = ""
+    minors = []
 
     if len(parents) == 0:
         unknown_parents_count += 1
     else:
         known_parents_count += 1
-        name = str(parents[0].name)
+        name = parents[0].name.fullname()
         email = parents[0].email
 
     if len(parents) > 1:
-        name2 = str(parents[1].name)
+        name2 = parents[1].name.fullname()
         email2 = parents[1].email
 
     members = membership.get_members_for_account_num(account_entry.account_num)
-    minor_list = []
     for member in members:
         if member.is_minor():
-            minor_list.append(str(member.name))
-    minors = ";".join(minor_list)
+            minors.append(member.name.fullname())
 
-    row = [account_entry.account_num, name, email, name2, email2, minors]
+    row = [ account_entry.account_num, name, email, name2, email2]
+    row.extend(minors)
     output_csv.writerow(row)
 
 output_file.close()

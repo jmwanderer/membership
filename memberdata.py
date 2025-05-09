@@ -95,6 +95,9 @@ class AccountEntry:
     def is_proprietary_member(self) -> bool:
         return self.account_type == "Proprietary Member Annual"
 
+    def is_alumni_pass(self) -> bool:
+        return self.account_type == "Special Leave with Alumni Passes"
+
     def is_staff(self) -> bool:
         return self.account_type == "Staff"
 
@@ -173,6 +176,12 @@ class Membership:
             if member.account_num == account_num:
                 result.append(member)
         return result
+
+    def has_minor_children(self, account_num: str) -> bool:
+        for member in self.get_members_for_account_num(account_num):
+            if member.is_minor():
+                return True
+        return False
 
     def all_members(self) -> Iterator[MemberEntry]:
         for entries in self.member_map.values():
