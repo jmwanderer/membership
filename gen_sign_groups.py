@@ -181,6 +181,8 @@ def write_groups(groups: MemberWaiverGroupings):
             row.extend([ '', '' ])
         for member in family.minors:
             row.append(member.name.fullname())
+        while len(row) < 10:
+            row.extend([ '' ])
         output_csv.writerow(row)
     output_file.close()
     print(f"Note: created file {output_filename}")
@@ -199,6 +201,8 @@ def write_groups(groups: MemberWaiverGroupings):
             row.extend([ '', '' ])
         for member in family.minors:
             row.append(member.name.fullname())
+        while len(row) < 14:
+            row.extend([ '' ])
         output_csv.writerow(row)
     output_file.close()
     print(f"Note: created file {output_filename}")
