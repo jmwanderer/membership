@@ -144,6 +144,23 @@ class Membership:
     def get_members_by_name(self, member_name: MemberName) -> list[MemberEntry]:
         return self.member_map[member_name]
 
+    def find_members_by_name(self, member_name: MemberName) -> list[MemberEntry]:
+        """
+        search for members that have semi-matching names
+        """
+        result: list[MemberEntry] = []
+        for name, members in self.member_map.items():
+            if (name.first_name.startswith(member_name.first_name) and
+                name.last_name.startswith(member_name.last_name)):
+                result.extend(members)
+        if len(result) > 0:
+            return result
+        for name, members in self.member_map.items():
+            if (member_name.first_name.startswith(name.first_name) and
+                member_name.last_name.startswith(name.last_name)):
+                result.extend(members)
+        return result
+ 
     def get_members_by_fullname(self, member_name: str) -> list[MemberEntry]:
         return self.member_name_map[member_name.lower()]
 

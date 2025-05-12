@@ -63,3 +63,13 @@ files.
 ## TODO
 - Download status files from gdrive automatically: https://devnodes.in/blog/web/python-export-google-sheet-to-csv/. Try files.export: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/export
 - 
+
+### nametoids.py
+
+Read names from a CSV and lookup matching members. Write member ids and account ids to temp files to use in
+updating another file
+
+### updaterows.py
+
+Mark or clear a file in rows that match member ids or account ids saved by nametoids.py
+Create a new file, <filename>.markup.csv
