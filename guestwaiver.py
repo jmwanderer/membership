@@ -133,8 +133,8 @@ def simple_test():
     waiver.adult_signer = "Erica"
     waiver.minors.append("Parth")
     waiver.date_signed = datetime.date.fromisoformat("2018-10-21")
-    waiver.file_name = "waiver1.pdf"
-    waiver.web_view_link = "http://web.com/waiver1.pdf"
+    waiver.file_name = "waiver2.pdf"
+    waiver.web_view_link = "http://web.com/waiver2.pdf"
     waivers.append(waiver)
     write_csv(waivers)
     waivers = read_csv()

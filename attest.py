@@ -148,129 +148,48 @@ def read_attestations_csv(attestations_csv_file = attestations_csv_filename) -> 
     print(f"Note: read {count} attestations")
     return result
 
-
-
-class AttestationPDF:
-    """Data from attestation PDF file
-       Constains knowledge on how to extract information from lines in a PDF
+def write_attestations_csv(attestations: list[Attestation], attestations_csv_file = attestations_csv_filename):
     """
-
-    def __init__(self):
-        self.file_name: str = ""
-        self.web_view_link: str = ""
-        self.adults: list[str] = []
-        self.minors: list[str] = []
-
-    def __str__(self):
-        result = f"file: {self.file_name}"
-        result += "\nAdults:"
-        for adult in self.adults:
-            result += "\n\t" + adult
-        result += "\nMinors:"
-        for minor in self.minors:
-            result += "\n\t" + minor
-        return result
-
-    def parse_attestation(self) -> Attestation:
-        """
-        Parse lines from the PDF file and return an Attestation class
-        """
-        result = Attestation()
-        result.file_name = self.file_name
-        result.web_view_link = self.web_view_link
-        for entry in self._getAdultMemberEntries():
-            result.adults.append(entry)
-        for entry in self._getMinorMemberEntries():
-            result.minors.append(entry)
-        return result
-
-    def _getAdultMemberEntries(self) -> list[AttestEntry]:
-        result: list[AttestEntry] = []
-
-        for line in self.adults:
-            result.append(AttestationPDF._parseAdult(line))
-        return result
-                
-    def _getMinorMemberEntries(self) -> list[AttestEntry]:
-        result: list[AttestEntry] = []
-
-        for line in self.minors:
-            result.append(AttestationPDF._parseMinor(line))
-        return result
-
-    def _parseAdult(line: str) -> AttestEntry:
-        # Look for an email address
-        m = re.search(r'\S+@\S+', line)
-        if m:
-            email = m.group(0)
-            name = line[0 : m.span()[0]]
-            _, birthdate = dateutil.find_date(line[m.span()[1]:])
-        else:
-            start, birthdate = dateutil.find_date(line)
-            name = line[0:start]
-            email = ''
-
-        return AttestEntry(name.strip(), email.strip(), birthdate)
-
-    def _parseMinor(line: str) -> AttestEntry:
-        start, birthdate = dateutil.find_date(line)
-        name = line[0:start]
-        return AttestEntry(name.strip(), '', birthdate)
-        
-            
-# Strings in the PDF file to scrape
-markers = [
-    "Proprietary Member Name:",
-    "Adult 2 (if applicable):",
-    "Adult 3 (if applicable)",
-    "Adult 4 (if applicable)",
-    "Minor 1",
-    "Minor 2",
-    "Minor 3",
-    "Minor 4",
-    "Minor 5",
-]
-
-
-def parse_attestation_pdf(in_file) -> AttestationPDF:
+    Write a set of attesttions to a CSV file
     """
-    Read a PDF file and extract specific lines
-    
-    Note: mostly works. Will fail when values wrap to two lines.
-    """
-    attestation = AttestationPDF()
-    lines = []
-    with pdfplumber.open(in_file) as pdf:
-        for page in pdf.pages:
-            text = page.extract_text_simple()
-            lines.extend(text.split("\n"))
+    print(f"Note: writing attestations file '{attestations_csv_file}'")
 
-    marker = 0
-    marker_found = False
-    adult = True
+    with open(attestations_csv_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(Attestation.HEADER)
+        for attestation in attestations:
+            writer.writerow(attestation.get_row())
+        f.close()
+    print(f"Note: write {len(attestations)} attestation records")
+ 
 
-    for line in lines:
-        #print(line)
-        if marker < len(markers) and markers[marker] == line.strip():
-            #print(f"found marker {markers[marker]}")
-            marker_found = True
-            if marker > 3:
-                adult = False
-            marker += 1
-        elif marker_found:
-            marker_found = False
-            if len(line.strip()) > 0:
-                if adult:
-                    attestation.adults.append(line.strip())
-                else:
-                    attestation.minors.append(line.strip())
+def simple_test():
+    write_attestations_csv([])
+    attests = read_attestations_csv()
+    assert(len(attests) == 0)
 
-    return attestation
+    attest = Attestation()
+    attest.adults.append(AttestEntry("Jim", "jim@example.com", datetime.date.fromisoformat("2012-12-12")))
+    attest.web_view_link = "http://www.example.com/view1"
+    attests.append(attest)
 
+    attest = Attestation()
+    attest.adults.append(AttestEntry("adult1", "adult1@example.com", datetime.date.fromisoformat("2012-12-01")))
+    attest.adults.append(AttestEntry("adult2", "adult2@example.com", datetime.date.fromisoformat("2012-12-02")))
+    attest.adults.append(AttestEntry("adult3", "adult3@example.com", datetime.date.fromisoformat("2012-12-03")))
+    attest.adults.append(AttestEntry("adult4", "adult4@example.com", datetime.date.fromisoformat("2012-12-04")))
+    attest.minors.append(AttestEntry("minor1", "email1@example.com", datetime.date.fromisoformat("2020-01-01")))
+    attest.minors.append(AttestEntry("minor2", "email2@example.com", datetime.date.fromisoformat("2020-01-02")))
+    attest.minors.append(AttestEntry("minor3", "email3@example.com", datetime.date.fromisoformat("2020-01-03")))
+    attest.minors.append(AttestEntry("minor4", "email4@example.com", datetime.date.fromisoformat("2020-01-04")))
+    attest.minors.append(AttestEntry("minor5", "email5@example.com", datetime.date.fromisoformat("2020-01-05")))
+    attest.web_view_link = "http://www.example.com/view2"
+    attest.file_name = "attest.pdf"
+    attests.append(attest)
+
+    write_attestations_csv(attests)
+    attests = read_attestations_csv()
+    assert(len(attests) == 2)
 
 if __name__ == "__main__":
-    with open(sys.argv[1], "rb") as f:
-        attestation_pdf = parse_attestation_pdf(f)
-        print(attestation_pdf)
-        attestation = attestation_pdf.parse_attestation()
-        print(attestation)
+    simple_test()

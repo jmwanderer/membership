@@ -7,6 +7,7 @@ import datetime
 from googleapiclient.discovery import build
 
 import attest
+import parse_pdf
 import gdrive
 
 
@@ -36,7 +37,7 @@ def main():
     for file in files:
         print(f"{file['name']}")
         file_data = gdrive.download_file(drive, file['id'])
-        attestation_pdf = attest.parse_attestation_pdf(file_data)
+        attestation_pdf = parse_pdf.parse_attestation_pdf(file_data)
         attestation_pdf.file_name = file['name']
         attestation_pdf.web_view_link = file['webViewLink']
         attestation = attestation_pdf.parse_attestation()

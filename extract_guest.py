@@ -11,7 +11,7 @@ import datetime
 
 from googleapiclient.discovery import build
 
-import parse_guest
+import parse_pdf
 import guestwaiver
 import dateutil
 import gdrive
@@ -35,7 +35,7 @@ def main():
     for file in files:
         print(f"{file['name']}")
         file_data = gdrive.download_file(drive, file['id'])
-        waiver_pdf = parse_guest.parse_waiver_pdf(file_data)
+        waiver_pdf = parse_pdf.parse_guest_waiver_pdf(file_data)
         print(waiver_pdf)
         file_name = file['name']
         web_view_link = file['webViewLink']
