@@ -149,6 +149,10 @@ class Membership:
         search for members that have semi-matching names
         """
         result: list[MemberEntry] = []
+
+        if member_name in self.member_map:
+            return self.member_map[member_name]
+
         for name, members in self.member_map.items():
             if (name.first_name.startswith(member_name.first_name) and
                 name.last_name.startswith(member_name.last_name)):
@@ -193,6 +197,14 @@ class Membership:
             if member.account_num == account_num:
                 result.append(member)
         return result
+
+    def get_member_by_id(self, member_id: str) -> MemberEntry | None:
+        for members in self.member_map.values():
+            for member in members:
+                if member.member_id == member_id:
+                    return member
+        return None
+        
 
     def has_minor_children(self, account_num: str) -> bool:
         for member in self.get_members_for_account_num(account_num):

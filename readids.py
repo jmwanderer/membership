@@ -11,35 +11,21 @@ import io
 import sys
 import memberdata
 
-def read_name_columns(stream: io.TextIOBase, fn_col: str, ln_col: str) -> list[memberdata.MemberName]:
-    print(f"Note: reading CSV from stdin...")
+def read_id_column(membership: memberdata.Membership, 
+                    stream: io.TextIOBase) -> list[memberdata.MemberEntry]:
     result = []
     count = 0
     reader = csv.DictReader(stream)
     for row in reader:
-        count += 1
-        result.append(memberdata.MemberName(row[fn_col], row[ln_col]))
-    print(f"Note: read {len(result)} rows")
-    return result
-
-def lookup_ids(membership: memberdata.Membership,
-               member_names: list[memberdata.MemberName]) -> tuple[list[str], list[str]]:
-    account_ids: list[str] = []
-    member_ids: list[str] = []
-
-    for name in member_names:
-        members = membership.find_members_by_name(name)
-        if len(members) != 1:
-            print(f"Warning: found {len(members)} records matching {name}")
-        if len(members) == 0:
+        member_id = row["Member#"]
+        member = membership.get_member_by_id(member_id)
+        if member is None:
+            print(f"Warning: no member for id {member_id} found.")
             continue
-        if members[0].account_num not in account_ids:
-            account_ids.append(members[0].account_num)
-        if members[0].member_id not in member_ids:
-            member_ids.append(members[0].member_id)
-    print(f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(member_names)} records.")
-    return account_ids, member_ids
-        
+        count += 1
+        result.append(member)
+    print(f"Note: found {len(result)} members")
+    return result
         
 
 def main(input_filename: str):
@@ -47,12 +33,15 @@ def main(input_filename: str):
     membership = memberdata.Membership()
     membership.read_csv_files()
 
-    ln_col = "Last Name"
-    fn_col = "First Name"
-
     input_file = open(input_filename, newline="")
-    member_names = read_name_columns(input_file, fn_col, ln_col)
-    account_ids, member_ids = lookup_ids(membership, member_names)
+    members = read_id_column(membership, input_file)
+    account_ids = []
+    member_ids = []
+    for member in members:
+        if member.account_num not in account_ids:
+            account_ids.append(member.account_num)
+        if member.member_id not in member_ids:
+            member_ids.append(member.member_id)
     input_file.close()
 
     # Write account ids

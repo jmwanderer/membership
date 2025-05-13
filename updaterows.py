@@ -50,9 +50,8 @@ def get_output_filename(filename: str):
         return None
     return f"{m.group(1)}.markup.csv"
 
-ids_filename = "output/ids.csv"
 
-def read_ids_file(id_filename: str) -> list[str]:
+def read_ids_file(ids_filename: str) -> list[str]:
     ids_file = open(ids_filename, "r", newline="")
     ids_csv = csv.reader(ids_file) 
     ids_list = []

@@ -72,6 +72,7 @@ def main():
 
     output_file = open(waiver_out_filename, "w", newline="")
     output_csv = csv.DictWriter(output_file, fieldnames=SignedWaiver.get_header())
+    output_csv.writeheader()
     
     for waiver in waivers:
         output_csv.writerow(waiver.get_row())
