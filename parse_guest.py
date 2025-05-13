@@ -1,3 +1,9 @@
+"""
+Parse Guest PDF waivers
+
+Extract signer's name, list of minor age persons, and date completed.
+"""
+
 import re
 import sys
 
@@ -10,9 +16,9 @@ class GuestWaiverPDF:
         self.date: str = ""
 
     def __str__(self):
-        result = f"Date: {self.date} - by {self.adult}\nMinors:\n"
+        result = f"Date: {self.date} - by {self.adult}\nMinors:"
         for minor in self.minors:
-            result += f"\t{minor}"
+            result += f"\n\t{minor}"
         return result
 
             
@@ -47,9 +53,9 @@ def parse_waiver_pdf(in_file) -> GuestWaiverPDF:
     adult = True
 
     for line in lines:
-        print(line)
+        #print(line)
         if marker < len(MARKERS) and MARKERS[marker] == line.strip():
-            print(f"found marker {MARKERS[marker]}")
+            #print(f"found marker {MARKERS[marker]}")
             marker_found = True
             marker += 1
         elif marker_found:
@@ -63,7 +69,7 @@ def parse_waiver_pdf(in_file) -> GuestWaiverPDF:
             # Look for DATE_STR
             m = re.search(DATE_STR, line.strip())
             if m is not None:
-                print(f"found DATE_STR {m}")
+                #print(f"found DATE_STR {m}")
                 waiver.date = line[0:m.span()[0]]
 
     return waiver
