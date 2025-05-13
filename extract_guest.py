@@ -8,9 +8,12 @@ import pickle
 import csv
 import datetime
 
+
 from googleapiclient.discovery import build
 
 import parse_guest
+import guestwaiver
+import dateutil
 import gdrive
 
 
@@ -18,7 +21,7 @@ def main():
     """
     Scrape guest waiver PDF files and create a CSV file
     """
-    waivers: list[parse_guest.GuestWaiverPDF] = []
+    waivers: list[guestwaiver.GuestWaiver] = []
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
@@ -37,22 +40,18 @@ def main():
         file_name = file['name']
         web_view_link = file['webViewLink']
         print(web_view_link)
+        waiver = guestwaiver.GuestWaiver()
+        print(f"date {waiver_pdf.date}")
+        _, date_signed = dateutil.find_date(waiver_pdf.date)
+        waiver.date_signed = date_signed
+        waiver.adult_signer = waiver_pdf.adult
+        waiver.minors = waiver_pdf.minors.copy()
+        waiver.file_name = file_name
+        waiver.web_view_link = web_view_link
+        waivers.append(waiver)
 
-
-
-def test_load_attestations():
-    attestations = attest.read_attestations_csv()
-
-    for attestation in attestations:
-        print(f"file: {attestation.file_name}")
-        print(f"weblink: {attestation.web_view_link}")
-        for adult in attestation.adults:
-            print(f"Adult: {adult.name}, email: {adult.email}, birthday: {adult.birthdate}")
-        for child in attestation.minors:
-            print(f"Child: {child.name}, email: {child.email}, birthday: {child.birthdate}")
-        print()
+    guestwaiver.write_csv(waivers)
 
 
 if __name__ == "__main__":
-    #test_load_attestations()
     main()

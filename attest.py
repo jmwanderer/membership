@@ -6,6 +6,8 @@ import csv
 
 import pdfplumber
 
+import dateutil
+
 attestations_csv_filename = "output/attestations.csv"
 
 @dataclass
@@ -202,123 +204,18 @@ class AttestationPDF:
         if m:
             email = m.group(0)
             name = line[0 : m.span()[0]]
-            _, birthdate = find_date(line[m.span()[1]:])
+            _, birthdate = dateutil.find_date(line[m.span()[1]:])
         else:
-            start, birthdate = find_date(line)
+            start, birthdate = dateutil.find_date(line)
             name = line[0:start]
             email = ''
 
         return AttestEntry(name.strip(), email.strip(), birthdate)
 
     def _parseMinor(line: str) -> AttestEntry:
-        start, birthdate = find_date(line)
+        start, birthdate = dateutil.find_date(line)
         name = line[0:start]
         return AttestEntry(name.strip(), '', birthdate)
-
-MONTHS = [ "january", "february", "march", "april", "may", "june",
-           "july", "august", "september", "october", "november", "december" ]
-ABV1_MONTHS = [ "jan", "feb", "mar", "apr", "may", "jun",
-                "jul", "aug", "sept", "oct", "nov", "dec" ]
-ABV2_MONTHS = [ "jan", "feb", "mar", "apr", "may", "jun",
-                "jul", "aug", "sep", "oct", "nov", "dec" ]
-
-
-
-def lookup_month(month: str) -> int:
-    month = month.lower()
-    if month in MONTHS:
-        return MONTHS.index(month) + 1
-    if month in ABV1_MONTHS:
-        return ABV1_MONTHS.index(month) + 1
-    if month in ABV2_MONTHS:
-        return ABV2_MONTHS.index(month) + 1
-    return 0
-    
-
-def find_date(line: str) -> tuple[int, datetime.date]:
-    """
-    Search for a state in the line str.
-    Return the starting point of the date in the string and
-    a date in standard format.
-    """
-    # TODO: consider handling spaces:  XX XX XXXX
-    month = 0
-    day = 0
-    year = 0
-    start = len(line)
-
-    m = re.search(r'(\d+)/(\d+)/(\d+)', line) 
-    if m is None:
-        m = re.search(r'(\d+)-(\d+)-(\d+)', line)
-    if m is None:
-        m = re.search(r'(\d\d)(\d\d)(\d+)', line)
-    if m is None:
-        m = re.search(r'(\d\d)\.(\d\d)\.(\d+)', line)
-
-    if m is not None:
-        month = int(m.group(1))
-        day = int(m.group(2))
-        year = int(m.group(3))
-        start = m.span()[0]
-
-    if m is None:
-        # Try month / year
-        m = re.search(r'(\d+)/(\d+)', line) 
-        if m is not None:
-            month = int(m.group(1))
-            day = 1
-            year = int(m.group(2))
- 
-    if m is None:
-        # Try Month Day, Year or Month Day Year
-        m = re.search(r'(\w+)\.?\s+(\d+),?\s+(\d+)', line)
-        if m is not None:
-            month = lookup_month(m.group(1))
-            if month != 0:
-                day = int(m.group(2))
-                year = int(m.group(3))
-                start = m.span()[0]
-            else:
-                print(f"month lookup failed {m.group(1)}")
-                m = None
-
-    if m is None:
-        # Try Day Month Year
-        m = re.search(r'(\d+)\s+(\w+)\.?\s+(\d+)', line)
-        if m is not None:
-            month = lookup_month(m.group(2))
-            if month != 0:
-                day = int(m.group(1))
-                year = int(m.group(3))
-                start = m.span()[0]
-            else:
-                m = None
-
-    if m is None:
-        # Try just Year
-        m = re.search(r'(\d+)\Z', line)
-        if m is not None:
-            year = int(m.group(1))
-            day = 1
-            month = 1
-            start = m.span()[0]
- 
-    date = datetime.date.min
-
-    if year < 1900:
-        # TODO: fix this check
-        if year > 26:
-            year += 1900
-        else:
-            year += 2000
-
-    try:
-        if start < len(line):
-            date = datetime.date(year, month, day)
-    except ValueError:
-        pass
-    return (start, date)
-
         
             
 # Strings in the PDF file to scrape
