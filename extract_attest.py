@@ -48,19 +48,5 @@ def main():
     print(f"Wrote output: {attest.attestations_csv_filename}")
 
 
-def test_load_attestations():
-    attestations = attest.read_attestations_csv()
-
-    for attestation in attestations:
-        print(f"file: {attestation.file_name}")
-        print(f"weblink: {attestation.web_view_link}")
-        for adult in attestation.adults:
-            print(f"Adult: {adult.name}, email: {adult.email}, birthday: {adult.birthdate}")
-        for child in attestation.minors:
-            print(f"Child: {child.name}, email: {child.email}, birthday: {child.birthdate}")
-        print()
-
-
 if __name__ == "__main__":
-    #test_load_attestations()
     main()
