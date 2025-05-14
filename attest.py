@@ -1,12 +1,6 @@
 from dataclasses import dataclass
 import datetime
-import re
-import sys
 import csv
-
-import pdfplumber
-
-import dateutil
 
 attestations_csv_filename = "output/attestations.csv"
 
@@ -52,7 +46,7 @@ class Attestation:
     FIELD_ADULT3_BIRTHDATE = "adult3_birthdate"
     FIELD_ADULT4 = "adult4"
     FIELD_ADULT4_EMAIL = "adult4_email"
-    FIELD_ADULT4_BIRTHDATE = "adult1_birthdate"
+    FIELD_ADULT4_BIRTHDATE = "adult4_birthdate"
     FIELD_MINOR1 = "minor1"
     FIELD_MINOR1_BIRTHDATE = "minor1_birthdate"
     FIELD_MINOR2 = "minor2"
