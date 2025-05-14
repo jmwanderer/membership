@@ -58,12 +58,15 @@ def get_file_list(drive, folder_name):
     # this gives us a list of all folders with that name
     folderIdResult = folderId.get("files", [])
     # however, we know there is only 1 folder with that name, so we just get the id of the 1st item in the list
+    if len(folderIdResult) == 0:
+        print(f"Error: no folders found for '{folder_name}'")
+        return []
     fid = folderIdResult[0].get("id")
 
     results = (
         drive.files()
         .list(
-            q="'" + fid + "' in parents",
+            q="'" + fid + "' in parents and mimeType = 'application/pdf'",
             pageSize=1000,
             fields="nextPageToken, files(id, name, webViewLink)",
         )
