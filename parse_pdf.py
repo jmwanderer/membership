@@ -4,13 +4,86 @@ Parse Guest PDF waivers
 Extract signer's name, list of minor age persons, and date completed.
 """
 
+import io
 import re
 import sys
+from dataclasses import dataclass
 
 import pdfplumber
 
 import attest
 import dateutil
+
+@dataclass
+class Signature:
+    name: str
+    date: str
+
+class MemberWaiverPDF:
+    def __init__(self):
+        self.signatures: list[Signature] = []
+        self.minors: list[str] = []
+
+    def __str__(self):
+        result = "Waiver:"
+        for signature in self.signatures:
+            result += f"\n\t{signature.name}, {signature.date}"
+        for minor in self.minors:
+            result += f"\n\t{minor}"
+        return result
+    
+
+def parse_member_waiver_pdf(infile: io.BytesIO) -> MemberWaiverPDF:
+    """
+    Read a member waiver PDF and specific key data.
+    """
+    waiver = MemberWaiverPDF()
+    with pdfplumber.open(infile) as pdf:
+        if len(pdf.pages) < 2:
+            return waiver
+        page = pdf.pages[1]
+
+        # 1st signature
+        cpage = page.crop((66, 162, 240, 166))
+        name = cpage.extract_text_simple().strip() 
+        cpage = page.crop((93, 230, 230, 233))
+        date = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.signatures.append(Signature(name, date))
+
+
+        # 2nd signature
+        cpage = page.crop((320, 158, 500, 165))
+        name = cpage.extract_text_simple().strip()
+        cpage = page.crop((344, 230, 465, 231))
+        date = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.signatures.append(Signature(name, date))
+
+        # Minors
+        cpage = page.crop((57, 419, 230, 425))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+        cpage = page.crop((57, 452, 230, 457))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+        cpage = page.crop((57, 485, 230, 490))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+        cpage = page.crop((57, 518, 230, 522))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+    return waiver
+
+
 
 class GuestWaiverPDF:
     def __init__(self):
@@ -39,7 +112,7 @@ GUEST_DATE_STR="The document has been completed."
 
 
 
-def parse_guest_waiver_pdf(in_file) -> GuestWaiverPDF:
+def parse_guest_waiver_pdf(in_file: io.BytesIO) -> GuestWaiverPDF:
     """
     Read a PDF file and extract specific lines
     
@@ -210,4 +283,5 @@ if __name__ == "__main__":
             attestation = attestation_pdf.parse_attestation()
             print(attestation)
         else:
-            pass
+            waiver_pdf = parse_member_waiver_pdf(f)
+            print(waiver_pdf)
