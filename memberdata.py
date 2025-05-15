@@ -128,6 +128,7 @@ class Membership:
         """
         Read account and member CSV files.
         """
+        print("Loading memberdata")
         self._read_accounts_csv(accounts_file)
         self._read_members_csv(members_file)
 
@@ -166,6 +167,8 @@ class Membership:
         return result
  
     def get_members_by_fullname(self, member_name: str) -> list[MemberEntry]:
+        if member_name.lower() not in self.member_name_map:
+            return []
         return self.member_name_map[member_name.lower()]
 
     def accounts(self) -> list[AccountEntry]:

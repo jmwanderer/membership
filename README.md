@@ -55,6 +55,16 @@ Extract information from signed PDF documents in the 2025 Household Attestations
 Note: need credentials.json to access gdrive data
 See: https://developers.google.com/workspace/drive/api/quickstart/python
 
+### extract_members.py
+
+Extract information from signed PDF documents in the 2025 Member Waivers folder.
+Note: need credentials.json to access gdrive data
+
+### extract_guests.py
+
+Extract information from signed PDF documents in the 2025 Guest Waivers folder.
+Note: need credentials.json to access gdrive data
+
 ### review_attestations.py
 
 Compare attestations.csv (built with extract_attest.py) with member data in the member.csv and account.csv
@@ -66,8 +76,7 @@ files.
 
 ### nametoids.py
 
-Read names from a CSV and lookup matching members. Write member ids and account ids to temp files to use in
-updating another file
+Read names from a CSV and lookup matching members. Write member ids and account ids to temp files to use in updating another file
 
 ### updaterows.py
 
