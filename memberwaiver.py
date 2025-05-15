@@ -27,6 +27,7 @@ class MemberWaiver:
         self.signatures: list[Signature] = []
         # Minors listed
         self.minors: list[str] = []
+        self.complete = "?"
 
     def __str__(self):
         result = self.file_name
@@ -36,6 +37,15 @@ class MemberWaiver:
         for minor in self.minors:
             result += "\n\t" + str(minor)
         return result
+
+    def is_complete(self) -> bool:
+        return self.complete.lower() == 'y'
+    
+    def set_complete(self, complete: bool) -> None:
+        if complete:
+            self.complete = 'Y'
+        else:
+            self.complete = 'N'
 
     # CSV fields
     FIELD_SIGNER1 = "signer1"
@@ -50,6 +60,7 @@ class MemberWaiver:
     FIELD_MINOR2 = "minor2"
     FIELD_MINOR3 = "minor3"
     FIELD_MINOR4 = "minor4"
+    FIELD_COMPLETE = "complete"
     FIELD_LINK = "link"
     FIELD_FILENAME = "file"
 
@@ -65,6 +76,7 @@ class MemberWaiver:
                FIELD_MINOR2,
                FIELD_MINOR3,
                FIELD_MINOR4,
+               FIELD_COMPLETE,
                FIELD_LINK,
                FIELD_FILENAME ]
 
@@ -75,6 +87,7 @@ class MemberWaiver:
         row = {}
         row[MemberWaiver.FIELD_LINK] = self.web_view_link
         row[MemberWaiver.FIELD_FILENAME] = self.file_name
+        row[MemberWaiver.FIELD_COMPLETE] = self.complete
 
         for i, sig in enumerate(self.signatures):
             row[MemberWaiver.HEADER[i * 2]] = sig.date
@@ -89,6 +102,8 @@ class MemberWaiver:
         """
         self.web_view_link = row[MemberWaiver.FIELD_LINK]
         self.file_name = row[MemberWaiver.FIELD_FILENAME]
+        if MemberWaiver.FIELD_COMPLETE in row:
+            self.complete = row[MemberWaiver.FIELD_COMPLETE]
 
         self.signatures = []
         if len(row[MemberWaiver.FIELD_SIGNER1]) > 0:
