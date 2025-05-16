@@ -169,11 +169,38 @@ waivers = DataSource(
     ],
 )
 
+attest_signer = DataSource(
+    filename="output/attestations.csv",
+    fullname=True,
+    fullname_columns=[
+        "adult1",
+    ],
+)
+
+
+attestations = DataSource(
+    filename="output/attestations.csv",
+    fullname=True,
+    fullname_columns=[
+        "adult1",
+        "adult2",
+        "adult3",
+        "adult4",
+        "minor1",
+        "minor2",
+        "minor3",
+        "minor4",
+        "minor5",
+    ],
+)
+
+
 QUERY_LIST = [
     DataQuery("swimteam", swimteam),
     DataQuery("waivers", waivers),
     DataQuery("complete_waivers", waivers, lambda x: x["complete"].lower() == "y"),
     DataQuery("incomplete_waivers", waivers, lambda x: x["complete"].lower() == "n"),
+    DataQuery("attest_signer", attest_signer) 
 ]
 
 QUERIES = {dq.name: dq for dq in QUERY_LIST}

@@ -14,6 +14,7 @@ import csv
 
 import memberdata
 from memberdata import MemberEntry, AccountEntry, Membership
+import keys
 
 
 class FamilyRecord:
@@ -155,20 +156,25 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
     return groups
 
 
-def write_groups(groups: MemberWaiverGroupings):
+def write_groups(groups: MemberWaiverGroupings,
+                 member_keys: dict[str,keys.KeyEntry]):
 
     # Create a list of adults that do not have minor children
     output_filename = "output/adults_no_minor_children.csv"
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    row = ["Account#", "Member#", "name", "email_address"]
+    row = ["Account#", "Member#", "name", "email_address","key_email"]
     output_csv.writerow(row)
     for member in groups.no_minor_children:
+        key_email = ""
+        if member.member_id in member_keys:
+            key_email = member_keys[member.member_id].member_email
         row = [
             member.account_num,
             member.member_id,
             member.name.fullname(),
             member.email,
+            key_email
         ]
         output_csv.writerow(row)
     output_file.close()
@@ -245,9 +251,10 @@ def main():
     # Read membership data
     membership = memberdata.Membership()
     membership.read_csv_files()
+    member_keys = keys.gen_member_key_map(membership)
 
     groupings = generate_groups(membership)
-    write_groups(groupings)
+    write_groups(groupings, member_keys)
 
 
 if __name__ == "__main__":

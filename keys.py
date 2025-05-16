@@ -31,8 +31,8 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
 
     # Iterate over keys
     for row in reader:
-        first_name = row["FirstName"].strip()
-        last_name = row["LastName"].strip()
+        first_name = row["First Name"].strip()
+        last_name = row["Last Name"].strip()
         email = row["Email"].strip()
         account_num = row["UserName"]
 
@@ -45,3 +45,36 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
     key_file.close()
 
     return key_entry_list
+
+def gen_member_key_map(membership: memberdata.Membership) -> dict[str,KeyEntry]:
+    """
+    Generate a dictionary mapping member ids to KeyEntries
+    """
+    member_key_map = {}
+
+    for key_entry in read_key_entries():
+        if key_entry.account_num.lower().startswith("staff"):
+            continue
+        members = membership.find_members_by_name(key_entry.member_name)
+        if len(members) == 0:
+            print(f"Warning: no members found for name {key_entry.member_name}")
+            continue
+        elif len(members) > 1:
+            print(f"Warning: muiltiple members found for name {key_entry.member_name}")
+        member = members[0]
+        if member.account_num != key_entry.account_num:
+            print(f"Warning: key and member account numbers don't match for {key_entry.member_name}")
+        member_key_map[member.member_id] = key_entry
+    return member_key_map
+
+def simple_test():
+    membership = memberdata.Membership()
+    membership.read_csv_files()
+
+    member_keys = gen_member_key_map(membership)
+
+if __name__ == "__main__":
+    simple_test()
+        
+
+        

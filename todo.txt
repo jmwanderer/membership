@@ -2,10 +2,5 @@
    - use new class for waiver
    - incorprate state of member_Waiver.csv
 
-2. Add mobile key email to adults with no minor children
-
-3. Make nametoids a SELECT OP
-- select completed waivers query
-
-4. Update waiver file  - extract_members.py
+2. Update waiver file  - extract_members.py
 - check if pdf already in the list and if so - skip
