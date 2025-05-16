@@ -119,11 +119,11 @@ class MemberWaiver:
         if len(row[MemberWaiver.FIELD_MINOR1]) > 0:
             self.minors.append(row[MemberWaiver.FIELD_MINOR1])
         if len(row[MemberWaiver.FIELD_MINOR2]) > 0:
-            self.minors.append(MemberWaiver.FIELD_MINOR2)
+            self.minors.append(row[MemberWaiver.FIELD_MINOR2])
         if len(row[MemberWaiver.FIELD_MINOR3]) > 0:
-            self.minors.append(MemberWaiver.FIELD_MINOR3)
+            self.minors.append(row[MemberWaiver.FIELD_MINOR3])
         if len(row[MemberWaiver.FIELD_MINOR4]) > 0:
-            self.minors.append(MemberWaiver.FIELD_MINOR4)
+            self.minors.append(row[MemberWaiver.FIELD_MINOR4])
 
 memberwaiver_csv_filename = "output/member_waivers.csv"
 

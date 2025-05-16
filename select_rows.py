@@ -6,26 +6,33 @@ Write:
 to be used by updaterows.py
 """
 
+from dataclasses import dataclass
+from typing import Callable
 import csv
 import io
 import sys
 import memberdata
 
-def read_name_columns(stream: io.TextIOBase, fn_col: str, ln_col: str) -> list[memberdata.MemberName]:
+def read_name_columns(stream: io.TextIOBase, name_columns: list[tuple[str,str]],
+                      cond: Callable[[dict[str,str], str], bool]) -> list[memberdata.MemberName]:
     """
     Read first name, last name columns and return a list of MemberName
     """
     result = []
     count = 0
+    fn_col = name_columns[0][0]
+    ln_col = name_columns[0][1]
     reader = csv.DictReader(stream)
     for row in reader:
-        if len(row[fn_col]) > 0 or len(row[ln_col]) > 0:
-            count += 1
-            result.append(memberdata.MemberName(row[fn_col], row[ln_col]))
-    print(f"Note: read {len(result)} rows")
+        count += 1
+        for fn_col, ln_col in name_columns:
+            if len(row[fn_col]) > 0 or len(row[ln_col]) > 0 and cond(row):
+                result.append(memberdata.MemberName(row[fn_col], row[ln_col]))
+    print(f"Note: read {len(result)} entries from {count} records")
     return result
 
-def read_full_name_columns(stream: io.TextIOBase, columns: list[str]) -> list[str]:
+def read_full_name_columns(stream: io.TextIOBase, columns: list[str],
+                           cond: Callable[[dict[str,str], str], bool]) -> list[str]:
     """
     Read one or more full name columns and return a list of strings
     """
@@ -35,7 +42,7 @@ def read_full_name_columns(stream: io.TextIOBase, columns: list[str]) -> list[st
     for row in reader:
         count += 1
         for column in columns:
-            if len(row[column]) > 0:
+            if len(row[column]) > 0 and cond(row):
                 result.append(row[column])
 
     print(f"Note: read {len(result)} entries from {count} records")
@@ -108,17 +115,43 @@ def write_ids(account_ids: list[str], member_ids: list[str]):
     print(f"Note: wrote {members_filename}")
 
 
-def main(input_source):
-    input_filename = input_source[0]
-    fullnames = input_source[1]
-    column_names = input_source[2]
+
+@dataclass
+class DataSource:
+    filename: str
+    fullname: bool
+    name_columns: list[tuple[str,str]] | None = None
+    fullname_columns: list[str] | None = None
+
+def nocond(row: dict[str,str]) -> bool:
+    return True
+
+@dataclass
+class DataQuery:
+    name: str
+    datasource: DataSource
+    condition: Callable[[dict[str,str]], bool] = nocond
+
+swimteam = DataSource(filename="input/swim_team.csv", fullname=False, name_columns=[ ["First Name", "Last Name"]])
+waivers = DataSource(filename="output/member_waivers.csv", fullname=True, fullname_columns=["signer1", "signer2", "signer3", "signer4", "minor1", "minor2", "minor3", "minor4" ])
+
+QUERY_LIST = [ DataQuery("swimteam", swimteam),
+               DataQuery("waivers", waivers),
+               DataQuery("complete_waivers", waivers, lambda x : x['complete'].lower() == 'y'),
+               DataQuery("incomplete_waivers", waivers, lambda x : x['complete'].lower() == 'n') ]
+
+QUERIES = { dq.name : dq for dq in QUERY_LIST }
+
+def main(query: DataQuery):
+    input_filename = query.datasource.filename
+    fullnames = query.datasource.fullname
 
     input_file = open(input_filename, newline="")
     print(f"Note: reading names from '{input_filename}'")
     if fullnames:
-        names = read_full_name_columns(input_file, column_names)
+        names = read_full_name_columns(input_file, query.datasource.fullname_columns, query.condition)
     else:
-        member_names = read_name_columns(input_file, column_names[0], column_names[1])
+        member_names = read_name_columns(input_file, query.datasource.name_columns, query.condition)
     input_file.close()
     print("")
 
@@ -136,16 +169,13 @@ def main(input_source):
     write_ids(account_ids, member_ids)
 
 
-INPUTS = { "swimteam": ("input/swim_team.csv", False, ( "First Name", "Last Name")),
-           "waivers": ("output/member_waivers.csv", True, ("signer1", "signer2", "signer3", "signer4", "minor1", "minor2", "minor3", "minor4" )) }
-
 if __name__ == "__main__":
-    if len(sys.argv) != 2 or sys.argv[1] not in INPUTS:
-        print(f"Usage: {sys.argv[0]} <input source>")
-        sources = [ i for i in INPUTS.keys() ]
-        print(f"Sources: {', '.join(sources)}")
+    if len(sys.argv) != 2 or sys.argv[1] not in QUERIES:
+        print(f"Usage: {sys.argv[0]} <data query>")
+        queries = [ i for i in QUERIES.keys() ]
+        print(f"Sources: {', '.join(queries)}")
         sys.exit(-1)
-    main(INPUTS[sys.argv[1]])
+    main(QUERIES[sys.argv[1]])
     
     
 
