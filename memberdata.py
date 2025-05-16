@@ -190,6 +190,8 @@ class Membership:
             else:
                 if account_num != member.account_num:
                     print("Error: multiple accounts for {fullname}")
+        if account_num is None:
+                return None
         return self.account_map[account_num]
 
     def get_members_for_account_num(self, account_num: str) -> list[MemberEntry]:

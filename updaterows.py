@@ -11,6 +11,7 @@ and update a given column for any matching rows.
 import argparse
 import csv
 import io
+import os
 import re
 import sys
 
@@ -50,11 +51,22 @@ def lookup_accounts(
     return result
 
 
-def get_output_filename(filename: str):
+def get_backup_filename(filename: str):
+    """
+    Search for a backup filename not in use
+    """
     m = re.match(r"(.+)\.csv", filename)
     if m is None:
         return None
-    return f"{m.group(1)}.markup.csv"
+    prefix = m.group(1)
+    value = 1
+    # Avoid an infinite loop in a hypothetical pathalogical case.
+    while value < 10000:
+        backup_name = f"{prefix}.{value}.csv"
+        if not os.path.exists(backup_name):
+            return backup_name
+        value += 1
+    return None
 
 
 def read_ids_file(ids_filename: str) -> list[str]:
@@ -73,8 +85,8 @@ def read_ids_file(ids_filename: str) -> list[str]:
 
 
 def run_markup(
-    input_filename: str,
-    output_filename: str,
+    filename: str,
+    backup_filename: str,
     mark_col: str,
     clear_col: str,
     id_col: str,
@@ -82,12 +94,12 @@ def run_markup(
 ):
     matched_ids = {}
     ids_list = read_ids_file(id_file)
-    rows: list[dict[str:str]] = []
+    rows: list[dict[str,str]] = []
 
     # Read input file
-    print(f"Update {input_filename} saving to {output_filename}")
-    input_file = open(input_filename, "r", newline="")
-    print(f"Note: reading {input_filename}")
+    print(f"Update {filename} save backup to {backup_filename}")
+    input_file = open(filename, "r", newline="")
+    print(f"Note: reading {filename}")
     input_csv = csv.DictReader(input_file)
     for row in input_csv:
         rows.append(row)
@@ -117,9 +129,13 @@ def run_markup(
                 row[clear_col] = ""
                 matched_ids[id_value] = 1
 
+    
+    # Backup original file
+    os.rename(filename, backup_filename)
+
     # Write data out
-    output_file = open(output_filename, "w", newline="")
-    print(f"Note: writing {output_filename}")
+    output_file = open(filename, "w", newline="")
+    print(f"Note: writing {filename}")
     output_csv = csv.DictWriter(output_file, fieldnames=column_names)
     output_csv.writeheader()
     for row in rows:
@@ -150,8 +166,8 @@ if __name__ == "__main__":
     parser.add_argument("filename")
     args = parser.parse_args(sys.argv[1:])
 
-    input_filename = args.filename
-    output_filename = get_output_filename(input_filename)
+    filename = args.filename
+    backup_filename = get_backup_filename(filename)
     if args.id_type == "account":
         id_col = "Account#"
         id_file = "output/account_ids.csv"
@@ -162,13 +178,13 @@ if __name__ == "__main__":
         print("Error: id_type must be 'member' or 'acount'")
         sys.exit(-1)
 
-    if output_filename is None:
-        print(f"Input file {input_filename} must end in .csv")
+    if backup_filename is None:
+        print(f"Input file {filename} must end in .csv")
         sys.exit(-1)
 
     run_markup(
-        input_filename,
-        output_filename,
+        filename,
+        backup_filename,
         args.mark_field,
         args.clear_field,
         id_col,
