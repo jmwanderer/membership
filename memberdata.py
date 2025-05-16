@@ -155,17 +155,19 @@ class Membership:
             return self.member_map[member_name]
 
         for name, members in self.member_map.items():
-            if (name.first_name.startswith(member_name.first_name) and
-                name.last_name.startswith(member_name.last_name)):
+            if name.first_name.startswith(
+                member_name.first_name
+            ) and name.last_name.startswith(member_name.last_name):
                 result.extend(members)
         if len(result) > 0:
             return result
         for name, members in self.member_map.items():
-            if (member_name.first_name.startswith(name.first_name) and
-                member_name.last_name.startswith(name.last_name)):
+            if member_name.first_name.startswith(
+                name.first_name
+            ) and member_name.last_name.startswith(name.last_name):
                 result.extend(members)
         return result
- 
+
     def get_members_by_fullname(self, member_name: str) -> list[MemberEntry]:
         if member_name.lower() not in self.member_name_map:
             return []
@@ -189,7 +191,7 @@ class Membership:
                 if account_num != member.account_num:
                     print("Error: multiple accounts for {fullname}")
         return self.account_map[account_num]
-            
+
     def get_members_for_account_num(self, account_num: str) -> list[MemberEntry]:
         if account_num not in self.account_map:
             print("Warning: Account {account_num} does not exist.")
@@ -207,7 +209,6 @@ class Membership:
                 if member.member_id == member_id:
                     return member
         return None
-        
 
     def has_minor_children(self, account_num: str) -> bool:
         for member in self.get_members_for_account_num(account_num):

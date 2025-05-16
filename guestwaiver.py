@@ -7,9 +7,10 @@ Functionality to represent and manage guest waiver records.
 import datetime
 import csv
 
+
 class GuestWaiver:
     """
-    Represents data for a guest waiver. 
+    Represents data for a guest waiver.
     Supports CVS records
     """
 
@@ -43,14 +44,16 @@ class GuestWaiver:
     FIELD_LINK = "link"
     FIELD_FILENAME = "file"
 
-    HEADER = [ FIELD_DATE, 
-               FIELD_SIGNER, 
-               FIELD_MINOR1,
-               FIELD_MINOR2,
-               FIELD_MINOR3,
-               FIELD_MINOR4,
-               FIELD_LINK,
-               FIELD_FILENAME ]
+    HEADER = [
+        FIELD_DATE,
+        FIELD_SIGNER,
+        FIELD_MINOR1,
+        FIELD_MINOR2,
+        FIELD_MINOR3,
+        FIELD_MINOR4,
+        FIELD_LINK,
+        FIELD_FILENAME,
+    ]
 
     def get_row(self):
         """
@@ -84,12 +87,14 @@ class GuestWaiver:
         if len(row[GuestWaiver.FIELD_MINOR4]) > 0:
             self.minors.append(GuestWaiver.FIELD_MINOR4)
 
+
 guestwaiver_csv_filename = "output/guest_waivers.csv"
+
 
 def read_csv(csv_file: str = guestwaiver_csv_filename) -> list[GuestWaiver]:
     """
     Read waivers from a CSV file
-    """ 
+    """
     result = []
     print(f"Note: reading waiver file '{csv_file}'")
 
@@ -102,7 +107,8 @@ def read_csv(csv_file: str = guestwaiver_csv_filename) -> list[GuestWaiver]:
     print(f"Note: read {len(result)} waivers")
     return result
 
-def write_csv(waivers: list[GuestWaiver], csv_file:str = guestwaiver_csv_filename):
+
+def write_csv(waivers: list[GuestWaiver], csv_file: str = guestwaiver_csv_filename):
     print(f"Note: writing waiver file '{csv_file}'")
     with open(csv_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=GuestWaiver.HEADER)
@@ -110,7 +116,7 @@ def write_csv(waivers: list[GuestWaiver], csv_file:str = guestwaiver_csv_filenam
         for waiver in waivers:
             writer.writerow(waiver.get_row())
         f.close()
-    print(f'Note: wrote {len(waivers)} guest waiver records.')
+    print(f"Note: wrote {len(waivers)} guest waiver records.")
 
 
 def simple_test():
@@ -139,7 +145,6 @@ def simple_test():
     write_csv(waivers)
     waivers = read_csv()
 
+
 if __name__ == "__main__":
     simple_test()
-
-

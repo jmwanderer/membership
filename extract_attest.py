@@ -14,7 +14,7 @@ import gdrive
 def main():
     """
     Scrape all attestation PDF files and create a CSV file
-    
+
     TODO: update operation. Read CSV, scrape files, update, Write CSV
     TODO: handle multiple copies of one attestation?
     TODO: at least check for duplicates
@@ -36,10 +36,10 @@ def main():
     print("Processing Files:")
     for file in files:
         print(f"{file['name']}")
-        file_data = gdrive.download_file(drive, file['id'])
+        file_data = gdrive.download_file(drive, file["id"])
         attestation_pdf = parse_pdf.parse_attestation_pdf(file_data)
-        attestation_pdf.file_name = file['name']
-        attestation_pdf.web_view_link = file['webViewLink']
+        attestation_pdf.file_name = file["name"]
+        attestation_pdf.web_view_link = file["webViewLink"]
         attestation = attestation_pdf.parse_attestation()
         row = attestation.get_row()
         output_csv.writerow(row)

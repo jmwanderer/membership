@@ -11,8 +11,10 @@ import io
 import sys
 import memberdata
 
-def read_id_column(membership: memberdata.Membership, 
-                    stream: io.TextIOBase) -> list[memberdata.MemberEntry]:
+
+def read_id_column(
+    membership: memberdata.Membership, stream: io.TextIOBase
+) -> list[memberdata.MemberEntry]:
     result = []
     count = 0
     reader = csv.DictReader(stream)
@@ -26,7 +28,7 @@ def read_id_column(membership: memberdata.Membership,
         result.append(member)
     print(f"Note: found {len(result)} members")
     return result
-        
+
 
 def main(input_filename: str):
     # Read membership data
@@ -48,9 +50,9 @@ def main(input_filename: str):
     accounts_filename = "output/account_ids.csv"
     output_file = open(accounts_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    output_csv.writerow([ "Account#" ])
+    output_csv.writerow(["Account#"])
     for entry in account_ids:
-        output_csv.writerow([ entry ])
+        output_csv.writerow([entry])
     output_file.close()
     print(f"Note: wrote {accounts_filename}")
 
@@ -58,12 +60,11 @@ def main(input_filename: str):
     members_filename = "output/member_ids.csv"
     output_file = open(members_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    output_csv.writerow([ "Member ID" ])
+    output_csv.writerow(["Member ID"])
     for entry in member_ids:
-        output_csv.writerow([ entry ])
+        output_csv.writerow([entry])
     output_file.close()
     print(f"Note: wrote {members_filename}")
-
 
 
 if __name__ == "__main__":
@@ -71,7 +72,3 @@ if __name__ == "__main__":
         print(f"Usage: {sys.argv[0]} <input file>")
         sys.exit(-1)
     main(sys.argv[1])
-    
-    
-
- 

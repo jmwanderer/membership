@@ -3,6 +3,7 @@ import datetime
 import attest
 import memberdata
 
+
 def review_attestation(membership, attestation):
     # Get account matching attestation
     primary_name = attestation.adults[0].name
@@ -14,10 +15,10 @@ def review_attestation(membership, attestation):
     print(attestation.web_view_link)
 
     members = membership.get_members_for_account_num(account.account_num)
-    member_names = [ member.name.fullname().lower() for member in members ]
+    member_names = [member.name.fullname().lower() for member in members]
 
-    attest_entries = { entry.name.lower():entry for entry in attestation.adults }
-    attest_entries.update({ entry.name.lower():entry for entry in attestation.minors })
+    attest_entries = {entry.name.lower(): entry for entry in attestation.adults}
+    attest_entries.update({entry.name.lower(): entry for entry in attestation.minors})
 
     # Check all entries are members
     for entry in attest_entries.values():
@@ -35,10 +36,12 @@ def review_attestation(membership, attestation):
         if (entry := attest_entries.get(member.name.fullname().lower())) is not None:
             if len(member.email) == 0 and len(entry.email) > 0:
                 print(f"\tEmail for {member.name} available: {entry.email}")
-            if (member.birthdate == datetime.date.min and 
-                entry.birthdate != datetime.date.min):
+            if (
+                member.birthdate == datetime.date.min
+                and entry.birthdate != datetime.date.min
+            ):
                 print(f"\tBrithday for {member.name} available: {entry.birthdate}")
-    
+
 
 def main():
     attestations = attest.read_attestations_csv()
@@ -47,6 +50,7 @@ def main():
 
     for attestation in attestations:
         review_attestation(membership, attestation)
+
 
 if __name__ == "__main__":
     main()

@@ -14,10 +14,12 @@ import pdfplumber
 import attest
 import dateutil
 
+
 @dataclass
 class Signature:
     name: str
     date: str
+
 
 class MemberWaiverPDF:
     def __init__(self):
@@ -31,7 +33,7 @@ class MemberWaiverPDF:
         for minor in self.minors:
             result += f"\n\t{minor}"
         return result
-    
+
 
 def parse_member_waiver_pdf(infile: io.BytesIO) -> MemberWaiverPDF:
     """
@@ -45,12 +47,11 @@ def parse_member_waiver_pdf(infile: io.BytesIO) -> MemberWaiverPDF:
 
         # 1st signature
         cpage = page.crop((66, 162, 240, 166))
-        name = cpage.extract_text_simple().strip() 
+        name = cpage.extract_text_simple().strip()
         cpage = page.crop((93, 230, 230, 233))
         date = cpage.extract_text_simple().strip()
         if len(name) > 0:
             waiver.signatures.append(Signature(name, date))
-
 
         # 2nd signature
         cpage = page.crop((320, 158, 500, 165))
@@ -84,7 +85,6 @@ def parse_member_waiver_pdf(infile: io.BytesIO) -> MemberWaiverPDF:
     return waiver
 
 
-
 class GuestWaiverPDF:
     def __init__(self):
         self.adult: str = ""
@@ -97,7 +97,7 @@ class GuestWaiverPDF:
             result += f"\n\t{minor}"
         return result
 
-            
+
 # Strings in the PDF file to scrape
 GUEST_MARKERS = [
     "Adult Non-Member/Guest:",
@@ -107,15 +107,14 @@ GUEST_MARKERS = [
     "[Print Name]",
     "[Print Name]",
 ]
-GUEST_EXCLUDE_STR="_____________________________"
-GUEST_DATE_STR="The document has been completed."
-
+GUEST_EXCLUDE_STR = "_____________________________"
+GUEST_DATE_STR = "The document has been completed."
 
 
 def parse_guest_waiver_pdf(in_file: io.BytesIO) -> GuestWaiverPDF:
     """
     Read a PDF file and extract specific lines
-    
+
     """
     waiver = GuestWaiverPDF()
     lines = []
@@ -129,9 +128,9 @@ def parse_guest_waiver_pdf(in_file: io.BytesIO) -> GuestWaiverPDF:
     adult = True
 
     for line in lines:
-        #print(line)
+        # print(line)
         if marker < len(GUEST_MARKERS) and GUEST_MARKERS[marker] == line.strip():
-            #print(f"found marker {GUEST_MARKERS[marker]}")
+            # print(f"found marker {GUEST_MARKERS[marker]}")
             marker_found = True
             marker += 1
         elif marker_found:
@@ -145,14 +144,15 @@ def parse_guest_waiver_pdf(in_file: io.BytesIO) -> GuestWaiverPDF:
             # Look for DATE_STR
             m = re.search(GUEST_DATE_STR, line.strip())
             if m is not None:
-                #print(f"found GUEST_DATE_STR {m}")
-                waiver.date = line[0:m.span()[0]]
+                # print(f"found GUEST_DATE_STR {m}")
+                waiver.date = line[0 : m.span()[0]]
 
     return waiver
 
+
 class AttestationPDF:
     """Data from attestation PDF file
-       Constains knowledge on how to extract information from lines in a PDF
+    Constains knowledge on how to extract information from lines in a PDF
     """
 
     def __init__(self):
@@ -190,7 +190,7 @@ class AttestationPDF:
         for line in self.adults:
             result.append(AttestationPDF._parseAdult(line))
         return result
-                
+
     def _getMinorMemberEntries(self) -> list[attest.AttestEntry]:
         result: list[attest.AttestEntry] = []
 
@@ -200,24 +200,24 @@ class AttestationPDF:
 
     def _parseAdult(line: str) -> attest.AttestEntry:
         # Look for an email address
-        m = re.search(r'\S+@\S+', line)
+        m = re.search(r"\S+@\S+", line)
         if m:
             email = m.group(0)
             name = line[0 : m.span()[0]]
-            _, birthdate = dateutil.find_date(line[m.span()[1]:])
+            _, birthdate = dateutil.find_date(line[m.span()[1] :])
         else:
             start, birthdate = dateutil.find_date(line)
             name = line[0:start]
-            email = ''
+            email = ""
 
         return attest.AttestEntry(name.strip(), email.strip(), birthdate)
 
     def _parseMinor(line: str) -> attest.AttestEntry:
         start, birthdate = dateutil.find_date(line)
         name = line[0:start]
-        return attest.AttestEntry(name.strip(), '', birthdate)
-        
-            
+        return attest.AttestEntry(name.strip(), "", birthdate)
+
+
 # Strings in the PDF file to scrape
 markers = [
     "Proprietary Member Name:",
@@ -235,7 +235,7 @@ markers = [
 def parse_attestation_pdf(in_file) -> AttestationPDF:
     """
     Read a PDF file and extract specific lines
-    
+
     Note: mostly works. Will fail when values wrap to two lines.
     """
     attestation = AttestationPDF()
@@ -250,9 +250,9 @@ def parse_attestation_pdf(in_file) -> AttestationPDF:
     adult = True
 
     for line in lines:
-        #print(line)
+        # print(line)
         if marker < len(markers) and markers[marker] == line.strip():
-            #print(f"found marker {markers[marker]}")
+            # print(f"found marker {markers[marker]}")
             marker_found = True
             if marker > 3:
                 adult = False
@@ -269,15 +269,15 @@ def parse_attestation_pdf(in_file) -> AttestationPDF:
 
 
 if __name__ == "__main__":
-    options = [ 'member', 'guest', 'attest']
+    options = ["member", "guest", "attest"]
     if len(sys.argv) != 3 or sys.argv[1] not in options:
         print(f"Usage parse_pdf {options} <filename>")
         sys.exit(-1)
     with open(sys.argv[2], "rb") as f:
-        if sys.argv[1] == 'guest':
+        if sys.argv[1] == "guest":
             waiver_pdf = parse_guest_waiver_pdf(f)
             print(waiver_pdf)
-        elif sys.argv[1] == 'attest':
+        elif sys.argv[1] == "attest":
             attestation_pdf = parse_attestation_pdf(f)
             print(attestation_pdf)
             attestation = attestation_pdf.parse_attestation()

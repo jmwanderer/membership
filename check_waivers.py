@@ -5,6 +5,7 @@ Check that family waivers are complete.
 import memberdata
 import memberwaiver
 
+
 def main():
     # Read membership data
     membership = memberdata.Membership()
@@ -23,7 +24,7 @@ def main():
         if account is None:
             print(f"Warning: no account for name '{name}'")
             continue
-        
+
         # Count number of minor children
         minors = 0
         for member in membership.get_members_for_account_num(account.account_num):
@@ -33,9 +34,6 @@ def main():
 
     # Write waiver entries
     memberwaiver.write_csv(waivers)
-
-    
-
 
 
 if __name__ == "__main__":

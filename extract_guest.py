@@ -34,11 +34,11 @@ def main():
     print("Processing Files:")
     for file in files:
         print(f"{file['name']}")
-        file_data = gdrive.download_file(drive, file['id'])
+        file_data = gdrive.download_file(drive, file["id"])
         waiver_pdf = parse_pdf.parse_guest_waiver_pdf(file_data)
         print(waiver_pdf)
-        file_name = file['name']
-        web_view_link = file['webViewLink']
+        file_name = file["name"]
+        web_view_link = file["webViewLink"]
         print(web_view_link)
         waiver = guestwaiver.GuestWaiver()
         print(f"date {waiver_pdf.date}")

@@ -16,7 +16,10 @@ import sys
 
 import memberdata
 
-def read_csv_columns(stream: io.TextIOBase, col1: int, col2: int) -> list[tuple[str,str]]:
+
+def read_csv_columns(
+    stream: io.TextIOBase, col1: int, col2: int
+) -> list[tuple[str, str]]:
     print(f"Note: reading CSV from stdin...")
     result = []
     count = 0
@@ -30,10 +33,12 @@ def read_csv_columns(stream: io.TextIOBase, col1: int, col2: int) -> list[tuple[
     print(f"Note: read {len(result)} rows")
     return result
 
-def lookup_accounts(membership: memberdata.Membership,
-                    entries: list[tuple[str,str]]) -> list[str]:
+
+def lookup_accounts(
+    membership: memberdata.Membership, entries: list[tuple[str, str]]
+) -> list[str]:
     result: list[str] = []
-    for (last_name, first_name) in entries:
+    for last_name, first_name in entries:
         name = memberdata.MemberName(first_name, last_name)
         members = membership.find_members_by_name(name)
         if len(members) != 1:
@@ -43,7 +48,8 @@ def lookup_accounts(membership: memberdata.Membership,
             result.append(members[0].account_num)
     print(f"Lookup {len(result)} accounts.")
     return result
-        
+
+
 def get_output_filename(filename: str):
     m = re.match(r"(.+)\.csv", filename)
     if m is None:
@@ -53,7 +59,7 @@ def get_output_filename(filename: str):
 
 def read_ids_file(ids_filename: str) -> list[str]:
     ids_file = open(ids_filename, "r", newline="")
-    ids_csv = csv.reader(ids_file) 
+    ids_csv = csv.reader(ids_file)
     ids_list = []
     count = 0
     for row in ids_csv:
@@ -66,11 +72,18 @@ def read_ids_file(ids_filename: str) -> list[str]:
     return ids_list
 
 
-def run_markup(input_filename: str, output_filename: str, mark_col: str, clear_col: str, id_col: str, id_file: str):
+def run_markup(
+    input_filename: str,
+    output_filename: str,
+    mark_col: str,
+    clear_col: str,
+    id_col: str,
+    id_file: str,
+):
     matched_ids = {}
     ids_list = read_ids_file(id_file)
-    rows:list[dict[str:str]] = []
-   
+    rows: list[dict[str:str]] = []
+
     # Read input file
     print(f"Update {input_filename} saving to {output_filename}")
     input_file = open(input_filename, "r", newline="")
@@ -126,17 +139,17 @@ def run_markup(input_filename: str, output_filename: str, mark_col: str, clear_c
         for id_val in missed_ids:
             print(f"\t{id_val}")
 
-    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-                        prog='updaterows',
-                        description='Set and clear fields on matching rows')
-    parser.add_argument('-m', '--mark_field', type=str, default="")
-    parser.add_argument('-c', '--clear_field', type=str, default="")
-    parser.add_argument('-i', '--id_type', type=str, default="account")
-    parser.add_argument('filename')
+        prog="updaterows", description="Set and clear fields on matching rows"
+    )
+    parser.add_argument("-m", "--mark_field", type=str, default="")
+    parser.add_argument("-c", "--clear_field", type=str, default="")
+    parser.add_argument("-i", "--id_type", type=str, default="account")
+    parser.add_argument("filename")
     args = parser.parse_args(sys.argv[1:])
-                        
+
     input_filename = args.filename
     output_filename = get_output_filename(input_filename)
     if args.id_type == "account":
@@ -148,11 +161,16 @@ if __name__ == "__main__":
     else:
         print("Error: id_type must be 'member' or 'acount'")
         sys.exit(-1)
-    
+
     if output_filename is None:
         print(f"Input file {input_filename} must end in .csv")
         sys.exit(-1)
 
-    run_markup(input_filename, output_filename, args.mark_field, args.clear_field, id_col, id_file)
-    
-    
+    run_markup(
+        input_filename,
+        output_filename,
+        args.mark_field,
+        args.clear_field,
+        id_col,
+        id_file,
+    )

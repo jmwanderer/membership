@@ -15,6 +15,7 @@ import attest
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 creds = None
 
+
 def login():
     """
     Handle login and credentials.
@@ -36,6 +37,7 @@ def login():
         # Save the credentials for the next run
         with open("token.json", "w") as token:
             token.write(creds.to_json())
+
 
 def get_file_list(drive, folder_name):
     """
@@ -75,6 +77,7 @@ def get_file_list(drive, folder_name):
     items = results.get("files", [])
     return items
 
+
 def download_file(drive, file_id) -> io.BytesIO():
     """
     Get a GDrive file by ID and return a bytes stream
@@ -87,7 +90,3 @@ def download_file(drive, file_id) -> io.BytesIO():
     while done is False:
         status, done = downloader.next_chunk()
     return file
-        
-
-
-

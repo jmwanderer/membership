@@ -13,8 +13,12 @@ import io
 import sys
 import memberdata
 
-def read_name_columns(stream: io.TextIOBase, name_columns: list[tuple[str,str]],
-                      cond: Callable[[dict[str,str], str], bool]) -> list[memberdata.MemberName]:
+
+def read_name_columns(
+    stream: io.TextIOBase,
+    name_columns: list[tuple[str, str]],
+    cond: Callable[[dict[str, str], str], bool],
+) -> list[memberdata.MemberName]:
     """
     Read first name, last name columns and return a list of MemberName
     """
@@ -31,14 +35,18 @@ def read_name_columns(stream: io.TextIOBase, name_columns: list[tuple[str,str]],
     print(f"Note: read {len(result)} entries from {count} records")
     return result
 
-def read_full_name_columns(stream: io.TextIOBase, columns: list[str],
-                           cond: Callable[[dict[str,str], str], bool]) -> list[str]:
+
+def read_full_name_columns(
+    stream: io.TextIOBase,
+    columns: list[str],
+    cond: Callable[[dict[str, str], str], bool],
+) -> list[str]:
     """
     Read one or more full name columns and return a list of strings
     """
     result = []
     count = 0
-    reader = csv.DictReader(stream) 
+    reader = csv.DictReader(stream)
     for row in reader:
         count += 1
         for column in columns:
@@ -49,8 +57,9 @@ def read_full_name_columns(stream: io.TextIOBase, columns: list[str],
     return result
 
 
-def lookup_ids_member_names(membership: memberdata.Membership,
-                            member_names: list[memberdata.MemberName]) -> tuple[list[str], list[str]]:
+def lookup_ids_member_names(
+    membership: memberdata.Membership, member_names: list[memberdata.MemberName]
+) -> tuple[list[str], list[str]]:
     account_ids: list[str] = []
     member_ids: list[str] = []
 
@@ -67,11 +76,15 @@ def lookup_ids_member_names(membership: memberdata.Membership,
             if member.member_id not in member_ids:
                 member_ids.append(member.member_id)
 
-    print(f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(member_names)} records.")
+    print(
+        f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(member_names)} records."
+    )
     return account_ids, member_ids
 
-def lookup_ids_fullnames(membership: memberdata.Membership,
-                         fullnames: list[str]) -> tuple[list[str], list[str]]:
+
+def lookup_ids_fullnames(
+    membership: memberdata.Membership, fullnames: list[str]
+) -> tuple[list[str], list[str]]:
     account_ids: list[str] = []
     member_ids: list[str] = []
 
@@ -89,18 +102,20 @@ def lookup_ids_fullnames(membership: memberdata.Membership,
             if member.member_id not in member_ids:
                 member_ids.append(member.member_id)
 
-    print(f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(fullnames)} names.")
+    print(
+        f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(fullnames)} names."
+    )
     return account_ids, member_ids
 
-        
+
 def write_ids(account_ids: list[str], member_ids: list[str]):
     # Write account ids
     accounts_filename = "output/account_ids.csv"
     output_file = open(accounts_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    output_csv.writerow([ "Account#" ])
+    output_csv.writerow(["Account#"])
     for entry in account_ids:
-        output_csv.writerow([ entry ])
+        output_csv.writerow([entry])
     output_file.close()
     print(f"Note: wrote {accounts_filename}")
 
@@ -108,39 +123,61 @@ def write_ids(account_ids: list[str], member_ids: list[str]):
     members_filename = "output/member_ids.csv"
     output_file = open(members_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    output_csv.writerow([ "Member ID" ])
+    output_csv.writerow(["Member ID"])
     for entry in member_ids:
-        output_csv.writerow([ entry ])
+        output_csv.writerow([entry])
     output_file.close()
     print(f"Note: wrote {members_filename}")
-
 
 
 @dataclass
 class DataSource:
     filename: str
     fullname: bool
-    name_columns: list[tuple[str,str]] | None = None
+    name_columns: list[tuple[str, str]] | None = None
     fullname_columns: list[str] | None = None
 
-def nocond(row: dict[str,str]) -> bool:
+
+def nocond(row: dict[str, str]) -> bool:
     return True
+
 
 @dataclass
 class DataQuery:
     name: str
     datasource: DataSource
-    condition: Callable[[dict[str,str]], bool] = nocond
+    condition: Callable[[dict[str, str]], bool] = nocond
 
-swimteam = DataSource(filename="input/swim_team.csv", fullname=False, name_columns=[ ["First Name", "Last Name"]])
-waivers = DataSource(filename="output/member_waivers.csv", fullname=True, fullname_columns=["signer1", "signer2", "signer3", "signer4", "minor1", "minor2", "minor3", "minor4" ])
 
-QUERY_LIST = [ DataQuery("swimteam", swimteam),
-               DataQuery("waivers", waivers),
-               DataQuery("complete_waivers", waivers, lambda x : x['complete'].lower() == 'y'),
-               DataQuery("incomplete_waivers", waivers, lambda x : x['complete'].lower() == 'n') ]
+swimteam = DataSource(
+    filename="input/swim_team.csv",
+    fullname=False,
+    name_columns=[["First Name", "Last Name"]],
+)
+waivers = DataSource(
+    filename="output/member_waivers.csv",
+    fullname=True,
+    fullname_columns=[
+        "signer1",
+        "signer2",
+        "signer3",
+        "signer4",
+        "minor1",
+        "minor2",
+        "minor3",
+        "minor4",
+    ],
+)
 
-QUERIES = { dq.name : dq for dq in QUERY_LIST }
+QUERY_LIST = [
+    DataQuery("swimteam", swimteam),
+    DataQuery("waivers", waivers),
+    DataQuery("complete_waivers", waivers, lambda x: x["complete"].lower() == "y"),
+    DataQuery("incomplete_waivers", waivers, lambda x: x["complete"].lower() == "n"),
+]
+
+QUERIES = {dq.name: dq for dq in QUERY_LIST}
+
 
 def main(query: DataQuery):
     input_filename = query.datasource.filename
@@ -149,9 +186,13 @@ def main(query: DataQuery):
     input_file = open(input_filename, newline="")
     print(f"Note: reading names from '{input_filename}'")
     if fullnames:
-        names = read_full_name_columns(input_file, query.datasource.fullname_columns, query.condition)
+        names = read_full_name_columns(
+            input_file, query.datasource.fullname_columns, query.condition
+        )
     else:
-        member_names = read_name_columns(input_file, query.datasource.name_columns, query.condition)
+        member_names = read_name_columns(
+            input_file, query.datasource.name_columns, query.condition
+        )
     input_file.close()
     print("")
 
@@ -172,11 +213,7 @@ def main(query: DataQuery):
 if __name__ == "__main__":
     if len(sys.argv) != 2 or sys.argv[1] not in QUERIES:
         print(f"Usage: {sys.argv[0]} <data query>")
-        queries = [ i for i in QUERIES.keys() ]
+        queries = [i for i in QUERIES.keys()]
         print(f"Sources: {', '.join(queries)}")
         sys.exit(-1)
     main(QUERIES[sys.argv[1]])
-    
-    
-
- 
