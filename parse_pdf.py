@@ -62,25 +62,64 @@ def parse_member_waiver_pdf(infile: io.BytesIO) -> MemberWaiverPDF:
             waiver.signatures.append(Signature(name, date))
 
         # Minors
-        cpage = page.crop((57, 419, 230, 425))
+        # 1
+        cpage = page.crop((57, 419, 180, 425))
         name = cpage.extract_text_simple().strip()
         if len(name) > 0:
             waiver.minors.append(name)
 
-        cpage = page.crop((57, 452, 230, 457))
+        # 2
+        cpage = page.crop((57, 452, 180, 457))
         name = cpage.extract_text_simple().strip()
         if len(name) > 0:
             waiver.minors.append(name)
 
-        cpage = page.crop((57, 485, 230, 490))
+        # 3
+        cpage = page.crop((57, 485, 180, 490))
         name = cpage.extract_text_simple().strip()
         if len(name) > 0:
             waiver.minors.append(name)
 
-        cpage = page.crop((57, 518, 230, 522))
+        # 4
+        cpage = page.crop((57, 518, 180, 522))
         name = cpage.extract_text_simple().strip()
         if len(name) > 0:
             waiver.minors.append(name)
+
+        # child 5
+        cpage = page.crop((57, 558, 180, 562))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+        # child 6
+        cpage = page.crop((209, 424, 333, 428))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+        # child 7
+        cpage = page.crop((210, 484, 330, 488))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+        # child 8
+        cpage = page.crop((210, 452, 330, 457))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+        # child 9
+        cpage = page.crop((210, 517, 330, 521))
+        name = cpage.extract_text_simple().strip()
+        if len(name) > 0:
+            waiver.minors.append(name)
+
+
+
+
+
 
     return waiver
 
