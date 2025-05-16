@@ -6,7 +6,7 @@ import memberdata
 import memberwaiver
 
 
-def main():
+def main() -> None:
     # Read membership data
     membership = memberdata.Membership()
     membership.read_csv_files()

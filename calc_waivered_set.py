@@ -36,6 +36,7 @@ class SignedWaiver:
     FIELD_WAIVER_SIGNED = "Signed"
     FIELD_DOC_LINK = "Doc Link"
 
+    @staticmethod
     def get_header():
         return [
             SignedWaiver.FIELD_ACCOUNT_NUM,
@@ -60,7 +61,7 @@ class SignedWaiver:
         return row
 
 
-def main():
+def main() -> None:
     attestations = attest.read_attestations_csv()
     membership = memberdata.Membership()
     membership.read_csv_files()

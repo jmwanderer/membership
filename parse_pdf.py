@@ -22,11 +22,11 @@ class Signature:
 
 
 class MemberWaiverPDF:
-    def __init__(self):
+    def __init__(self) -> None:
         self.signatures: list[Signature] = []
         self.minors: list[str] = []
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = "Waiver:"
         for signature in self.signatures:
             result += f"\n\t{signature.name}, {signature.date}"
@@ -35,7 +35,7 @@ class MemberWaiverPDF:
         return result
 
 
-def parse_member_waiver_pdf(infile: io.BytesIO) -> MemberWaiverPDF:
+def parse_member_waiver_pdf(infile: io.BufferedReader | io.BytesIO) -> MemberWaiverPDF:
     """
     Read a member waiver PDF and specific key data.
     """
@@ -125,12 +125,12 @@ def parse_member_waiver_pdf(infile: io.BytesIO) -> MemberWaiverPDF:
 
 
 class GuestWaiverPDF:
-    def __init__(self):
+    def __init__(self) -> None:
         self.adult: str = ""
         self.minors: list[str] = []
         self.date: str = ""
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = f"Date: {self.date} - by {self.adult}\nMinors:"
         for minor in self.minors:
             result += f"\n\t{minor}"
@@ -150,7 +150,7 @@ GUEST_EXCLUDE_STR = "_____________________________"
 GUEST_DATE_STR = "The document has been completed."
 
 
-def parse_guest_waiver_pdf(in_file: io.BytesIO) -> GuestWaiverPDF:
+def parse_guest_waiver_pdf(in_file: io.BufferedReader | io.BytesIO) -> GuestWaiverPDF:
     """
     Read a PDF file and extract specific lines
 
@@ -194,13 +194,13 @@ class AttestationPDF:
     Constains knowledge on how to extract information from lines in a PDF
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.file_name: str = ""
         self.web_view_link: str = ""
         self.adults: list[str] = []
         self.minors: list[str] = []
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = f"file: {self.file_name}"
         result += "\nAdults:"
         for adult in self.adults:
@@ -237,6 +237,7 @@ class AttestationPDF:
             result.append(AttestationPDF._parseMinor(line))
         return result
 
+    @staticmethod
     def _parseAdult(line: str) -> attest.AttestEntry:
         # Look for an email address
         m = re.search(r"\S+@\S+", line)
@@ -251,6 +252,7 @@ class AttestationPDF:
 
         return attest.AttestEntry(name.strip(), email.strip(), birthdate)
 
+    @staticmethod
     def _parseMinor(line: str) -> attest.AttestEntry:
         start, birthdate = dateutil.find_date(line)
         name = line[0:start]
@@ -271,7 +273,7 @@ markers = [
 ]
 
 
-def parse_attestation_pdf(in_file) -> AttestationPDF:
+def parse_attestation_pdf(in_file: io.BufferedReader | io.BytesIO) -> AttestationPDF:
     """
     Read a PDF file and extract specific lines
 
@@ -314,13 +316,13 @@ if __name__ == "__main__":
         sys.exit(-1)
     with open(sys.argv[2], "rb") as f:
         if sys.argv[1] == "guest":
-            waiver_pdf = parse_guest_waiver_pdf(f)
-            print(waiver_pdf)
+            guest_waiver_pdf = parse_guest_waiver_pdf(f)
+            print(guest_waiver_pdf)
         elif sys.argv[1] == "attest":
             attestation_pdf = parse_attestation_pdf(f)
             print(attestation_pdf)
             attestation = attestation_pdf.parse_attestation()
             print(attestation)
         else:
-            waiver_pdf = parse_member_waiver_pdf(f)
-            print(waiver_pdf)
+            member_waiver_pdf = parse_member_waiver_pdf(f)
+            print(member_waiver_pdf)

@@ -9,7 +9,7 @@ import csv
 import datetime
 
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build     # type: ignore
 
 import parse_pdf
 import memberwaiver
@@ -17,7 +17,7 @@ import dateutil
 import gdrive
 
 
-def main():
+def main() -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
     """
@@ -42,9 +42,8 @@ def main():
         print(web_view_link)
         waiver = memberwaiver.MemberWaiver()
         for signature in waiver_pdf.signatures:
-            _, date_signed = dateutil.find_date(signature.date)
             waiver.signatures.append(
-                memberwaiver.Signature(signature.name, date_signed)
+                memberwaiver.Signature(signature.name, signature.date)
             )
         waiver.minors = waiver_pdf.minors.copy()
         waiver.file_name = file_name

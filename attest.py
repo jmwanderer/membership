@@ -19,13 +19,13 @@ class Attestation:
     Attestaton represtened as a line in a CSV file
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.file_name: str = ""
         self.web_view_link: str = ""
         self.adults: list[AttestEntry] = []
         self.minors: list[AttestEntry] = []
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = self.file_name
         result += "\n\t" + self.web_view_link
         for adult in self.adults:

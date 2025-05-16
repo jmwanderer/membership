@@ -5,7 +5,6 @@ Functionality to represent and manage member waiver records.
 """
 
 from dataclasses import dataclass
-import datetime
 import csv
 
 
@@ -13,7 +12,7 @@ import csv
 class Signature:
     # Adult signature on a member waiver
     name: str
-    date: datetime.date
+    date: str
 
 
 class MemberWaiver:
@@ -21,7 +20,7 @@ class MemberWaiver:
     Represents data for a member waiver with CVS records
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # PDF file name in gdrive
         self.file_name: str = ""
         # Link to view the PDF
@@ -31,7 +30,7 @@ class MemberWaiver:
         self.minors: list[str] = []
         self.complete = "?"
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = self.file_name
         result += "\n\t" + self.web_view_link
         for signature in self.signatures:
@@ -191,7 +190,7 @@ def simple_test():
     # Add records
     waiver = MemberWaiver()
     waiver.signatures.append(
-        Signature("Bob", datetime.date.fromisoformat("2012-01-05"))
+        Signature("Bob", "2012-01-05")
     )
     waiver.minors.append("Sam")
     waiver.file_name = "waiver1.pdf"
@@ -200,10 +199,10 @@ def simple_test():
 
     waiver = MemberWaiver()
     waiver.signatures.append(
-        Signature("Erica", datetime.date.fromisoformat("2019-11-15"))
+        Signature("Erica", "2019-11-15")
     )
     waiver.signatures.append(
-        Signature("Lionel", datetime.date.fromisoformat("2019-11-15"))
+        Signature("Lionel", "2019-11-15")
     )
     waiver.minors.append("Parth")
     waiver.file_name = "waiver2.pdf"
@@ -212,16 +211,16 @@ def simple_test():
 
     waiver = MemberWaiver()
     waiver.signatures.append(
-        Signature("Adult1", datetime.date.fromisoformat("2019-11-01"))
+        Signature("Adult1", "2019-11-01")
     )
     waiver.signatures.append(
-        Signature("Adult2", datetime.date.fromisoformat("2019-11-02"))
+        Signature("Adult2", "2019-11-02")
     )
     waiver.signatures.append(
-        Signature("Adult3", datetime.date.fromisoformat("2019-11-03"))
+        Signature("Adult3", "2019-11-03")
     )
     waiver.signatures.append(
-        Signature("Adult4", datetime.date.fromisoformat("2019-11-04"))
+        Signature("Adult4", "2019-11-04")
     )
     waiver.minors.append("Minor1")
     waiver.minors.append("Minor2")

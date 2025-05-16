@@ -101,12 +101,15 @@ def run_markup(
     input_file = open(filename, "r", newline="")
     print(f"Note: reading {filename}")
     input_csv = csv.DictReader(input_file)
+    if input_csv.fieldnames is None:
+        print(f"Error: no field headers in {filename}")
+        return
+    column_names = list(input_csv.fieldnames)
+
     for row in input_csv:
         rows.append(row)
     input_file.close()
     print(f"Note: read {len(rows)} records")
-
-    column_names = list(input_csv.fieldnames)
 
     # Mark column for matching rows
     if len(mark_col) > 0:

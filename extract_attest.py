@@ -4,14 +4,14 @@ import pickle
 import csv
 import datetime
 
-from googleapiclient.discovery import build
+from googleapiclient.discovery import build     # type: ignore
 
 import attest
 import parse_pdf
 import gdrive
 
 
-def main():
+def main() -> None:
     """
     Scrape all attestation PDF files and create a CSV file
 
@@ -19,7 +19,7 @@ def main():
     TODO: handle multiple copies of one attestation?
     TODO: at least check for duplicates
     """
-    attestations = []
+    attestations: list[attest.Attestation] = []
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)

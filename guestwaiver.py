@@ -4,7 +4,6 @@ Guest Waiver
 Functionality to represent and manage guest waiver records.
 """
 
-import datetime
 import csv
 
 
@@ -14,7 +13,7 @@ class GuestWaiver:
     Supports CVS records
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # PDF file name in gdrive
         self.file_name: str = ""
         # Link to view the PDF
@@ -22,13 +21,12 @@ class GuestWaiver:
         self.adult_signer: str = ""
         # Minors listed
         self.minors: list[str] = []
-        self.date_signed: datetime.date = ""
+        self.date_signed: str = ""
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = self.file_name
         result += "\n\t" + self.web_view_link
-        for adult in self.adults:
-            result += "\n\t" + str(adult)
+        result += "\n\t" + str(self.adult_signer)
         for minor in self.minors:
             result += "\n\t" + str(minor)
 
@@ -130,7 +128,7 @@ def simple_test():
     waiver = GuestWaiver()
     waiver.adult_signer = "Bob"
     waiver.minors.append("Sam")
-    waiver.date_signed = datetime.date.fromisoformat("2012-01-05")
+    waiver.date_signed = "2012-01-05"
     waiver.file_name = "waiver1.pdf"
     waiver.web_view_link = "http://web.com/waiver1.pdf"
     waivers.append(waiver)
@@ -138,7 +136,7 @@ def simple_test():
     waiver = GuestWaiver()
     waiver.adult_signer = "Erica"
     waiver.minors.append("Parth")
-    waiver.date_signed = datetime.date.fromisoformat("2018-10-21")
+    waiver.date_signed = "2018-10-21"
     waiver.file_name = "waiver2.pdf"
     waiver.web_view_link = "http://web.com/waiver2.pdf"
     waivers.append(waiver)

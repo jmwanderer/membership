@@ -6,7 +6,7 @@ Write:
 to be used by updaterows.py
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 import csv
 import io
@@ -17,7 +17,7 @@ import memberdata
 def read_name_columns(
     stream: io.TextIOBase,
     name_columns: list[tuple[str, str]],
-    cond: Callable[[dict[str, str], str], bool],
+    cond: Callable[[dict[str, str]], bool],
 ) -> list[memberdata.MemberName]:
     """
     Read first name, last name columns and return a list of MemberName
@@ -39,7 +39,7 @@ def read_name_columns(
 def read_full_name_columns(
     stream: io.TextIOBase,
     columns: list[str],
-    cond: Callable[[dict[str, str], str], bool],
+    cond: Callable[[dict[str, str]], bool],
 ) -> list[str]:
     """
     Read one or more full name columns and return a list of strings
@@ -134,8 +134,8 @@ def write_ids(account_ids: list[str], member_ids: list[str]):
 class DataSource:
     filename: str
     fullname: bool
-    name_columns: list[tuple[str, str]] | None = None
-    fullname_columns: list[str] | None = None
+    name_columns: list[tuple[str, str]] = field(default_factory=list)
+    fullname_columns: list[str] = field(default_factory=list)
 
 
 def nocond(row: dict[str, str]) -> bool:
@@ -152,7 +152,7 @@ class DataQuery:
 swimteam = DataSource(
     filename="input/swim_team.csv",
     fullname=False,
-    name_columns=[["First Name", "Last Name"]],
+    name_columns=[("First Name", "Last Name")],
 )
 waivers = DataSource(
     filename="output/member_waivers.csv",

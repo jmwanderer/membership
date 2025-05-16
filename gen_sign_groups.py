@@ -26,7 +26,7 @@ class FamilyRecord:
 
 class MemberWaiverGroupings:
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Adult members with no minor children as members
         self.no_minor_children: list[MemberEntry] = []
 
