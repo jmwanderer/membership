@@ -4,7 +4,7 @@ Access Membership accounts and members via exported CSV files
 
 import csv
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from collections.abc import Iterator
 import sys
 
@@ -14,7 +14,8 @@ MEMBERS_TEST_1_CSV = "test/members.test1.csv"
 MEMBERS_TEST_2_CSV = "test/members.test2.csv"
 ACCOUNTS_CSV = "input/accounts.csv"
 ACCOUNTS_TEST_CSV = "test/accounts.test.csv"
-
+PARENTS_CSV = "input/parents.csv"
+PARENTS_TEST_CSV = "test/parents.csv"
 
 @dataclass
 class MemberName:
@@ -115,6 +116,13 @@ class AccountEntry:
         "Special Leave with Alumni Passes",
     ]
 
+@dataclass
+class ParentRec:
+    account_num: str
+    parents: list[MemberEntry] = field(default_factory=list)
+    minors: list[MemberEntry] = field(default_factory=list)
+
+
 
 class Membership:
     """Account and member entries"""
@@ -123,14 +131,16 @@ class Membership:
         self.member_map: dict[MemberName, list[MemberEntry]] = {}
         self.member_name_map: dict[str, list[MemberEntry]] = {}
         self.account_map: dict[str, AccountEntry] = {}
+        self.parent_map: dict[str, list[ParentRec]] = {}        # ParentRecs for account_num
 
-    def read_csv_files(self, accounts_file=ACCOUNTS_CSV, members_file=MEMBERS_CSV):
+    def read_csv_files(self, accounts_file=ACCOUNTS_CSV, members_file=MEMBERS_CSV, parents_file=PARENTS_CSV):
         """
         Read account and member CSV files.
         """
         print("Loading memberdata")
         self._read_accounts_csv(accounts_file)
         self._read_members_csv(members_file)
+        self._read_parents_csv(parents_file)
 
     def member_names(self) -> list[MemberName]:
         result: list[MemberName]
@@ -140,6 +150,12 @@ class Membership:
     def account_nums(self) -> list[str]:
         result: list[str]
         result = list(self.account_map.keys())
+        return result
+
+    def get_families_for_account(self, account_num: str) -> list[ParentRec]:
+        result = self.parent_map.get(account_num)
+        if result is None:
+            return []
         return result
 
     def get_members_by_name(self, member_name: MemberName) -> list[MemberEntry]:
@@ -213,10 +229,14 @@ class Membership:
         return None
 
     def has_minor_children(self, account_num: str) -> bool:
+        return self.number_minor_children(account_num) > 0
+
+    def number_minor_children(self, account_num: str) -> bool:
+        count = 0
         for member in self.get_members_for_account_num(account_num):
             if member.is_minor():
-                return True
-        return False
+                count += 1
+        return count
 
     def all_members(self) -> Iterator[MemberEntry]:
         for entries in self.member_map.values():
@@ -316,8 +336,39 @@ class Membership:
         print(f"Note: Read {count} account sheet rows")
         print(f"Note: Loaded {len(self.account_map)} accounts")
 
+    def _read_parents_csv(self, filename: str):
+        print(f"Reading parents list '{filename}")
+        self.parent_map = {}
+        with open(filename, newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                account_num = row['Acct #']
+                if not account_num in self.parent_map:
+                    self.parent_map[account_num] = []
+                parent_rec = ParentRec(account_num)
+                for parent_label in [ "Parent1", "Parent2"]:
+                    parent = row[parent_label].strip()
+                    if len(parent) > 0:
+                        members = self.get_members_by_fullname(parent)
+                        if len(members) == 0:
+                            print(f"Warning: unable to find parent name '{parent}'")
+                        else:
+                            parent_rec.parents.append(members[0])    
+
+                for minor_label in [ "Minor1","Minor2","Minor3","Minor4","Minor5"]:
+                    minor = row[minor_label].strip()
+                    if len(minor) > 0:
+                        members = self.get_members_by_fullname(minor)
+                        if len(members) == 0:
+                            print(f"Warning: unable to find minor entry for '{minor}'")
+                        else:
+                            parent_rec.minors.append(members[0])
+
+                self.parent_map[account_num].append(parent_rec)
+                print(f"Add parent rec for account {account_num}")
 
 if __name__ == "__main__":
     members = Membership()
-    members.read_csv_files(ACCOUNTS_TEST_CSV, MEMBERS_TEST_1_CSV)
-    members.read_csv_files(ACCOUNTS_TEST_CSV, MEMBERS_TEST_2_CSV)
+    members.read_csv_files(ACCOUNTS_TEST_CSV, MEMBERS_TEST_1_CSV, PARENTS_TEST_CSV)
+    members.read_csv_files(ACCOUNTS_TEST_CSV, MEMBERS_TEST_2_CSV, PARENTS_TEST_CSV)
+    members.read_csv_files()

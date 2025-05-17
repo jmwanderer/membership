@@ -12,6 +12,7 @@ Outputs:
 
 import csv
 
+import csvfile
 import memberdata
 from memberdata import MemberEntry, AccountEntry, Membership
 import keys
@@ -131,6 +132,23 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
             groups.no_minors_count += 1
             continue
 
+        # Check defined parent listings
+        parent_recs = membership.get_families_for_account(account.account_num)
+        if len(parent_recs) > 0:
+            # Use defined rec instead of guessing
+            num_minors = 0
+            for parent_rec in parent_recs:
+                family = FamilyRecord(account.account_num)
+                for parent in parent_rec.parents:
+                    family.adults.append(parent)
+                for minor in parent_rec.minors:
+                    num_minors += 1
+                    family.minors.append(minor)
+                groups.with_minor_children.append(family)
+            if num_minors != membership.number_minor_children(account.account_num):
+                print(f"Error: missing minor entries in account {account.account_num}")
+            continue
+
         # Build list of parents and minor children
         # Collect adults with minor aged children
         parents = select_parents(membership, account)
@@ -161,6 +179,7 @@ def write_groups(groups: MemberWaiverGroupings,
 
     # Create a list of adults that do not have minor children
     output_filename = "output/adults_no_minor_children.csv"
+    csvfile.backup_file(output_filename)
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
     row = ["Account#", "Member#", "name", "email_address","key_email"]
@@ -182,6 +201,7 @@ def write_groups(groups: MemberWaiverGroupings,
 
     # Create a list of parents and minor children
     output_filename = "output/parents_to_sign.csv"
+    csvfile.backup_file(output_filename)
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
     row = [
@@ -213,6 +233,7 @@ def write_groups(groups: MemberWaiverGroupings,
 
     # Create a list of families with unnkown parentage
     output_filename = "output/unknown_list_to_sign.csv"
+    csvfile.backup_file(output_filename)
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
     row = [
