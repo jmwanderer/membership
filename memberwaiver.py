@@ -6,6 +6,7 @@ Functionality to represent and manage member waiver records.
 
 from dataclasses import dataclass
 import csv
+import os
 
 
 @dataclass
@@ -156,7 +157,12 @@ def read_csv(csv_file: str = memberwaiver_csv_filename) -> list[MemberWaiver]:
     """
     Read waivers from a CSV file
     """
-    result = []
+    result: list[MemberWaiver] = []
+
+    if not os.path.exists(csv_file):
+        print(f"Note: Starting with an empty waiver file: {csv_file}")
+        return result
+
     print(f"Note: reading waiver file '{csv_file}'")
 
     with open(csv_file, "r", newline="") as f:
@@ -180,12 +186,11 @@ def write_csv(waivers: list[MemberWaiver], csv_file: str = memberwaiver_csv_file
     print(f"Note: wrote {len(waivers)} member waiver records.")
 
 
-def simple_test():
-    waivers = []
+def simple_test() -> None:
+    filename = "test_member_waivers.csv"
 
-    # Empty file
-    write_csv(waivers)
-    read_csv()
+    # Expect an empty file
+    waivers: list[MemberWaiver] = read_csv(filename)
 
     # Add records
     waiver = MemberWaiver()
@@ -230,10 +235,11 @@ def simple_test():
     waiver.web_view_link = "http://web.com/waiver3.pdf"
     waivers.append(waiver)
 
-    write_csv(waivers)
-    waivers = read_csv()
-    write_csv(waivers)
-    waivers = read_csv()
+    write_csv(waivers, filename)
+    waivers = read_csv(filename)
+    write_csv(waivers, filename)
+    waivers = read_csv(filename)
+    os.unlink(filename)
 
 
 if __name__ == "__main__":

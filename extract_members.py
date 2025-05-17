@@ -23,6 +23,9 @@ def main() -> None:
     """
     waivers: list[memberwaiver.MemberWaiver] = []
 
+    # Load existing waivers
+    waivers = memberwaiver.read_csv()
+
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
     folder_name = "2025 Member Waivers"
@@ -31,8 +34,15 @@ def main() -> None:
         print("No files found.")
         return
 
+    filenames: dict[str,bool] = {waiver.file_name:True for waiver in waivers}
+
     print("Processing Files:")
     for file in files:
+        # Check if file has already been parsed
+        if file["name"] in filenames:
+            print(f"Note: already parsed {file['name']} - skipping")
+            continue
+
         print(f"{file['name']}")
         file_data = gdrive.download_file(drive, file["id"])
         waiver_pdf = parse_pdf.parse_member_waiver_pdf(file_data)

@@ -5,6 +5,7 @@ Functionality to represent and manage guest waiver records.
 """
 
 import csv
+import os
 
 
 class GuestWaiver:
@@ -79,11 +80,11 @@ class GuestWaiver:
         if len(row[GuestWaiver.FIELD_MINOR1]) > 0:
             self.minors.append(row[GuestWaiver.FIELD_MINOR1])
         if len(row[GuestWaiver.FIELD_MINOR2]) > 0:
-            self.minors.append(GuestWaiver.FIELD_MINOR2)
+            self.minors.append(row[GuestWaiver.FIELD_MINOR2])
         if len(row[GuestWaiver.FIELD_MINOR3]) > 0:
-            self.minors.append(GuestWaiver.FIELD_MINOR3)
+            self.minors.append(row[GuestWaiver.FIELD_MINOR3])
         if len(row[GuestWaiver.FIELD_MINOR4]) > 0:
-            self.minors.append(GuestWaiver.FIELD_MINOR4)
+            self.minors.append(row[GuestWaiver.FIELD_MINOR4])
 
 
 guestwaiver_csv_filename = "output/guest_waivers.csv"
@@ -93,7 +94,12 @@ def read_csv(csv_file: str = guestwaiver_csv_filename) -> list[GuestWaiver]:
     """
     Read waivers from a CSV file
     """
-    result = []
+    result: list[GuestWaiver] = []
+
+    if not os.path.exists(csv_file):
+        print(f"Note: starting with an empty waiver file")
+        return result
+
     print(f"Note: reading waiver file '{csv_file}'")
 
     with open(csv_file, "r", newline="") as f:
@@ -117,11 +123,12 @@ def write_csv(waivers: list[GuestWaiver], csv_file: str = guestwaiver_csv_filena
     print(f"Note: wrote {len(waivers)} guest waiver records.")
 
 
-def simple_test():
-    waivers = []
+def simple_test() -> None:
+    waivers: list[GuestWaiver] = []
 
+    waiver_filename: str = "test_guest_waivers.csv"
     # Empty file
-    write_csv(waivers)
+    write_csv(waivers, waiver_filename)
     read_csv()
 
     # Add records
@@ -140,8 +147,9 @@ def simple_test():
     waiver.file_name = "waiver2.pdf"
     waiver.web_view_link = "http://web.com/waiver2.pdf"
     waivers.append(waiver)
-    write_csv(waivers)
+    write_csv(waivers, waiver_filename)
     waivers = read_csv()
+    os.unlink(waiver_filename)
 
 
 if __name__ == "__main__":

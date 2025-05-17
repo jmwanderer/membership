@@ -2,18 +2,10 @@
 Extract guest waiver data from PDF files on Google drive.
 """
 
-import os.path
-import io
-import pickle
-import csv
-import datetime
-
-
 from googleapiclient.discovery import build     # type: ignore
 
 import parse_pdf
 import guestwaiver
-import dateutil
 import gdrive
 
 
@@ -23,6 +15,9 @@ def main() -> None:
     """
     waivers: list[guestwaiver.GuestWaiver] = []
 
+    # Load existing waivers
+    waivers = guestwaiver.read_csv()
+
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
     folder_name = "2025 Guest Waivers"
@@ -31,8 +26,16 @@ def main() -> None:
         print("No files found.")
         return
 
+    filenames: dict[str,bool] = { waiver.file_name:True for waiver in waivers }
+
     print("Processing Files:")
     for file in files:
+
+        # Check if file has been parsed already.
+        if file["name"] in filenames:
+            print(f"Note: already parsed {file['name']} - skipping")
+            continue
+
         print(f"{file['name']}")
         file_data = gdrive.download_file(drive, file["id"])
         waiver_pdf = parse_pdf.parse_guest_waiver_pdf(file_data)
