@@ -231,7 +231,7 @@ class Membership:
     def has_minor_children(self, account_num: str) -> bool:
         return self.number_minor_children(account_num) > 0
 
-    def number_minor_children(self, account_num: str) -> bool:
+    def number_minor_children(self, account_num: str) -> int:
         count = 0
         for member in self.get_members_for_account_num(account_num):
             if member.is_minor():

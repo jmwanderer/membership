@@ -14,7 +14,9 @@
 
 7. consider consolitating: guestwaiver, memberwaiver, attest
 
-- selection: not, keys, waivers, family_waivers, adult_waivers
+8. Consider consoltating ParentRec FamilyRec?
+
+- selection: not, waivers, family_waivers, adult_waivers
 - update / create
 
 

@@ -154,9 +154,10 @@ def run_markup(
     if len(missed_ids) == 0:
         print("All ids found and updated")
     else:
-        print("Missing ids")
-        for id_val in missed_ids:
-            print(f"\t{id_val}")
+        print(f"Matched ids ({len(matched_ids)}):")
+        print(f"\t{', '.join(matched_ids)}")
+        print(f"Missed ids ({len(missed_ids)}):")
+        print(f"\t{', '.join(missed_ids)}")
 
 
 if __name__ == "__main__":

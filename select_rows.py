@@ -194,8 +194,22 @@ attestations = DataSource(
     ],
 )
 
+keys = DataSource(
+    filename="input/keys.csv",
+    fullname=False,
+    name_columns=[("First Name", "Last Name")],
+)
+
+fullnames = DataSource(
+    filename="output/fullnames.csv",
+    fullname=True,
+    fullname_columns=["name"]
+)
+
 
 QUERY_LIST = [
+    DataQuery("fullnames", fullnames),
+    DataQuery("keys", keys),
     DataQuery("swimteam", swimteam),
     DataQuery("waivers", waivers),
     DataQuery("complete_waivers", waivers, lambda x: x["complete"].lower() == "y"),
