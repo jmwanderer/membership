@@ -3,6 +3,7 @@ import datetime
 import attest
 import memberdata
 
+# TODO: add some type of handling of multiple attestations for same household
 
 def review_attestation(membership, attestation):
     # Get account matching attestation

@@ -14,12 +14,10 @@ import gdrive
 def main() -> None:
     """
     Scrape all attestation PDF files and create a CSV file
-
-    TODO: update operation. Read CSV, scrape files, update, Write CSV
-    TODO: handle multiple copies of one attestation?
-    TODO: at least check for duplicates
     """
     attestations: list[attest.Attestation] = []
+    attestations = attest.read_attestations_csv()
+    
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
@@ -29,22 +27,24 @@ def main() -> None:
         print("No files found.")
         return
 
-    output_file = open(attest.attestations_csv_filename, "w", newline="")
-    output_csv = csv.writer(output_file)
-    output_csv.writerow(attest.Attestation.HEADER)
+    filenames: set[str] = set(attestation.file_name for attestation in attestations)
 
     print("Processing Files:")
     for file in files:
+        # Check if file has already been processed
+        if file['name'] in filenames:
+            print(f"Note: already parsed {file['name']} - skipping")
+            continue
+
         print(f"{file['name']}")
         file_data = gdrive.download_file(drive, file["id"])
         attestation_pdf = parse_pdf.parse_attestation_pdf(file_data)
         attestation_pdf.file_name = file["name"]
         attestation_pdf.web_view_link = file["webViewLink"]
         attestation = attestation_pdf.parse_attestation()
-        row = attestation.get_row()
-        output_csv.writerow(row)
+        attestations.append(attestation)
 
-    output_file.close()
+    attest.write_attestations_csv(attestations)
     print(f"Wrote output: {attest.attestations_csv_filename}")
 
 

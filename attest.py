@@ -124,9 +124,9 @@ class Attestation:
             name = row[index * 3].strip()
             email = row[index * 3 + 1].strip()
             birthdate = row[index * 3 + 2].strip()
+            date = datetime.date.min
             if len(birthdate) > 0:
                 date = datetime.date.fromisoformat(birthdate)
-            date = datetime.date.min
             if len(name) > 0:
                 self.adults.append(AttestEntry(name, email, date))
         for index in range(0, 5):

@@ -19,7 +19,16 @@
 - selection: not, waivers, family_waivers, adult_waivers
 - update / create
 
+9. Fix waivers - remove Complete / Incomplete. Change to Family, Invdividual, Incomplete
 
+
+Email Martin / Marla on:
+
+1. getting parent info on unknown group
+
+2. update them on the waivers
+- member
+- guest - incoming
 
 Questions:
 
@@ -27,3 +36,4 @@ How can I list everyone that has a waiver?
 How can I list everyone that doesn't have a waiver
 How can I list everyone that has not been asked for a waiver?
 
+Who has not signed an attestation?
