@@ -11,19 +11,52 @@ import datetime
 
 from googleapiclient.discovery import build     # type: ignore
 
+import memberdata
 import parse_pdf
 import memberwaiver
 import dateutil
 import gdrive
 
 
+def check_waiver(membership: memberdata.Membership, waiver: memberwaiver.MemberWaiver) -> bool:
+    """
+    Return True if waiver is considered to be complete.
+    All required signatures and minors are included for a family waiver.
+    A complete family waiver means that all minors and all signers are covered
+    TODO: check that both parents have signed
+    """
+
+    if len(waiver.signatures) < 1:
+        return False
+
+    if waiver.type == memberwaiver.MemberWaiver.TYPE_INDIVIDUAL:
+        return True
+
+    name = waiver.signatures[0].name
+    account = membership.get_account_by_fullname(name)
+    if account is None:
+        print(f"Warning: no account for name '{name}'")
+        return False
+
+    # Count number of minor children
+    minors = 0
+    for member in membership.get_members_for_account_num(account.account_num):
+        if member.is_minor():
+            minors += 1
+
+    return minors == 0 or minors == len(waiver.minors)
+
+
 def main() -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
     """
-    waivers: list[memberwaiver.MemberWaiver] = []
+    # Read membership data
+    membership = memberdata.Membership()
+    membership.read_csv_files()
 
     # Load existing waivers
+    waivers: list[memberwaiver.MemberWaiver] = []
     waivers = memberwaiver.read_csv()
 
     gdrive.login()
@@ -55,9 +88,16 @@ def main() -> None:
             waiver.signatures.append(
                 memberwaiver.Signature(signature.name, signature.date)
             )
+        # Set type of waiver. We assume 1 sig, no minors is an individual waiver
+        if len(waiver_pdf.signatures) > 1 or len(waiver_pdf.minors) > 0:
+            waiver.type = memberwaiver.MemberWaiver.TYPE_FAMILY
+        else:
+            waiver.type = memberwaiver.MemberWaiver.TYPE_INDIVIDUAL
+
         waiver.minors = waiver_pdf.minors.copy()
         waiver.file_name = file_name
         waiver.web_view_link = web_view_link
+        waiver.set_complete(check_waiver(membership, waiver))
         waivers.append(waiver)
 
     memberwaiver.write_csv(waivers)

@@ -1,14 +1,9 @@
 1. Refactor calc_waivered_set
    - use new class for waiver - actually, rename for clarity
    - incorprate state of member_Waiver.csv
+   . Make calc_waivered_set consider member_waivers.csv
 
-2. Make attestations check for already processed
-
-3. incorporate check waiver into extract_waiver
-
-4. incorporate readids into select rows
-
-5. Make calc_waivered_set consider member_waivers.csv
+2. incorporate readids into select rows
 
 6. look if review account keys can use selectrows
 
@@ -19,8 +14,6 @@
 - selection: not, waivers, family_waivers, adult_waivers
 - update / create
 
-9. Fix waivers - remove Complete / Incomplete. Change to Family, Invdividual, Incomplete
-
 
 Email Martin / Marla on:
 
@@ -29,6 +22,8 @@ Email Martin / Marla on:
 2. update them on the waivers
 - member
 - guest - incoming
+
+location of memberwaivers.csv
 
 Questions:
 

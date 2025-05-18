@@ -62,9 +62,13 @@ class MemberWaiver:
     FIELD_MINOR2 = "minor2"
     FIELD_MINOR3 = "minor3"
     FIELD_MINOR4 = "minor4"
+    FIELD_TYPE = "type"
     FIELD_COMPLETE = "complete"
     FIELD_LINK = "link"
     FIELD_FILENAME = "file"
+
+    TYPE_INDIVIDUAL = "individual"
+    TYPE_FAMILY = "family"
 
     HEADER = [
         FIELD_DATE1,
@@ -79,6 +83,7 @@ class MemberWaiver:
         FIELD_MINOR2,
         FIELD_MINOR3,
         FIELD_MINOR4,
+        FIELD_TYPE,
         FIELD_COMPLETE,
         FIELD_LINK,
         FIELD_FILENAME,
@@ -91,6 +96,7 @@ class MemberWaiver:
         row = {}
         row[MemberWaiver.FIELD_LINK] = self.web_view_link
         row[MemberWaiver.FIELD_FILENAME] = self.file_name
+        row[MemberWaiver.FIELD_TYPE] = self.type
         row[MemberWaiver.FIELD_COMPLETE] = self.complete
 
         for i, sig in enumerate(self.signatures):
@@ -108,6 +114,8 @@ class MemberWaiver:
         self.file_name = row[MemberWaiver.FIELD_FILENAME]
         if MemberWaiver.FIELD_COMPLETE in row:
             self.complete = row[MemberWaiver.FIELD_COMPLETE]
+        if MemberWaiver.FIELD_TYPE in row:
+            self.type = row[MemberWaiver.FIELD_TYPE]
 
         self.signatures = []
         if len(row[MemberWaiver.FIELD_SIGNER1]) > 0:
