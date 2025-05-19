@@ -1,30 +1,13 @@
 
-0. Fix selectids for waivers - 
-a. family - type family and complete - done
-b. family_incomplete - type family and not complete - done
-c. individual - type individual - done
-d. waivers - individual + family
-e. remove dups - done
-f. not
 
 
-
-
-1. Refactor calc_waivered_set
-   - use new class for waiver - actually, rename for clarity
-   - incorprate state of member_Waiver.csv
-   . Make calc_waivered_set consider member_waivers.csv
-
-2. incorporate readids into select rows
+2. incorporate readids into select rows - depends on dataset
 
 6. look if review account keys can use selectrows
 
 7. consider consolitating: guestwaiver, memberwaiver, attest
 
 8. Consider consoltating ParentRec FamilyRec?
-
-- selection: not, waivers, family_waivers, adult_waivers
-- update / create
 
 
 Email Martin / Marla on:

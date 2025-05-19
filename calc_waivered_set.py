@@ -16,12 +16,13 @@ import csv
 
 import attest
 import memberdata
+import memberwaiver
 
-waiver_out_filename = "output/signed_waivers.csv"
+waiver_out_filename = "output/waivered_members.csv"
 
 
 @dataclass
-class SignedWaiver:
+class WaiveredMember:
     """Represents an member covered by a waiver"""
 
     member: memberdata.MemberEntry
@@ -39,35 +40,40 @@ class SignedWaiver:
     @staticmethod
     def get_header():
         return [
-            SignedWaiver.FIELD_ACCOUNT_NUM,
-            SignedWaiver.FIELD_MEMBER_ID,
-            SignedWaiver.FIELD_FIRST_NAME,
-            SignedWaiver.FIELD_LAST_NAME,
-            SignedWaiver.FIELD_MEMBER_TYPE,
-            SignedWaiver.FIELD_WAIVER_SIGNED,
-            SignedWaiver.FIELD_DOC_LINK,
+            WaiveredMember.FIELD_ACCOUNT_NUM,
+            WaiveredMember.FIELD_MEMBER_ID,
+            WaiveredMember.FIELD_FIRST_NAME,
+            WaiveredMember.FIELD_LAST_NAME,
+            WaiveredMember.FIELD_MEMBER_TYPE,
+            WaiveredMember.FIELD_WAIVER_SIGNED,
+            WaiveredMember.FIELD_DOC_LINK,
         ]
 
     def get_row(self) -> dict[str, str]:
         row = {
-            SignedWaiver.FIELD_ACCOUNT_NUM: self.member.account_num,
-            SignedWaiver.FIELD_MEMBER_ID: self.member.member_id,
-            SignedWaiver.FIELD_FIRST_NAME: self.member.name.first_name,
-            SignedWaiver.FIELD_LAST_NAME: self.member.name.last_name,
-            SignedWaiver.FIELD_MEMBER_TYPE: self.member.member_type,
-            SignedWaiver.FIELD_WAIVER_SIGNED: "YES",
-            SignedWaiver.FIELD_DOC_LINK: self.doc_link,
+            WaiveredMember.FIELD_ACCOUNT_NUM: self.member.account_num,
+            WaiveredMember.FIELD_MEMBER_ID: self.member.member_id,
+            WaiveredMember.FIELD_FIRST_NAME: self.member.name.first_name,
+            WaiveredMember.FIELD_LAST_NAME: self.member.name.last_name,
+            WaiveredMember.FIELD_MEMBER_TYPE: self.member.member_type,
+            WaiveredMember.FIELD_WAIVER_SIGNED: "YES",
+            WaiveredMember.FIELD_DOC_LINK: self.doc_link,
         }
         return row
 
 
 def main() -> None:
-    attestations = attest.read_attestations_csv()
     membership = memberdata.Membership()
     membership.read_csv_files()
+    attestations = attest.read_attestations_csv()
+    member_waivers = memberwaiver.read_csv()
 
-    waivers: list[SignedWaiver] = []
+    waivers: list[WaiveredMember] = []
 
+    # Set of member ids
+    covered_member_ids: set[str] = set()
+
+    # Scan attestations
     for entry in attestations:
         signing_name = entry.adults[0].name
         signing_email = entry.adults[0].email
@@ -78,14 +84,38 @@ def main() -> None:
 
         if len(members) != 1:
             print(
-                f"Error: unable to determine signer {signing_name} in doc {entry.web_view_link}"
+                f"Error: unable to determine signer '{signing_name}' in doc {entry.web_view_link}"
             )
             continue
 
-        waivers.append(SignedWaiver(members[0], entry.web_view_link, True))
+        if members[0].member_id not in covered_member_ids:
+            covered_member_ids.add(members[0].member_id)
+            waivers.append(WaiveredMember(members[0], entry.web_view_link, True))
+
+    # Scan member waivers
+    for entry in member_waivers:
+        for signature in entry.signatures:
+            members = membership.get_members_by_fullname(signature.name)
+            if len(members) != 1:
+                print(f"Error: unable to determine signer '{signature.name}' in doc {entry.web_view_link} ({len(members)})")
+            else:
+                if members[0].member_id not in covered_member_ids:
+                    covered_member_ids.add(members[0].member_id)
+                    waivers.append(WaiveredMember(members[0], entry.web_view_link, True))
+
+        if entry.complete:
+            for minor in entry.minors:
+                members = membership.get_members_by_fullname(minor)
+                if len(members) != 1:
+                    print(f"Error: unable to determine minor '{minor}' in doc {entry.web_view_link}")
+                else:
+                    if members[0].member_id not in covered_member_ids:
+                        covered_member_ids.add(members[0].member_id)
+                        waivers.append(WaiveredMember(members[0], entry.web_view_link, True))
+
 
     output_file = open(waiver_out_filename, "w", newline="")
-    output_csv = csv.DictWriter(output_file, fieldnames=SignedWaiver.get_header())
+    output_csv = csv.DictWriter(output_file, fieldnames=WaiveredMember.get_header())
     output_csv.writeheader()
 
     for waiver in waivers:

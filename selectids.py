@@ -210,7 +210,7 @@ fullnames = DataSource(
 
 
 QUERY_LIST = [
-    #DataQuery("waivers", NOSRC),
+    DataQuery("waivers", NOSRC),
     DataQuery("fullnames", fullnames),
     DataQuery("keys", keys),
     DataQuery("swimteam", swimteam),
@@ -222,8 +222,7 @@ QUERY_LIST = [
 
 QUERIES = {dq.name: dq for dq in QUERY_LIST}
 
-
-def main(query: DataQuery):
+def load_data_query(membership: memberdata.Membership, query: DataSource) -> tuple[set[str], set[str]]:
     input_filename = query.datasource.filename
     fullnames = query.datasource.fullname
 
@@ -240,17 +239,28 @@ def main(query: DataQuery):
     input_file.close()
     print("")
 
-    # Read membership data
-    membership = memberdata.Membership()
-    membership.read_csv_files()
-    print("")
-
     print("Looking up member names...")
     if fullnames:
         account_ids, member_ids = lookup_ids_fullnames(membership, names)
     else:
         account_ids, member_ids = lookup_ids_member_names(membership, member_names)
+    return account_ids, member_ids
 
+
+def main(query: DataQuery):
+    # Read membership data
+    membership = memberdata.Membership()
+    membership.read_csv_files()
+    print("")
+
+    if query.name == "waivers":
+        account_ids1, member_ids1 = load_data_query(membership, QUERIES["family_waivers"])
+        account_ids2, member_ids2 = load_data_query(membership, QUERIES["individual_waivers"])
+        account_ids3, member_ids3 = load_data_query(membership, QUERIES["attest_signer"])
+        account_ids = account_ids1 | account_ids2 | account_ids3
+        member_ids = member_ids1 | member_ids2 | member_ids3
+    else:
+        account_ids, member_ids = load_data_query(membership, query)
     write_ids(account_ids, member_ids)
 
 
