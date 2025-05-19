@@ -165,7 +165,7 @@ def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: s
     membership.read_csv_files()
     ids_list = read_ids_file(id_file)
 
-    column_names = ["Acct #", "Member ID", "Member Type", "First Name", "Last Name"]
+    column_names = ["Account#", "Member#", "Member Type", "First Name", "Last Name"]
     if len(mark_col) > 0:
         column_names.append(mark_col)
     if len(clear_col) > 0:
@@ -180,8 +180,8 @@ def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: s
     for member in membership.all_members():
         count += 1
         row = {}
-        row["Acct #"] = member.account_num
-        row["Member ID"] = member.member_id
+        row["Account#"] = member.account_num
+        row["Member#"] = member.member_id
         row["Member Type"] = member.member_type
         row["First Name"] = member.name.first_name
         row["Last Name"] = member.name.last_name
@@ -201,7 +201,7 @@ def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: 
     membership.read_csv_files()
     ids_list = read_ids_file(id_file)
 
-    column_names = ["Acct #", "Acct Type", "First Name", "Last Name"]
+    column_names = ["Account#", "Account Type", "First Name", "Last Name"]
     if len(mark_col) > 0:
         column_names.append(mark_col)
     if len(clear_col) > 0:
@@ -216,8 +216,8 @@ def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: 
     for account in membership.accounts():
         count += 1
         row = {}
-        row["Acct #"] = account.account_num
-        row["Acct Type"] = account.account_type
+        row["Account#"] = account.account_num
+        row["Account Type"] = account.account_type
         row["First Name"] = account.billing_name.first_name
         row["Last Name"] = account.billing_name.last_name
 

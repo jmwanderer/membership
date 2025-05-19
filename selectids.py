@@ -211,9 +211,9 @@ QUERY_LIST = [
     DataQuery("fullnames", fullnames),
     DataQuery("keys", keys),
     DataQuery("swimteam", swimteam),
-    DataQuery("waivers", waivers),
-    DataQuery("complete_waivers", waivers, lambda x: x["complete"].lower() == "y"),
-    DataQuery("incomplete_waivers", waivers, lambda x: x["complete"].lower() == "n"),
+    DataQuery("individual_waivers", waivers, lambda x: x["type"].lower() == 'individual'),
+    DataQuery("family_waivers", waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() == "y"),
+    DataQuery("family_waivers_incomplete", waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() != "y"),
     DataQuery("attest_signer", attest_signer) 
 ]
 

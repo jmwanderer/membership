@@ -1,3 +1,15 @@
+
+0. Fix selectids for waivers
+a. family - type family and complete
+b. family_incomplete - type family and not complete
+c. individual - type individual
+d. waivers - individual + family
+e. remove dups
+f. not
+
+
+
+
 1. Refactor calc_waivered_set
    - use new class for waiver - actually, rename for clarity
    - incorprate state of member_Waiver.csv
@@ -32,3 +44,5 @@ How can I list everyone that doesn't have a waiver
 How can I list everyone that has not been asked for a waiver?
 
 Who has not signed an attestation?
+
+Which accounts require a family waiver?
