@@ -1,10 +1,10 @@
 
-0. Fix selectids for waivers
-a. family - type family and complete
-b. family_incomplete - type family and not complete
-c. individual - type individual
+0. Fix selectids for waivers - 
+a. family - type family and complete - done
+b. family_incomplete - type family and not complete - done
+c. individual - type individual - done
 d. waivers - individual + family
-e. remove dups
+e. remove dups - done
 f. not
 
 

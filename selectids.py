@@ -59,9 +59,9 @@ def read_full_name_columns(
 
 def lookup_ids_member_names(
     membership: memberdata.Membership, member_names: list[memberdata.MemberName]
-) -> tuple[list[str], list[str]]:
-    account_ids: list[str] = []
-    member_ids: list[str] = []
+) -> tuple[set[str], set[str]]:
+    account_ids: set[str] = set()
+    member_ids: set[str] = set()
 
     for name in member_names:
         members = membership.find_members_by_name(name)
@@ -72,9 +72,9 @@ def lookup_ids_member_names(
 
         for member in members:
             if member.account_num not in account_ids:
-                account_ids.append(member.account_num)
+                account_ids.add(member.account_num)
             if member.member_id not in member_ids:
-                member_ids.append(member.member_id)
+                member_ids.add(member.member_id)
 
     print(
         f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(member_names)} records."
@@ -84,9 +84,9 @@ def lookup_ids_member_names(
 
 def lookup_ids_fullnames(
     membership: memberdata.Membership, fullnames: list[str]
-) -> tuple[list[str], list[str]]:
-    account_ids: list[str] = []
-    member_ids: list[str] = []
+) -> tuple[set[str], set[str]]:
+    account_ids: set[str] = set()
+    member_ids: set[str] = set()
 
     for name in fullnames:
         members: list[memberdata.MemberEntry] = membership.get_members_by_fullname(name)
@@ -98,9 +98,9 @@ def lookup_ids_fullnames(
 
         for member in members:
             if member.account_num not in account_ids:
-                account_ids.append(member.account_num)
+                account_ids.add(member.account_num)
             if member.member_id not in member_ids:
-                member_ids.append(member.member_id)
+                member_ids.add(member.member_id)
 
     print(
         f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(fullnames)} names."
@@ -108,7 +108,7 @@ def lookup_ids_fullnames(
     return account_ids, member_ids
 
 
-def write_ids(account_ids: list[str], member_ids: list[str]):
+def write_ids(account_ids: set[str], member_ids: set[str]):
     # Write account ids
     accounts_filename = "output/account_ids.csv"
     output_file = open(accounts_filename, "w", newline="")
@@ -140,6 +140,8 @@ class DataSource:
 
 def nocond(row: dict[str, str]) -> bool:
     return True
+
+NOSRC = DataSource("", fullname=False)
 
 
 @dataclass
@@ -208,6 +210,7 @@ fullnames = DataSource(
 
 
 QUERY_LIST = [
+    #DataQuery("waivers", NOSRC),
     DataQuery("fullnames", fullnames),
     DataQuery("keys", keys),
     DataQuery("swimteam", swimteam),
