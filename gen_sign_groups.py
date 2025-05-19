@@ -113,7 +113,7 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
     groups = MemberWaiverGroupings()
 
     # Iterate through accounts
-    for account in membership.accounts():
+    for account in membership.active_member_accounts():
         # Only include active member accounts
         if not account.is_proprietary_member() and not account.is_alumni_pass():
             continue

@@ -213,7 +213,7 @@ def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: 
     output_csv.writeheader()
 
     count = 0
-    for account in membership.accounts():
+    for account in membership.active_member_accounts():
         count += 1
         row = {}
         row["Account#"] = account.account_num

@@ -34,6 +34,10 @@ for key_entry in keys.read_key_entries():
             f"Error: Key with invalid account num '{key_entry.account_num}' for {key_entry.member_name}"
         )
         continue
+    else:
+        account = membership.get_account(key_entry.account_num)
+        if not account.is_active_member() and not account.is_staff():
+            print(f"Error: key held by non-active account {key_entry.member_name} acct# {key_entry.account_num}")
 
     valid = False
     if key_entry.member_name not in membership.member_names():

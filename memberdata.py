@@ -99,6 +99,9 @@ class AccountEntry:
     def is_alumni_pass(self) -> bool:
         return self.account_type == "Special Leave with Alumni Passes"
 
+    def is_active_member(self) -> bool:
+        return self.is_proprietary_member() or self.is_alumni_pass()
+
     def is_staff(self) -> bool:
         return self.account_type == "Staff"
 
@@ -110,7 +113,7 @@ class AccountEntry:
     FIELD_EMAIL = "Email"
     FIELD_STREET_ADDRESS = "Street Address"
 
-    ACTIVE_ACCOUNT_TYPES = [
+    LOADED_ACCOUNT_TYPES = [
         "Proprietary Member Annual",
         "Staff",
         "Special Leave with Alumni Passes",
@@ -193,6 +196,14 @@ class Membership:
         result: list[AccountEntry]
         result = list(self.account_map.values())
         return result
+
+    def active_member_accounts(self) -> list[AccountEntry]:
+        result: list[AccountEntry] = []
+        for account in self.account_map.values():
+            if account.is_active_member():
+                result.append(account)
+        return result
+
 
     def get_account_by_fullname(self, fullname) -> AccountEntry | None:
         members = self.member_name_map.get(fullname.lower())
@@ -321,8 +332,7 @@ class Membership:
                 billing_last = row[AccountEntry.FIELD_LAST_NAME].strip()
                 billing_email = row[AccountEntry.FIELD_EMAIL].strip()
 
-                if account_type not in AccountEntry.ACTIVE_ACCOUNT_TYPES:
-                    # print(f"Skipping account type {account_type} #{account_num}")
+                if account_type not in AccountEntry.LOADED_ACCOUNT_TYPES:
                     continue
 
                 entry = AccountEntry(
