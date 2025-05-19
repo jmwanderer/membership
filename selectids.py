@@ -156,7 +156,8 @@ swimteam = DataSource(
     fullname=False,
     name_columns=[("First Name", "Last Name")],
 )
-waivers = DataSource(
+
+family_waivers = DataSource(
     filename="output/member_waivers.csv",
     fullname=True,
     fullname_columns=[
@@ -171,28 +172,24 @@ waivers = DataSource(
     ],
 )
 
+
+individual_waivers = DataSource(
+    filename="output/member_waivers.csv",
+    fullname=True,
+    fullname_columns=[
+        "signer1",
+        "signer2",
+        "signer3",
+        "signer4",
+    ],
+)
+
+
 attest_signer = DataSource(
     filename="output/attestations.csv",
     fullname=True,
     fullname_columns=[
         "adult1",
-    ],
-)
-
-
-attestations = DataSource(
-    filename="output/attestations.csv",
-    fullname=True,
-    fullname_columns=[
-        "adult1",
-        "adult2",
-        "adult3",
-        "adult4",
-        "minor1",
-        "minor2",
-        "minor3",
-        "minor4",
-        "minor5",
     ],
 )
 
@@ -214,9 +211,9 @@ QUERY_LIST = [
     DataQuery("fullnames", fullnames),
     DataQuery("keys", keys),
     DataQuery("swimteam", swimteam),
-    DataQuery("individual_waivers", waivers, lambda x: x["type"].lower() == 'individual'),
-    DataQuery("family_waivers", waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() == "y"),
-    DataQuery("family_waivers_incomplete", waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() != "y"),
+    DataQuery("individual_waivers", individual_waivers, lambda x: x["complete"].lower() == 'y'),
+    DataQuery("family_waivers", family_waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() == "y"),
+    DataQuery("family_waivers_incomplete", family_waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() != "y"),
     DataQuery("attest_signer", attest_signer) 
 ]
 
