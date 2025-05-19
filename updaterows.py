@@ -94,7 +94,7 @@ def run_markup(
 ):
     matched_ids = {}
     ids_list = read_ids_file(id_file)
-    rows: list[dict[str,str]] = []
+    rows: list[dict[str, str]] = []
 
     # Read input file
     print(f"Update {filename} save backup to {backup_filename}")
@@ -132,7 +132,6 @@ def run_markup(
                 row[clear_col] = ""
                 matched_ids[id_value] = 1
 
-    
     # Backup original file
     os.rename(filename, backup_filename)
 
@@ -158,6 +157,77 @@ def run_markup(
         print(f"\t{', '.join(matched_ids)}")
         print(f"Missed ids ({len(missed_ids)}):")
         print(f"\t{', '.join(missed_ids)}")
+
+
+def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: str):
+
+    membership = memberdata.Membership()
+    membership.read_csv_files()
+    ids_list = read_ids_file(id_file)
+
+    column_names = ["Acct #", "Member ID", "Member Type", "First Name", "Last Name"]
+    if len(mark_col) > 0:
+        column_names.append(mark_col)
+    if len(clear_col) > 0:
+        column_names.append(clear_col)
+
+    output_file = open(filename, "w", newline="")
+    print(f"Note: created {filename}")
+    output_csv = csv.DictWriter(output_file, fieldnames=column_names)
+    output_csv.writeheader()
+
+    count = 0
+    for member in membership.all_members():
+        count += 1
+        row = {}
+        row["Acct #"] = member.account_num
+        row["Member ID"] = member.member_id
+        row["Member Type"] = member.member_type
+        row["First Name"] = member.name.first_name
+        row["Last Name"] = member.name.last_name
+
+        if member.member_id in ids_list:
+            if len(mark_col) > 0:
+                row[mark_col] = "x"
+        output_csv.writerow(row)
+
+    output_file.close()
+    print(f"Note: wrote {count} member records")
+
+
+def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: str):
+
+    membership = memberdata.Membership()
+    membership.read_csv_files()
+    ids_list = read_ids_file(id_file)
+
+    column_names = ["Acct #", "Acct Type", "First Name", "Last Name"]
+    if len(mark_col) > 0:
+        column_names.append(mark_col)
+    if len(clear_col) > 0:
+        column_names.append(clear_col)
+
+    output_file = open(filename, "w", newline="")
+    print(f"Note: created {filename}")
+    output_csv = csv.DictWriter(output_file, fieldnames=column_names)
+    output_csv.writeheader()
+
+    count = 0
+    for account in membership.accounts():
+        count += 1
+        row = {}
+        row["Acct #"] = account.account_num
+        row["Acct Type"] = account.account_type
+        row["First Name"] = account.billing_name.first_name
+        row["Last Name"] = account.billing_name.last_name
+
+        if account.account_num in ids_list:
+            if len(mark_col) > 0:
+                row[mark_col] = "x"
+        output_csv.writerow(row)
+
+    output_file.close()
+    print(f"Note: wrote {count} account records")
 
 
 if __name__ == "__main__":
@@ -186,11 +256,16 @@ if __name__ == "__main__":
         print(f"Input file {filename} must end in .csv")
         sys.exit(-1)
 
-    run_markup(
-        filename,
-        backup_filename,
-        args.mark_field,
-        args.clear_field,
-        id_col,
-        id_file,
-    )
+    if os.path.exists(filename):
+        run_markup(
+            filename,
+            backup_filename,
+            args.mark_field,
+            args.clear_field,
+            id_col,
+            id_file,
+        )
+    elif args.id_type == "account":
+        create_accounts_file(filename, args.mark_field, args.clear_field, id_file)
+    else:
+        create_members_file(filename, args.mark_field, args.clear_field, id_file)
