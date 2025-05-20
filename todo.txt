@@ -3,11 +3,6 @@
 
 2. incorporate readids into select rows - depends on dataset
 
-6. look if review account keys can use selectrows
-
-7. consider consolitating: guestwaiver, memberwaiver, attest
-
-8. Consider consoltating ParentRec FamilyRec?
 
 
 Email Martin / Marla on:

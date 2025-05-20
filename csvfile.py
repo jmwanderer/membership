@@ -34,3 +34,6 @@ def backup_file(filename: str) -> bool:
 
 
 
+ACCOUNT_NUM = "Account#"
+MEMBER_ID = "Member#"
+

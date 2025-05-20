@@ -11,8 +11,9 @@ from typing import Callable
 import csv
 import io
 import sys
-import memberdata
 
+import memberdata
+import csvfile
 
 def read_name_columns(
     stream: io.TextIOBase,
@@ -97,15 +98,14 @@ def lookup_ids_fullnames(
             print(f"Warning: found {len(members)} records matching {name}")
 
         for member in members:
-            if member.account_num not in account_ids:
-                account_ids.add(member.account_num)
-            if member.member_id not in member_ids:
-                member_ids.add(member.member_id)
+            account_ids.add(member.account_num)
+            member_ids.add(member.member_id)
 
     print(
         f"Lookup {len(account_ids)} unique accounts and {len(member_ids)} members from {len(fullnames)} names."
     )
     return account_ids, member_ids
+
 
 
 def write_ids(account_ids: set[str], member_ids: set[str]):
@@ -205,10 +205,17 @@ fullnames = DataSource(
     fullname_columns=["name"]
 )
 
+ids = DataSource(
+    filename="output/ids.csv",
+    fullname=False,
+)
+
+
 
 QUERY_LIST = [
     DataQuery("waivers", NOSRC),
     DataQuery("fullnames", fullnames),
+    DataQuery("ids", ids),
     DataQuery("keys", keys),
     DataQuery("swimteam", swimteam),
     DataQuery("individual_waivers", individual_waivers, lambda x: x["complete"].lower() == 'y'),
@@ -243,6 +250,45 @@ def load_data_query(membership: memberdata.Membership, query: DataSource) -> tup
         account_ids, member_ids = lookup_ids_member_names(membership, member_names)
     return account_ids, member_ids
 
+def load_ids_query(membership: memberdata.Membership, filename: str) ->  tuple[set[str], set[str]]:
+    input_file = open(filename, newline="")
+    print(f"Note: reading ids from '{filename}'")
+    reader = csv.DictReader(input_file)
+
+    account_ids: set[str] = set()
+    member_ids: set[str] = set()
+
+    # Determine if we are reading member id or account number
+    load_account_nums: bool = False
+    load_member_ids: bool = False
+
+    count = 0
+    for row in reader:
+        count += 1
+        if not load_account_nums and not load_member_ids:
+            # Favor member id first
+            if csvfile.MEMBER_ID in row:
+                load_member_ids = True
+            elif csvfile.ACCOUNT_NUM in row:
+                load_account_nums = True
+
+        if load_account_nums:
+            account_ids.add(row[csvfile.ACCOUNT_NUM])
+
+        elif load_member_ids:
+            member_id = row[csvfile.MEMBER_ID]
+            member = membership.get_member_by_id(member_id) 
+            if member is None:
+                print(f"Warning: no member for id {member_id} found.")
+                continue
+            member_ids.add(member_id)
+            account_ids.add(member.account_num)
+
+    entry_count = max(len(member_ids), len(account_ids))
+    print(f"Note: read {entry_count} entries from {count} records")
+    print("")
+    return (account_ids, member_ids)
+
 
 def main(query: DataQuery):
     # Read membership data
@@ -256,6 +302,8 @@ def main(query: DataQuery):
         account_ids3, member_ids3 = load_data_query(membership, QUERIES["attest_signer"])
         account_ids = account_ids1 | account_ids2 | account_ids3
         member_ids = member_ids1 | member_ids2 | member_ids3
+    elif query.name == 'ids':
+        account_ids, member_ids = load_ids_query(membership, query.datasource.filename)
     else:
         account_ids, member_ids = load_data_query(membership, query)
     write_ids(account_ids, member_ids)
