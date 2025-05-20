@@ -2,7 +2,7 @@
 Extract guest waiver data from PDF files on Google drive.
 """
 
-from googleapiclient.discovery import build     # type: ignore
+from googleapiclient.discovery import build  # type: ignore
 
 import parse_pdf
 import guestwaiver
@@ -26,7 +26,7 @@ def main() -> None:
         print("No files found.")
         return
 
-    filenames: dict[str,bool] = { waiver.file_name:True for waiver in waivers }
+    filenames: dict[str, bool] = {waiver.file_name: True for waiver in waivers}
 
     print("Processing Files:")
     for file in files:

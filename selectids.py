@@ -15,6 +15,7 @@ import sys
 import memberdata
 import csvfile
 
+
 def read_name_columns(
     stream: io.TextIOBase,
     name_columns: list[tuple[str, str]],
@@ -107,7 +108,6 @@ def lookup_ids_fullnames(
     return account_ids, member_ids
 
 
-
 def write_ids(account_ids: set[str], member_ids: set[str]):
     # Write account ids
     accounts_filename = "output/account_ids.csv"
@@ -140,6 +140,7 @@ class DataSource:
 
 def nocond(row: dict[str, str]) -> bool:
     return True
+
 
 NOSRC = DataSource("", fullname=False)
 
@@ -200,9 +201,7 @@ keys = DataSource(
 )
 
 fullnames = DataSource(
-    filename="output/fullnames.csv",
-    fullname=True,
-    fullname_columns=["name"]
+    filename="output/fullnames.csv", fullname=True, fullname_columns=["name"]
 )
 
 ids = DataSource(
@@ -211,22 +210,34 @@ ids = DataSource(
 )
 
 
-
 QUERY_LIST = [
     DataQuery("waivers", NOSRC),
     DataQuery("fullnames", fullnames),
     DataQuery("ids", ids),
     DataQuery("keys", keys),
     DataQuery("swimteam", swimteam),
-    DataQuery("individual_waivers", individual_waivers, lambda x: x["complete"].lower() == 'y'),
-    DataQuery("family_waivers", family_waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() == "y"),
-    DataQuery("family_waivers_incomplete", family_waivers, lambda x: x["type"].lower() == 'family' and x["complete"].lower() != "y"),
-    DataQuery("attest_signer", attest_signer) 
+    DataQuery(
+        "individual_waivers", individual_waivers, lambda x: x["complete"].lower() == "y"
+    ),
+    DataQuery(
+        "family_waivers",
+        family_waivers,
+        lambda x: x["type"].lower() == "family" and x["complete"].lower() == "y",
+    ),
+    DataQuery(
+        "family_waivers_incomplete",
+        family_waivers,
+        lambda x: x["type"].lower() == "family" and x["complete"].lower() != "y",
+    ),
+    DataQuery("attest_signer", attest_signer),
 ]
 
 QUERIES = {dq.name: dq for dq in QUERY_LIST}
 
-def load_data_query(membership: memberdata.Membership, query: DataQuery) -> tuple[set[str], set[str]]:
+
+def load_data_query(
+    membership: memberdata.Membership, query: DataQuery
+) -> tuple[set[str], set[str]]:
     input_filename = query.datasource.filename
     fullnames = query.datasource.fullname
 
@@ -250,7 +261,10 @@ def load_data_query(membership: memberdata.Membership, query: DataQuery) -> tupl
         account_ids, member_ids = lookup_ids_member_names(membership, member_names)
     return account_ids, member_ids
 
-def load_ids_query(membership: memberdata.Membership, filename: str) ->  tuple[set[str], set[str]]:
+
+def load_ids_query(
+    membership: memberdata.Membership, filename: str
+) -> tuple[set[str], set[str]]:
     input_file = open(filename, newline="")
     print(f"Note: reading ids from '{filename}'")
     reader = csv.DictReader(input_file)
@@ -277,7 +291,7 @@ def load_ids_query(membership: memberdata.Membership, filename: str) ->  tuple[s
 
         elif load_member_ids:
             member_id = row[csvfile.MEMBER_ID]
-            member = membership.get_member_by_id(member_id) 
+            member = membership.get_member_by_id(member_id)
             if member is None:
                 print(f"Warning: no member for id {member_id} found.")
                 continue
@@ -297,12 +311,18 @@ def main(query: DataQuery):
     print("")
 
     if query.name == "waivers":
-        account_ids1, member_ids1 = load_data_query(membership, QUERIES["family_waivers"])
-        account_ids2, member_ids2 = load_data_query(membership, QUERIES["individual_waivers"])
-        account_ids3, member_ids3 = load_data_query(membership, QUERIES["attest_signer"])
+        account_ids1, member_ids1 = load_data_query(
+            membership, QUERIES["family_waivers"]
+        )
+        account_ids2, member_ids2 = load_data_query(
+            membership, QUERIES["individual_waivers"]
+        )
+        account_ids3, member_ids3 = load_data_query(
+            membership, QUERIES["attest_signer"]
+        )
         account_ids = account_ids1 | account_ids2 | account_ids3
         member_ids = member_ids1 | member_ids2 | member_ids3
-    elif query.name == 'ids':
+    elif query.name == "ids":
         account_ids, member_ids = load_ids_query(membership, query.datasource.filename)
     else:
         account_ids, member_ids = load_data_query(membership, query)

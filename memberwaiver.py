@@ -208,39 +208,25 @@ def simple_test() -> None:
 
     # Add records
     waiver = MemberWaiver()
-    waiver.signatures.append(
-        Signature("Bob", "2012-01-05")
-    )
+    waiver.signatures.append(Signature("Bob", "2012-01-05"))
     waiver.minors.append("Sam")
     waiver.file_name = "waiver1.pdf"
     waiver.web_view_link = "http://web.com/waiver1.pdf"
     waivers.append(waiver)
 
     waiver = MemberWaiver()
-    waiver.signatures.append(
-        Signature("Erica", "2019-11-15")
-    )
-    waiver.signatures.append(
-        Signature("Lionel", "2019-11-15")
-    )
+    waiver.signatures.append(Signature("Erica", "2019-11-15"))
+    waiver.signatures.append(Signature("Lionel", "2019-11-15"))
     waiver.minors.append("Parth")
     waiver.file_name = "waiver2.pdf"
     waiver.web_view_link = "http://web.com/waiver2.pdf"
     waivers.append(waiver)
 
     waiver = MemberWaiver()
-    waiver.signatures.append(
-        Signature("Adult1", "2019-11-01")
-    )
-    waiver.signatures.append(
-        Signature("Adult2", "2019-11-02")
-    )
-    waiver.signatures.append(
-        Signature("Adult3", "2019-11-03")
-    )
-    waiver.signatures.append(
-        Signature("Adult4", "2019-11-04")
-    )
+    waiver.signatures.append(Signature("Adult1", "2019-11-01"))
+    waiver.signatures.append(Signature("Adult2", "2019-11-02"))
+    waiver.signatures.append(Signature("Adult3", "2019-11-03"))
+    waiver.signatures.append(Signature("Adult4", "2019-11-04"))
     waiver.minors.append("Minor1")
     waiver.minors.append("Minor2")
     waiver.minors.append("Minor3")

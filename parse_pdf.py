@@ -116,11 +116,6 @@ def parse_member_waiver_pdf(infile: io.BufferedReader | io.BytesIO) -> MemberWai
         if len(name) > 0:
             waiver.minors.append(name)
 
-
-
-
-
-
     return waiver
 
 

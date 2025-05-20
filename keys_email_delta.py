@@ -37,7 +37,14 @@ new_output_csv.writerow(row)
 # Open files for emails that have changed
 change_output_file = open(change_output_filename, "w", newline="")
 change_output_csv = csv.writer(change_output_file)
-row = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "FirstName", "LastName", "KeyEmail", "MemberEmail"]
+row = [
+    csvfile.ACCOUNT_NUM,
+    csvfile.MEMBER_ID,
+    "FirstName",
+    "LastName",
+    "KeyEmail",
+    "MemberEmail",
+]
 change_output_csv.writerow(row)
 
 # Walk through the key entries, find corresponding member entry

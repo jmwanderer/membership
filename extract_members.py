@@ -9,7 +9,7 @@ import csv
 import datetime
 
 
-from googleapiclient.discovery import build     # type: ignore
+from googleapiclient.discovery import build  # type: ignore
 
 import memberdata
 import parse_pdf
@@ -18,7 +18,9 @@ import dateutil
 import gdrive
 
 
-def check_waiver(membership: memberdata.Membership, waiver: memberwaiver.MemberWaiver) -> bool:
+def check_waiver(
+    membership: memberdata.Membership, waiver: memberwaiver.MemberWaiver
+) -> bool:
     """
     Return True if waiver is considered to be complete.
     All required signatures and minors are included for a family waiver.
@@ -67,7 +69,7 @@ def main() -> None:
         print("No files found.")
         return
 
-    filenames: dict[str,bool] = {waiver.file_name:True for waiver in waivers}
+    filenames: dict[str, bool] = {waiver.file_name: True for waiver in waivers}
 
     print("Processing Files:")
     for file in files:

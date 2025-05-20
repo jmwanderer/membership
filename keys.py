@@ -46,7 +46,8 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
 
     return key_entry_list
 
-def gen_member_key_map(membership: memberdata.Membership) -> dict[str,KeyEntry]:
+
+def gen_member_key_map(membership: memberdata.Membership) -> dict[str, KeyEntry]:
     """
     Generate a dictionary mapping member ids to KeyEntries
     """
@@ -63,9 +64,12 @@ def gen_member_key_map(membership: memberdata.Membership) -> dict[str,KeyEntry]:
             print(f"Warning: muiltiple members found for name {key_entry.member_name}")
         member = members[0]
         if member.account_num != key_entry.account_num:
-            print(f"Warning: key and member account numbers don't match for {key_entry.member_name}")
+            print(
+                f"Warning: key and member account numbers don't match for {key_entry.member_name}"
+            )
         member_key_map[member.member_id] = key_entry
     return member_key_map
+
 
 def simple_test():
     membership = memberdata.Membership()
@@ -73,8 +77,6 @@ def simple_test():
 
     member_keys = gen_member_key_map(membership)
 
+
 if __name__ == "__main__":
     simple_test()
-        
-
-        

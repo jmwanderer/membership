@@ -98,22 +98,31 @@ def main() -> None:
         for signature in member_waiver.signatures:
             members = membership.get_members_by_fullname(signature.name)
             if len(members) != 1:
-                print(f"Error: unable to determine signer '{signature.name}' in doc {member_waiver.web_view_link} ({len(members)})")
+                print(
+                    f"Error: unable to determine signer '{signature.name}' in doc {member_waiver.web_view_link} ({len(members)})"
+                )
             else:
                 if members[0].member_id not in covered_member_ids:
                     covered_member_ids.add(members[0].member_id)
-                    waivers.append(WaiveredMember(members[0], member_waiver.web_view_link, True))
+                    waivers.append(
+                        WaiveredMember(members[0], member_waiver.web_view_link, True)
+                    )
 
         if member_waiver.complete:
             for minor in member_waiver.minors:
                 members = membership.get_members_by_fullname(minor)
                 if len(members) != 1:
-                    print(f"Error: unable to determine minor '{minor}' in doc {member_waiver.web_view_link}")
+                    print(
+                        f"Error: unable to determine minor '{minor}' in doc {member_waiver.web_view_link}"
+                    )
                 else:
                     if members[0].member_id not in covered_member_ids:
                         covered_member_ids.add(members[0].member_id)
-                        waivers.append(WaiveredMember(members[0], member_waiver.web_view_link, True))
-
+                        waivers.append(
+                            WaiveredMember(
+                                members[0], member_waiver.web_view_link, True
+                            )
+                        )
 
     output_file = open(waiver_out_filename, "w", newline="")
     output_csv = csv.DictWriter(output_file, fieldnames=WaiveredMember.get_header())

@@ -17,6 +17,7 @@ ACCOUNTS_TEST_CSV = "test/accounts.test.csv"
 PARENTS_CSV = "input/parents.csv"
 PARENTS_TEST_CSV = "test/parents.csv"
 
+
 @dataclass
 class MemberName:
     """First and last name"""
@@ -119,12 +120,12 @@ class AccountEntry:
         "Special Leave with Alumni Passes",
     ]
 
+
 @dataclass
 class ParentRec:
     account_num: str
     parents: list[MemberEntry] = field(default_factory=list)
     minors: list[MemberEntry] = field(default_factory=list)
-
 
 
 class Membership:
@@ -134,9 +135,14 @@ class Membership:
         self.member_map: dict[MemberName, list[MemberEntry]] = {}
         self.member_name_map: dict[str, list[MemberEntry]] = {}
         self.account_map: dict[str, AccountEntry] = {}
-        self.parent_map: dict[str, list[ParentRec]] = {}        # ParentRecs for account_num
+        self.parent_map: dict[str, list[ParentRec]] = {}  # ParentRecs for account_num
 
-    def read_csv_files(self, accounts_file=ACCOUNTS_CSV, members_file=MEMBERS_CSV, parents_file=PARENTS_CSV):
+    def read_csv_files(
+        self,
+        accounts_file=ACCOUNTS_CSV,
+        members_file=MEMBERS_CSV,
+        parents_file=PARENTS_CSV,
+    ):
         """
         Read account and member CSV files.
         """
@@ -204,7 +210,6 @@ class Membership:
                 result.append(account)
         return result
 
-
     def get_account_by_fullname(self, fullname) -> AccountEntry | None:
         members = self.member_name_map.get(fullname.lower())
         if members is None or len(members) == 0:
@@ -218,7 +223,7 @@ class Membership:
                 if account_num != member.account_num:
                     print("Error: multiple accounts for {fullname}")
         if account_num is None:
-                return None
+            return None
         return self.account_map[account_num]
 
     def get_members_for_account_num(self, account_num: str) -> list[MemberEntry]:
@@ -352,20 +357,20 @@ class Membership:
         with open(filename, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                account_num = row['Acct #']
+                account_num = row["Acct #"]
                 if not account_num in self.parent_map:
                     self.parent_map[account_num] = []
                 parent_rec = ParentRec(account_num)
-                for parent_label in [ "Parent1", "Parent2"]:
+                for parent_label in ["Parent1", "Parent2"]:
                     parent = row[parent_label].strip()
                     if len(parent) > 0:
                         members = self.get_members_by_fullname(parent)
                         if len(members) == 0:
                             print(f"Warning: unable to find parent name '{parent}'")
                         else:
-                            parent_rec.parents.append(members[0])    
+                            parent_rec.parents.append(members[0])
 
-                for minor_label in [ "Minor1","Minor2","Minor3","Minor4","Minor5"]:
+                for minor_label in ["Minor1", "Minor2", "Minor3", "Minor4", "Minor5"]:
                     minor = row[minor_label].strip()
                     if len(minor) > 0:
                         members = self.get_members_by_fullname(minor)
@@ -376,6 +381,7 @@ class Membership:
 
                 self.parent_map[account_num].append(parent_rec)
                 print(f"Add parent rec for account {account_num}")
+
 
 if __name__ == "__main__":
     members = Membership()

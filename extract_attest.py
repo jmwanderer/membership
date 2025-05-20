@@ -4,7 +4,7 @@ import pickle
 import csv
 import datetime
 
-from googleapiclient.discovery import build     # type: ignore
+from googleapiclient.discovery import build  # type: ignore
 
 import attest
 import parse_pdf
@@ -17,7 +17,6 @@ def main() -> None:
     """
     attestations: list[attest.Attestation] = []
     attestations = attest.read_attestations_csv()
-    
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
@@ -32,7 +31,7 @@ def main() -> None:
     print("Processing Files:")
     for file in files:
         # Check if file has already been processed
-        if file['name'] in filenames:
+        if file["name"] in filenames:
             print(f"Note: already parsed {file['name']} - skipping")
             continue
 

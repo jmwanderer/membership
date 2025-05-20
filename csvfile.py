@@ -2,8 +2,7 @@ import re
 import os
 
 
-
-def get_backup_filename(filename: str) -> str|None:
+def get_backup_filename(filename: str) -> str | None:
     """
     Search for a backup filename not in use
     """
@@ -20,6 +19,7 @@ def get_backup_filename(filename: str) -> str|None:
         value += 1
     return None
 
+
 def backup_file(filename: str) -> bool:
     """
     Rename a CSV file to save as a backup
@@ -33,7 +33,5 @@ def backup_file(filename: str) -> bool:
     return True
 
 
-
 ACCOUNT_NUM = "Account#"
 MEMBER_ID = "Member#"
-

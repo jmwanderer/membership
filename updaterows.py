@@ -133,7 +133,13 @@ def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: s
     membership.read_csv_files()
     ids_list = read_ids_file(id_file)
 
-    column_names = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "Member Type", "First Name", "Last Name"]
+    column_names = [
+        csvfile.ACCOUNT_NUM,
+        csvfile.MEMBER_ID,
+        "Member Type",
+        "First Name",
+        "Last Name",
+    ]
     if len(mark_col) > 0:
         column_names.append(mark_col)
     if len(clear_col) > 0:

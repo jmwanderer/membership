@@ -174,15 +174,14 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
     return groups
 
 
-def write_groups(groups: MemberWaiverGroupings,
-                 member_keys: dict[str,keys.KeyEntry]):
+def write_groups(groups: MemberWaiverGroupings, member_keys: dict[str, keys.KeyEntry]):
 
     # Create a list of adults that do not have minor children
     output_filename = "output/adults_no_minor_children.csv"
     csvfile.backup_file(output_filename)
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    row = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "name", "email_address","key_email"]
+    row = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "name", "email_address", "key_email"]
     output_csv.writerow(row)
     for member in groups.no_minor_children:
         key_email = ""
@@ -193,7 +192,7 @@ def write_groups(groups: MemberWaiverGroupings,
             member.member_id,
             member.name.fullname(),
             member.email,
-            key_email
+            key_email,
         ]
         output_csv.writerow(row)
     output_file.close()

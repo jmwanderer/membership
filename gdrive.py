@@ -3,10 +3,10 @@ import io
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow      # type: ignore
-from googleapiclient.discovery import build                 # type: ignore
-from googleapiclient.errors import HttpError                # type: ignore
-from googleapiclient.http import MediaIoBaseDownload        # type: ignore
+from google_auth_oauthlib.flow import InstalledAppFlow  # type: ignore
+from googleapiclient.discovery import build  # type: ignore
+from googleapiclient.errors import HttpError  # type: ignore
+from googleapiclient.http import MediaIoBaseDownload  # type: ignore
 
 
 # If modifying these scopes, delete the file token.json.
