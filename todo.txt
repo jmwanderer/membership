@@ -1,9 +1,6 @@
 
 
 
-2. incorporate readids into select rows - depends on dataset
-
-
 
 Email Martin / Marla on:
 

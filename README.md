@@ -26,7 +26,10 @@ Output:
 - account_keys.csv: list of member accounts and number of keys held
 
 
-### Generate Parent List
+### Generate Waiver Signing Groups
+
+- adults with no minor children
+- parents with minor children
 
 Generate a CSV of accounts with minor children and guess which
 adults are the parents based on ages. Will leave parents blank if
@@ -71,14 +74,14 @@ Compare attestations.csv (built with extract_attest.py) with member data in the 
 files. 
 
 ## TODO
-- Download status files from gdrive automatically: https://devnodes.in/blog/web/python-export-google-sheet-to-csv/. Try files.export: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/export
-- 
+- Download status files from gdrive automatically: 
+https://devnodes.in/blog/web/python-export-google-sheet-to-csv/. Try files.export: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/export
 
-### nametoids.py
+### selectids.py
 
-Read names from a CSV and lookup matching members. Write member ids and account ids to temp files to use in updating another file
+Read names or ids from a CSV and lookup matching members. Write member ids and account ids to temp files to use in updating another file
 
 ### updaterows.py
 
-Mark or clear a file in rows that match member ids or account ids saved by nametoids.py
-Create a new file, <filename>.markup.csv
+Mark or clear a file in rows that match member ids or account ids saved by selectids.py
+Rewrites existing file, backup old file to: <name>.<num>.csv where num is 1, 2, 3, ...
