@@ -113,7 +113,7 @@ def write_ids(account_ids: set[str], member_ids: set[str]):
     accounts_filename = "output/account_ids.csv"
     output_file = open(accounts_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    output_csv.writerow(["Account#"])
+    output_csv.writerow([csvfile.ACCOUNT_NUM])
     for entry in account_ids:
         output_csv.writerow([entry])
     output_file.close()
@@ -123,7 +123,7 @@ def write_ids(account_ids: set[str], member_ids: set[str]):
     members_filename = "output/member_ids.csv"
     output_file = open(members_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    output_csv.writerow(["Member ID"])
+    output_csv.writerow([csvfile.MEMBER_ID])
     for entry in member_ids:
         output_csv.writerow([entry])
     output_file.close()

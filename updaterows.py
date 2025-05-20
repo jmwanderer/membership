@@ -16,6 +16,7 @@ import re
 import sys
 
 import memberdata
+import csvfile
 
 
 def read_csv_columns(
@@ -165,7 +166,7 @@ def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: s
     membership.read_csv_files()
     ids_list = read_ids_file(id_file)
 
-    column_names = ["Account#", "Member#", "Member Type", "First Name", "Last Name"]
+    column_names = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "Member Type", "First Name", "Last Name"]
     if len(mark_col) > 0:
         column_names.append(mark_col)
     if len(clear_col) > 0:
@@ -180,8 +181,8 @@ def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: s
     for member in membership.all_members():
         count += 1
         row = {}
-        row["Account#"] = member.account_num
-        row["Member#"] = member.member_id
+        row[csvfile.ACCOUNT_NUM] = member.account_num
+        row[csvfile.MEMBER_ID] = member.member_id
         row["Member Type"] = member.member_type
         row["First Name"] = member.name.first_name
         row["Last Name"] = member.name.last_name
@@ -201,7 +202,7 @@ def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: 
     membership.read_csv_files()
     ids_list = read_ids_file(id_file)
 
-    column_names = ["Account#", "Account Type", "First Name", "Last Name"]
+    column_names = [csvfile.ACCOUNT_NUM, "Account Type", "First Name", "Last Name"]
     if len(mark_col) > 0:
         column_names.append(mark_col)
     if len(clear_col) > 0:
@@ -216,7 +217,7 @@ def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: 
     for account in membership.active_member_accounts():
         count += 1
         row = {}
-        row["Account#"] = account.account_num
+        row[csvfile.ACCOUNT_NUM] = account.account_num
         row["Account Type"] = account.account_type
         row["First Name"] = account.billing_name.first_name
         row["Last Name"] = account.billing_name.last_name
@@ -243,10 +244,10 @@ if __name__ == "__main__":
     filename = args.filename
     backup_filename = get_backup_filename(filename)
     if args.id_type == "account":
-        id_col = "Account#"
+        id_col = csvfile.ACCOUNT_NUM
         id_file = "output/account_ids.csv"
     elif args.id_type == "member":
-        id_col = "Member#"
+        id_col = csvfile.MEMBER_ID
         id_file = "output/member_ids.csv"
     else:
         print("Error: id_type must be 'member' or 'acount'")

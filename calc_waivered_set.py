@@ -15,6 +15,7 @@ from dataclasses import dataclass
 import csv
 
 import attest
+import csvfile
 import memberdata
 import memberwaiver
 
@@ -29,8 +30,8 @@ class WaiveredMember:
     doc_link: str
     waiver_signed: bool
 
-    FIELD_ACCOUNT_NUM = "Acct#"
-    FIELD_MEMBER_ID = "Member#"
+    FIELD_ACCOUNT_NUM = csvfile.ACCOUNT_NUM
+    FIELD_MEMBER_ID = csvfile.MEMBER_ID
     FIELD_FIRST_NAME = "First Name"
     FIELD_LAST_NAME = "Last Name"
     FIELD_MEMBER_TYPE = "Type"

@@ -182,7 +182,7 @@ def write_groups(groups: MemberWaiverGroupings,
     csvfile.backup_file(output_filename)
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
-    row = ["Account#", "Member#", "name", "email_address","key_email"]
+    row = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "name", "email_address","key_email"]
     output_csv.writerow(row)
     for member in groups.no_minor_children:
         key_email = ""
@@ -205,7 +205,7 @@ def write_groups(groups: MemberWaiverGroupings,
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
     row = [
-        "Account#",
+        csvfile.ACCOUNT_NUM,
         "name",
         "email_address",
         "name2",
@@ -237,7 +237,7 @@ def write_groups(groups: MemberWaiverGroupings,
     output_file = open(output_filename, "w", newline="")
     output_csv = csv.writer(output_file)
     row = [
-        "Account#",
+        csvfile.ACCOUNT_NUM,
         "name",
         "email_address",
         "name2",
