@@ -226,7 +226,7 @@ QUERY_LIST = [
 
 QUERIES = {dq.name: dq for dq in QUERY_LIST}
 
-def load_data_query(membership: memberdata.Membership, query: DataSource) -> tuple[set[str], set[str]]:
+def load_data_query(membership: memberdata.Membership, query: DataQuery) -> tuple[set[str], set[str]]:
     input_filename = query.datasource.filename
     fullnames = query.datasource.fullname
 

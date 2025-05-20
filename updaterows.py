@@ -19,39 +19,6 @@ import memberdata
 import csvfile
 
 
-def read_csv_columns(
-    stream: io.TextIOBase, col1: int, col2: int
-) -> list[tuple[str, str]]:
-    print(f"Note: reading CSV from stdin...")
-    result = []
-    count = 0
-    reader = csv.reader(stream)
-    for row in reader:
-        count += 1
-        if count == 1:
-            continue
-        entry = (row[col1], row[col2])
-        result.append(entry)
-    print(f"Note: read {len(result)} rows")
-    return result
-
-
-def lookup_accounts(
-    membership: memberdata.Membership, entries: list[tuple[str, str]]
-) -> list[str]:
-    result: list[str] = []
-    for last_name, first_name in entries:
-        name = memberdata.MemberName(first_name, last_name)
-        members = membership.find_members_by_name(name)
-        if len(members) != 1:
-            print(f"Warning: found {len(members)} for {name}")
-            continue
-        if members[0].account_num not in result:
-            result.append(members[0].account_num)
-    print(f"Lookup {len(result)} accounts.")
-    return result
-
-
 def get_backup_filename(filename: str):
     """
     Search for a backup filename not in use

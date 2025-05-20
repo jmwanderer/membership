@@ -30,6 +30,7 @@ class MemberWaiver:
         # Minors listed
         self.minors: list[str] = []
         self.complete = "?"
+        self.type = "?"
 
     def __str__(self) -> str:
         result = self.file_name

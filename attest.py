@@ -180,8 +180,10 @@ def write_attestations_csv(
 
 
 def simple_test():
-    write_attestations_csv([])
-    attests = read_attestations_csv()
+
+    attest_filename = "test_attestations.csv"
+    write_attestations_csv([], attestations_csv_file=attest_filename)
+    attests = read_attestations_csv(attestations_csv_file=attest_filename)
     assert len(attests) == 0
 
     attest = Attestation()
@@ -241,8 +243,8 @@ def simple_test():
     attest.file_name = "attest.pdf"
     attests.append(attest)
 
-    write_attestations_csv(attests)
-    attests = read_attestations_csv()
+    write_attestations_csv(attests, attestations_csv_file=attest_filename)
+    attests = read_attestations_csv(attestations_csv_file=attest_filename)
     assert len(attests) == 2
 
 
