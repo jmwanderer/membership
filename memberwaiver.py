@@ -1,7 +1,12 @@
 """
 Member Waiver
 
-Functionality to represent and manage member waiver records.
+Models information from a signed waiver document.
+Waivers may be:
+- for individuals
+- families with minor children
+
+Waiver records are stored as rows in CSV documents.
 """
 
 from dataclasses import dataclass

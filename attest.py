@@ -1,7 +1,14 @@
+"""
+Model for an attestation document
+- record a signer plus adults and minors in the household, pointer to the PDF.
+- saved as a row in a CSV file.
+"""
+
 from dataclasses import dataclass
 import datetime
 import csv
 
+# Default location to store attestations.
 attestations_csv_filename = "output/attestations.csv"
 
 

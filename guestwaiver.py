@@ -1,7 +1,8 @@
 """
 Guest Waiver
 
-Functionality to represent and manage guest waiver records.
+Models information from a signed guest waiver document
+Contains pointers to original document. Stored as a row in a CSV file.
 """
 
 import csv
