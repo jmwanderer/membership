@@ -1,5 +1,5 @@
 """
-Read mobile key entries
+Read the mobile key CSV file
 """
 
 import csv
@@ -22,6 +22,9 @@ class KeyEntry:
 
 
 def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
+    """
+    Read the CSV file and return a list of key entry records
+    """
     # Read mobile key information
     print(f"Loading mobile keyfile: {filename}")
     key_file = open(filename, newline="", encoding="utf-8-sig")
@@ -50,6 +53,7 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
 def gen_member_key_map(membership: memberdata.Membership) -> dict[str, KeyEntry]:
     """
     Generate a dictionary mapping member ids to KeyEntries
+    Used to find key information for a specific member
     """
     member_key_map = {}
 

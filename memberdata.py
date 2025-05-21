@@ -6,7 +6,6 @@ import csv
 import datetime
 from dataclasses import dataclass, field
 from collections.abc import Iterator
-import sys
 
 # Default filenames for CSVs
 MEMBERS_CSV = "input/members.csv"

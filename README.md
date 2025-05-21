@@ -2,13 +2,33 @@
 Scripts for working with membership data tracked in CSV files
 
 ## Input Files
-Scripts read input from input/
+Scripts read data from the input/ directory.
+
+Export CSV format for members and accounts. Apply a filter for members to
+include the birthday.
 
 - members.csv : export member list with email addresses
+- parents.csv : information about who are the parents for specific children
 - accounts.csv : export account list 
 - keys.csv : key entries
 
+
 ## Tools
+
+- Extract Information from PDFs
+  - extract member waivers
+  - extract member attestations
+  - extract gues waivers
+- Generate CSV for bulk signature requests
+  - gen_sign_groups
+- Keys
+  - review account keys
+  - key_email_detla
+- Attestations
+  - review information from attestations
+- Ad hoc queries
+  - selectids
+  - updaterows
 
 ### Review Account Keys
 

@@ -1,9 +1,21 @@
 """
-Lookup account and member IDs from member names in CSV files.
-Write:
+Run pre-programmed queries and load results as account and member ids.
+The loaded ids are used by updaterows.py to alter the rows matching the loaded ids.
+
+Queries:
+- members that have signed individual waivers
+- members that have singed complete family waivers
+- members that have signed in-complete family waivers
+- members / accounts that have signed an attestation
+- members / accounts that have keys
+- members / accounts with children on the swim team
+- members covered by a waiver (includes individual + family + attestation)
+- match ids and fullnames from specific files
+
+
+The IDs are stored in:
     - output/member_ids.csv
     - output/account_ids.csv
-to be used by updaterows.py
 """
 
 from dataclasses import dataclass, field
@@ -62,6 +74,9 @@ def read_full_name_columns(
 def lookup_ids_member_names(
     membership: memberdata.Membership, member_names: list[memberdata.MemberName]
 ) -> tuple[set[str], set[str]]:
+    """
+    Translate a list of names (first, last) to a set of account and member ids
+    """
     account_ids: set[str] = set()
     member_ids: set[str] = set()
 
@@ -87,6 +102,9 @@ def lookup_ids_member_names(
 def lookup_ids_fullnames(
     membership: memberdata.Membership, fullnames: list[str]
 ) -> tuple[set[str], set[str]]:
+    """
+    Translate a list of names (full) to a set of account and member ids
+    """
     account_ids: set[str] = set()
     member_ids: set[str] = set()
 
@@ -109,7 +127,9 @@ def lookup_ids_fullnames(
 
 
 def write_ids(account_ids: set[str], member_ids: set[str]):
-    # Write account ids
+    """
+    Save the sets of account and member ids to a CSV file for use by updaterows.py
+    """
     accounts_filename = "output/account_ids.csv"
     output_file = open(accounts_filename, "w", newline="")
     output_csv = csv.writer(output_file)
@@ -132,6 +152,10 @@ def write_ids(account_ids: set[str], member_ids: set[str]):
 
 @dataclass
 class DataSource:
+    """
+    A file to query to match names in specific fields
+    """
+
     filename: str
     fullname: bool
     name_columns: list[tuple[str, str]] = field(default_factory=list)
@@ -147,17 +171,23 @@ NOSRC = DataSource("", fullname=False)
 
 @dataclass
 class DataQuery:
+    """
+    A query that matches rows from a datasource that meet an optional condition test.
+    """
+
     name: str
     datasource: DataSource
     condition: Callable[[dict[str, str]], bool] = nocond
 
 
+# Match first and last name from the swim team file
 swimteam = DataSource(
     filename="input/swim_team.csv",
     fullname=False,
     name_columns=[("First Name", "Last Name")],
 )
 
+# Match fullnames from multiple columns in the waiver record file.
 family_waivers = DataSource(
     filename="output/member_waivers.csv",
     fullname=True,
@@ -174,6 +204,7 @@ family_waivers = DataSource(
 )
 
 
+# Source only adult signers on a waiver record
 individual_waivers = DataSource(
     filename="output/member_waivers.csv",
     fullname=True,
@@ -186,6 +217,7 @@ individual_waivers = DataSource(
 )
 
 
+# Source the signer on attestations
 attest_signer = DataSource(
     filename="output/attestations.csv",
     fullname=True,
@@ -194,22 +226,29 @@ attest_signer = DataSource(
     ],
 )
 
+# Match names in the keys file
 keys = DataSource(
     filename="input/keys.csv",
     fullname=False,
     name_columns=[("First Name", "Last Name")],
 )
 
+# Match full names in a custom CSV file
 fullnames = DataSource(
     filename="output/fullnames.csv", fullname=True, fullname_columns=["name"]
 )
 
+
+# Load IDs from a custom CSV file (member ids if present, otherwise account ids)
 ids = DataSource(
     filename="output/ids.csv",
     fullname=False,
 )
 
 
+#
+# Available queries
+#
 QUERY_LIST = [
     DataQuery("waivers", NOSRC),
     DataQuery("fullnames", fullnames),
@@ -238,6 +277,9 @@ QUERIES = {dq.name: dq for dq in QUERY_LIST}
 def load_data_query(
     membership: memberdata.Membership, query: DataQuery
 ) -> tuple[set[str], set[str]]:
+    """
+    Run a query and return the resulting account and member ID sets
+    """
     input_filename = query.datasource.filename
     fullnames = query.datasource.fullname
 
@@ -265,6 +307,10 @@ def load_data_query(
 def load_ids_query(
     membership: memberdata.Membership, filename: str
 ) -> tuple[set[str], set[str]]:
+    """
+    Special function to load IDs as a query. Resolves the members and accounts during read.
+    Called instead of load data query
+    """
     input_file = open(filename, newline="")
     print(f"Note: reading ids from '{filename}'")
     reader = csv.DictReader(input_file)
@@ -287,6 +333,10 @@ def load_ids_query(
                 load_account_nums = True
 
         if load_account_nums:
+            account_id = row[csvfile.ACCOUNT_NUM]
+            if account_id not in membership.account_nums():
+                print(f"Warning: no account for id {account_id} found.")
+                continue
             account_ids.add(row[csvfile.ACCOUNT_NUM])
 
         elif load_member_ids:

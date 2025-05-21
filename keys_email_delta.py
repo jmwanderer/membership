@@ -1,15 +1,14 @@
-#
-# Generate a list of email addresses that are associated with keys, but
-# not found in the members list.
-#
-# Input:
-#   1. Mobile key list
-#   2. Account and member export lists
-#
+"""
+Review email addresses comnfigured in the key file and compare with the email addresses
+in the member files.
+
+Produce two CSV files:
+1. new_emai.csv - email addreses for members without a configured email address
+1. change_email.csv - where the emaila addresses differ
+"""
 
 import csv
 from dataclasses import dataclass
-import sys
 
 import csvfile
 import memberdata

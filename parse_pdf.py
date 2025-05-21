@@ -1,7 +1,9 @@
 """
-Parse Guest PDF waivers
+Parse information from PDF files
+  - waiver documents (guest and member)
+  - attestation
 
-Extract signer's name, list of minor age persons, and date completed.
+Extract name of people that signed the waiver, any minor age persons listed, and date completed.
 """
 
 import io
@@ -17,11 +19,19 @@ import dateutil
 
 @dataclass
 class Signature:
+    """
+    Represents a single signature in a documetn
+    """
+
     name: str
     date: str
 
 
 class MemberWaiverPDF:
+    """
+    Represents information extracted from a member waiver document
+    """
+
     def __init__(self) -> None:
         self.signatures: list[Signature] = []
         self.minors: list[str] = []
@@ -120,6 +130,10 @@ def parse_member_waiver_pdf(infile: io.BufferedReader | io.BytesIO) -> MemberWai
 
 
 class GuestWaiverPDF:
+    """
+    Represents information parsed from a guest PDF waiver document
+    """
+
     def __init__(self) -> None:
         self.adult: str = ""
         self.minors: list[str] = []

@@ -1,8 +1,13 @@
 """
-Generate lists of members for types of signatures:
-- families with minor children
-- adults with no minor children
-- unclear on parents
+Determine sets of members for bulk requests of waiver signatures.
+
+This automates trying to determine which people are parents that need to sign
+family waivers, and which minors are include on the waiver.
+
+3 types of results
+- families with minor children  - request family waiver
+- adults with no minor children - request signature of single person on a waiver
+- unclear on parents - figure out who are parents, update parents.csv until empty
 
 Outputs:
 - parent_list_to_sign.csv
@@ -19,6 +24,10 @@ import keys
 
 
 class FamilyRecord:
+    """
+    Represents a family or potential family for which we need more information
+    """
+
     def __init__(self, account_num: str):
         self.account_num = account_num
         self.adults: list[MemberEntry] = []
@@ -26,6 +35,9 @@ class FamilyRecord:
 
 
 class MemberWaiverGroupings:
+    """
+    Results of generating groupings for member waiver requests
+    """
 
     def __init__(self) -> None:
         # Adult members with no minor children as members
@@ -110,6 +122,9 @@ def select_parents(
 
 
 def generate_groups(membership: Membership) -> MemberWaiverGroupings:
+    """
+    Generate groups of waiver requests
+    """
     groups = MemberWaiverGroupings()
 
     # Iterate through accounts
@@ -175,6 +190,9 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
 
 
 def write_groups(groups: MemberWaiverGroupings, member_keys: dict[str, keys.KeyEntry]):
+    """
+    Write waiver request groups to CSV files
+    """
 
     # Create a list of adults that do not have minor children
     output_filename = "output/adults_no_minor_children.csv"

@@ -38,6 +38,9 @@ def get_backup_filename(filename: str):
 
 
 def read_ids_file(ids_filename: str) -> list[str]:
+    """
+    List a list of IDs from a CSV - assumed 1st column
+    """
     ids_file = open(ids_filename, "r", newline="")
     ids_csv = csv.reader(ids_file)
     ids_list = []
@@ -60,6 +63,12 @@ def run_markup(
     id_col: str,
     id_file: str,
 ):
+    """
+    Read a CSV, make a backup, modify rows, and write the CSV
+
+    Modifies rows that have an ID matching one of the ids read in.
+    Row modifications are setting or clearning a column value. Adds the column if it doesn't exist.
+    """
     matched_ids = {}
     ids_list = read_ids_file(id_file)
     rows: list[dict[str, str]] = []
@@ -127,11 +136,14 @@ def run_markup(
         print(f"\t{', '.join(missed_ids)}")
 
 
-def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: str):
+def create_members_file(filename: str):
+    """
+    Dump a file of the members for later markup.
+    Used when the target file does not exist.
+    """
 
     membership = memberdata.Membership()
     membership.read_csv_files()
-    ids_list = read_ids_file(id_file)
 
     column_names = [
         csvfile.ACCOUNT_NUM,
@@ -140,10 +152,6 @@ def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: s
         "First Name",
         "Last Name",
     ]
-    if len(mark_col) > 0:
-        column_names.append(mark_col)
-    if len(clear_col) > 0:
-        column_names.append(clear_col)
 
     output_file = open(filename, "w", newline="")
     print(f"Note: created {filename}")
@@ -159,28 +167,22 @@ def create_members_file(filename: str, mark_col: str, clear_col: str, id_file: s
         row["Member Type"] = member.member_type
         row["First Name"] = member.name.first_name
         row["Last Name"] = member.name.last_name
-
-        if member.member_id in ids_list:
-            if len(mark_col) > 0:
-                row[mark_col] = "x"
         output_csv.writerow(row)
 
     output_file.close()
     print(f"Note: wrote {count} member records")
 
 
-def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: str):
+def create_accounts_file(filename: str):
+    """
+    Dump a file of the accounts for later markup.
+    Used when the target file does not exist
+    """
 
     membership = memberdata.Membership()
     membership.read_csv_files()
-    ids_list = read_ids_file(id_file)
 
     column_names = [csvfile.ACCOUNT_NUM, "Account Type", "First Name", "Last Name"]
-    if len(mark_col) > 0:
-        column_names.append(mark_col)
-    if len(clear_col) > 0:
-        column_names.append(clear_col)
-
     output_file = open(filename, "w", newline="")
     print(f"Note: created {filename}")
     output_csv = csv.DictWriter(output_file, fieldnames=column_names)
@@ -194,10 +196,6 @@ def create_accounts_file(filename: str, mark_col: str, clear_col: str, id_file: 
         row["Account Type"] = account.account_type
         row["First Name"] = account.billing_name.first_name
         row["Last Name"] = account.billing_name.last_name
-
-        if account.account_num in ids_list:
-            if len(mark_col) > 0:
-                row[mark_col] = "x"
         output_csv.writerow(row)
 
     output_file.close()
@@ -208,6 +206,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="updaterows", description="Set and clear fields on matching rows"
     )
+
     parser.add_argument("-m", "--mark_field", type=str, default="")
     parser.add_argument("-c", "--clear_field", type=str, default="")
     parser.add_argument("-i", "--id_type", type=str, default="account")
@@ -230,16 +229,18 @@ if __name__ == "__main__":
         print(f"Input file {filename} must end in .csv")
         sys.exit(-1)
 
-    if os.path.exists(filename):
-        run_markup(
-            filename,
-            backup_filename,
-            args.mark_field,
-            args.clear_field,
-            id_col,
-            id_file,
-        )
-    elif args.id_type == "account":
-        create_accounts_file(filename, args.mark_field, args.clear_field, id_file)
-    else:
-        create_members_file(filename, args.mark_field, args.clear_field, id_file)
+    if not os.path.exists(filename):
+        # Create the file if necessary
+        if args.id_type == "account":
+            create_accounts_file(filename)
+        else:
+            create_members_file(filename)
+
+    run_markup(
+        filename,
+        backup_filename,
+        args.mark_field,
+        args.clear_field,
+        id_col,
+        id_file,
+    )

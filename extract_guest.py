@@ -1,5 +1,8 @@
 """
-Extract guest waiver data from PDF files on Google drive.
+Download and parse guest waiver PDF files on Google drive.
+Update guest_waivers.csv
+
+Skips documents previously parsed.
 """
 
 from googleapiclient.discovery import build  # type: ignore

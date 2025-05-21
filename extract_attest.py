@@ -1,8 +1,8 @@
-import os.path
-import io
-import pickle
-import csv
-import datetime
+"""
+Download and parse attestation files. Update output/attestations.csv
+
+Skips files previously parsed.
+"""
 
 from googleapiclient.discovery import build  # type: ignore
 

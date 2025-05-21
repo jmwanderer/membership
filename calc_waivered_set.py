@@ -1,14 +1,13 @@
 """
-Generate list of members that have signed waivers
+Generate list of members that are covered by a signed waiver
 
 Input:
-- mimbership data
+- membership data
 - attestations.csv
-- waiver_summary.csv
+- member_waivers.csv
 
 Output:
-- signed_waivers.csv
-
+- waivered_members.csv
 """
 
 from dataclasses import dataclass

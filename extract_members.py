@@ -1,20 +1,15 @@
 """
-Extract guest waiver data from PDF files on Google drive.
+Download and parse member waiver PDF files on Google drive.
+Update member_waivers.csv with information
+
+Skips previously downloaded files
 """
-
-import os.path
-import io
-import pickle
-import csv
-import datetime
-
 
 from googleapiclient.discovery import build  # type: ignore
 
 import memberdata
 import parse_pdf
 import memberwaiver
-import dateutil
 import gdrive
 
 

@@ -1,3 +1,10 @@
+"""
+Utility functions and common constants for working with CSV files
+
+TODO:
+  - consider creating a base class for records stored as CSV rows
+"""
+
 import re
 import os
 
