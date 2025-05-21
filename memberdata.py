@@ -3,6 +3,7 @@ Access Membership accounts and members via exported CSV files
 """
 
 import csv
+import os
 import datetime
 from dataclasses import dataclass, field
 from collections.abc import Iterator
@@ -353,6 +354,10 @@ class Membership:
     def _read_parents_csv(self, filename: str):
         print(f"Reading parents list '{filename}")
         self.parent_map = {}
+        if not os.path.exists(filename):
+            print(f"No file {filename}")
+            return
+
         with open(filename, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -379,7 +384,7 @@ class Membership:
                             parent_rec.minors.append(members[0])
 
                 self.parent_map[account_num].append(parent_rec)
-                print(f"Add parent rec for account {account_num}")
+                # print(f"Add parent rec for account {account_num}")
 
 
 if __name__ == "__main__":

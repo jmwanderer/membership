@@ -7,6 +7,7 @@ Model for an attestation document
 from dataclasses import dataclass
 import datetime
 import csv
+import os
 
 # Default location to store attestations.
 attestations_csv_filename = "output/attestations.csv"
@@ -188,7 +189,7 @@ def write_attestations_csv(
 
 def simple_test():
 
-    attest_filename = "test/test_attestations.csv"
+    attest_filename = "test_attestations.csv"
     write_attestations_csv([], attestations_csv_file=attest_filename)
     attests = read_attestations_csv(attestations_csv_file=attest_filename)
     assert len(attests) == 0
@@ -253,6 +254,7 @@ def simple_test():
     write_attestations_csv(attests, attestations_csv_file=attest_filename)
     attests = read_attestations_csv(attestations_csv_file=attest_filename)
     assert len(attests) == 2
+    os.unlink(attest_filename)
 
 
 if __name__ == "__main__":

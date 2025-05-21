@@ -3,6 +3,7 @@ Read the mobile key CSV file
 """
 
 import csv
+import os
 from dataclasses import dataclass
 
 import memberdata
@@ -26,11 +27,16 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
     Read the CSV file and return a list of key entry records
     """
     # Read mobile key information
+    key_entry_list: list[KeyEntry] = []
     print(f"Loading mobile keyfile: {filename}")
+
+    if not os.path.exists(filename):
+        print(f"Note: no filename {filename}")
+        return key_entry_list
+
     key_file = open(filename, newline="", encoding="utf-8-sig")
     reader = csv.DictReader(key_file)
 
-    key_entry_list = []
 
     # Iterate over keys
     for row in reader:

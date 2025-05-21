@@ -2,106 +2,116 @@
 Scripts for working with membership data tracked in CSV files
 
 ## Input Files
-Scripts read data from the input/ directory.
+The scripts read data located in the directory: *input*
 
-Export CSV format for members and accounts. Apply a filter for members to
-include the birthday.
+To setup, exporting data in CSV format for members and accounts. Apply a filter for members to include the birthday.
 
+Files:
 - members.csv : export member list with email addresses
-- parents.csv : information about who are the parents for specific children
 - accounts.csv : export account list 
-- keys.csv : key entries
+- parents.csv : (optional) information about who are the parents for specific children
+- keys.csv : (optional) key entries
 
 
 ## Tools
 
-- Extract Information from PDFs
-  - extract member waivers
-  - extract member attestations
-  - extract gues waivers
-- Generate CSV for bulk signature requests
-  - gen_sign_groups
-- Keys
-  - review account keys
-  - key_email_detla
-- Attestations
-  - review information from attestations
-- Ad hoc queries
-  - selectids
-  - updaterows
+There are tools to extract information from PDFs, generate CSVs for waiver signing requests,
+reviewing yes, and making ad-hoc queriies
 
-### Review Account Keys
+*Backup Files:*
+Note, when files are rewritten, generally the existing file s moved to: <name>.<num>.csv where num is 1, 2, 3, ...
 
-Generate report of number of keys held by each member account.
-Report discrepencies between keys file and member data.
-
-Useful to find who does not have keys and find keys that are assigned
-to non-members.
-
-Ignores keys with user names that start with "Staff..."
-
-review_account_keys.py
-
-Output:
-- account_keys.csv: list of member accounts and number of keys held
-
-
-### Generate Waiver Signing Groups
-
-- adults with no minor children
-- parents with minor children
-
-Generate a CSV of accounts with minor children and guess which
-adults are the parents based on ages. Will leave parents blank if
-unsure to be manuall updated.
-
-gen_parent_list.py
-
-Output:
-- parent_list.csv - list of families, parents and minor children
-
-### Key Email Delta
-
-Find members that have an email address for a mobile key that do not
-have an email in the membership database.
-
-key_email_delta.py
-
-Output:
-- new_email.csv: members that need an email added to the member database
-- change_email.csv: notes that email in the member database is different than the key
-
-### extract_attest.py
-
-Extract information from signed PDF documents in the 2025 Household Attestations and Household Waiver files
+### Extract Information from PDFs
+Download files from Google Drive and extract information
 
 Note: need credentials.json to access gdrive data
 See: https://developers.google.com/workspace/drive/api/quickstart/python
 
-### extract_members.py
+The extract scripts skip files that have already been parsed.
 
-Extract information from signed PDF documents in the 2025 Member Waivers folder.
-Note: need credentials.json to access gdrive data
+Extract scripts:
+  - extract member waivers: extract_members.py - writes to output/member_waivers.csv
+  - extract member attestations: extract_attestations.py - writes to output/attestations.csv
+  - extract guest waivers: extract_guest.py - writes to output/guest_waivers.csv
 
-### extract_guests.py
+### Generate CSV Files
 
-Extract information from signed PDF documents in the 2025 Guest Waivers folder.
-Note: need credentials.json to access gdrive data
+Script that create specific CSV files:
 
-### review_attestations.py
+#### Generate list of members with waivers
 
-Compare attestations.csv (built with extract_attest.py) with member data in the member.csv and account.csv
-files. 
+file: calc_waivered_set.py
 
-## TODO
-- Download status files from gdrive automatically: 
-https://devnodes.in/blog/web/python-export-google-sheet-to-csv/. Try files.export: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/export
+Writes output/waivered_members.csv with member names and links to signed waiver documents 
+
+#### Generate Signature Request Groups
+
+file: gen_sign_groups.py
+
+Generate a CSV of adult accounts and accounts with minor children.
+If there are multiple adults, guess which adults are the parents based on ages.
+If unable to guess, write to the unkown list.
+
+Generate CSV for bulk signature requests:
+- adult waivers: adults_no_minor_children.csv
+- familiy waivers with two parents and minors listed: parents_to_sign.csv
+- unknown families, needs resolution in input/parents.csv: unknown_list_to_sign.csv
+
+#### Compile Information for Keys
+
+Useful to find who does not have keys and find keys that are assigned
+to non-members and to update the member database with new email addresses.
+
+  - review_account_keys.py: Look for mis-assigned keys
+    - create output/account_keys.csv: list of member accounts and number of keys held
+    - Ignores keys with user names that start with "Staff..."
+  - key_email_delta: find emails in key file not in member file. Creates *output/*
+      - new_email.csv : email addresses for members that have no email
+      - change_email.csv : email addresses that a different than the member file
+
+#### Review Data from Attestations
+
+file: review_attestations.py
+
+Find discrepancies between the member database and information in attestion PDF files
+
+#### AdHoc Queries
 
 ### selectids.py
 
-Read names or ids from a CSV and lookup matching members. Write member ids and account ids to temp files to use in updating another file
+Runs pre-configured queries against CSV files in the *input/* and *output/* directories.
+Resolves names in the files to member ids, and saves member ids and account ids for use by updaterows.py
+
+Available Queries:
+- waivers: members covered by a waiver
+- individual_waivers: members covered by an adult individual waiver
+- family_waivers: members / accounts covered by family waivers
+- family_waivers_incomplete: members that signed family waivers, invalid due to not listing all minors
+- attest_signer: members that signed attestations
+- keys: members / accounts holding keys
+- swimteam: members on swimteam / accounts with swimmers on the swimteam
+
+
+Potential bug: reporting family waiver status for one household with multiple families
+
 
 ### updaterows.py
 
 Mark or clear a file in rows that match member ids or account ids saved by selectids.py
-Rewrites existing file, backup old file to: <name>.<num>.csv where num is 1, 2, 3, ...
+
+## How To
+
+### List waiver status of each member
+
+Ensure output/waivers.csv does not exist.
+
+```
+python selectids.py waivers
+python updaterows.py -i member -m waivered output/waivers.csv
+```
+
+
+### Which adults without minor aged children need to sign a waiver?
+
+### Which families need to sign a family waiver?
+

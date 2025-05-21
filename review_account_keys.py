@@ -113,6 +113,7 @@ print(f"Total keys: {total_keys}")
 print(f"Accounts with keys: {account_with_keys_count}")
 print(f"Accounts without keys: {account_without_keys_count}")
 print(f"Max keys for an account: {max_account_keys}")
-print(
-    f"Avg. number of keys for accounts with keys {total_keys / account_with_keys_count}"
-)
+if account_with_keys_count > 0:
+    print(
+        f"Avg. number of keys for accounts with keys {total_keys / account_with_keys_count}"
+    )

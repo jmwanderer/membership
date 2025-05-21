@@ -1,23 +1,14 @@
 
+Consider a script to upload new versions of existing files to google drive:
+- attestations.csv
+- member_waivers.csv
+- guest_waivers.csv
 
 
+Consider a script to move signed PDFs to the proper directory
 
-Email Martin / Marla on:
+Resources:
+ - https://devnodes.in/blog/web/python-export-google-sheet-to-csv/. 
+ -Try files.export: https://developers.google.com/workspace/drive/api/reference/rest/v3/files/export
 
-1. getting parent info on unknown group
 
-2. update them on the waivers
-- member
-- guest - incoming
-
-location of memberwaivers.csv
-
-Questions:
-
-How can I list everyone that has a waiver?
-How can I list everyone that doesn't have a waiver
-How can I list everyone that has not been asked for a waiver?
-
-Who has not signed an attestation?
-
-Which accounts require a family waiver?
