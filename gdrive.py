@@ -1,3 +1,8 @@
+"""
+Utility functions for accessing files on Google Drive
+"""
+
+
 import os.path
 import io
 
