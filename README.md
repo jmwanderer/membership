@@ -77,7 +77,7 @@ Find discrepancies between the member database and information in attestion PDF 
 
 #### AdHoc Queries
 
-### selectids.py
+##### selectids.py
 
 Runs pre-configured queries against CSV files in the *input/* and *output/* directories.
 Resolves names in the files to member ids, and saves member ids and account ids for use by updaterows.py
@@ -95,7 +95,7 @@ Available Queries:
 Potential bug: reporting family waiver status for one household with multiple families
 
 
-### updaterows.py
+##### updaterows.py
 
 Mark or clear a file in rows that match member ids or account ids saved by selectids.py
 
@@ -109,6 +109,29 @@ Ensure output/waivers.csv does not exist.
 python selectids.py waivers
 python updaterows.py -i member -m waivered output/waivers.csv
 ```
+
+### Find adult members with keys not yet requested for signatures
+
+There exists a file requests.csv that lists names of all adults that have been asked to sign waivers.
+Column name for name column is *name*
+
+Steps:
+- start with adults_no_minor_children.csv
+- add a column waivered reporting if already waivered
+- add a colmn report
+
+
+```
+mv requests.csv output/fullnames.csv
+python selectids.py fullnames
+python updaterows.py -i member -m requested output/adults_no_minor_children.csv
+python selectids.py keys
+python updaterows.py -i member -m has_key output/adults_no_minor_children.csv
+```
+
+Sort the adult_no_minor_chidren by the requested and has_key columns. Find 
+rows with has_key marked, but requested clear.
+
 
 
 ### Which adults without minor aged children need to sign a waiver?
