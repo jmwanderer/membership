@@ -19,23 +19,6 @@ import memberdata
 import csvfile
 
 
-def get_backup_filename(filename: str):
-    """
-    Search for a backup filename not in use
-    """
-    m = re.match(r"(.+)\.csv", filename)
-    if m is None:
-        return None
-    prefix = m.group(1)
-    value = 1
-    # Avoid an infinite loop in a hypothetical pathalogical case.
-    while value < 10000:
-        backup_name = f"{prefix}.{value}.csv"
-        if not os.path.exists(backup_name):
-            return backup_name
-        value += 1
-    return None
-
 
 def read_ids_file(ids_filename: str) -> list[str]:
     """
@@ -218,7 +201,7 @@ if __name__ == "__main__":
     args = parser.parse_args(sys.argv[1:])
 
     filename = args.filename
-    backup_filename = get_backup_filename(filename)
+    backup_filename = csvfile.get_backup_filename(filename)
     if args.idtype == "account":
         id_col = csvfile.ACCOUNT_NUM
         id_file = "output/account_ids.csv"
