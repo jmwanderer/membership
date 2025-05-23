@@ -77,27 +77,43 @@ Find discrepancies between the member database and information in attestion PDF 
 
 #### AdHoc Queries
 
+To avoid writing a custom function for any type of data analysis, AdHoc queries support
+selecting members and accounts matching specific pre-defined criteria (e.g. have signed a waiver)
+with selectids.py and then updating columns in CSV files in rows that match the selected members
+and accounts.
+
+In addition to the pre-configured queries (see below), selectids.py can also read the following
+data:
+- fullnames
+- first name, last name
+- member id or account id
+
+
 ##### selectids.py
 
 Runs pre-configured queries against CSV files in the *input/* and *output/* directories.
 Resolves names in the files to member ids, and saves member ids and account ids for use by updaterows.py
 
 Available Queries:
-- waivers: members covered by a waiver
-- individual_waivers: members covered by an adult individual waiver
+- waivers: members covered by any type of waiver
+- individual_waivers: members covered by an adult individual waivers or attestation signature
 - family_waivers: members / accounts covered by family waivers
 - family_waivers_incomplete: members that signed family waivers, invalid due to not listing all minors
 - attest_signer: members that signed attestations
 - keys: members / accounts holding keys
 - swimteam: members on swimteam / accounts with swimmers on the swimteam
+- ids: load Member# or Account# from output/ids.csv
+- fullnames: load name from output/fullnames.csv
+- names: load First Name and Last Name from output/names.csv
 
 
-Potential bug: reporting family waiver status for one household with multiple families
+Potential bug: reporting family waiver status for one household with multiple families (sets of parents and children)
 
 
 ##### updaterows.py
 
-Mark or clear a file in rows that match member ids or account ids saved by selectids.py
+Mark or clear a specified column in rows that match member ids or account ids loaded by selectids.py
+
 
 ## How To
 
@@ -107,7 +123,7 @@ Ensure output/waivers.csv does not exist.
 
 ```
 python selectids.py waivers
-python updaterows.py -i member -m waivered output/waivers.csv
+python updaterows.py member -m waivered output/waivers.csv
 ```
 
 ### Find adult members with keys not yet requested for signatures
@@ -117,24 +133,44 @@ Column name for name column is *name*
 
 Steps:
 - start with adults_no_minor_children.csv
-- add a column waivered reporting if already waivered
-- add a colmn report
+- add a column waivered reporting if the member is already covered by a waiber
+- add a column has_key reporting if the member has a key
+- add a column requested reporting that the member has alreyad been asked for a signature
 
 
 ```
 mv requests.csv output/fullnames.csv
+python selectids.py waivers
+python updaterows.py member -m waivered output/adults_no_minor_children.csv
 python selectids.py fullnames
-python updaterows.py -i member -m requested output/adults_no_minor_children.csv
+python updaterows.py member -m requested output/adults_no_minor_children.csv
 python selectids.py keys
-python updaterows.py -i member -m has_key output/adults_no_minor_children.csv
+python updaterows.py member -m has_key output/adults_no_minor_children.csv
 ```
 
-Sort the adult_no_minor_chidren by the requested and has_key columns. Find 
-rows with has_key marked, but requested clear.
+Sort the adult_no_minor_chidren by the waivered, requested, and has_key columns. 
+
+Find the rows with waivered clear, requested clear, but has_key is marked.
+
+
+### Which families need to sign a family waiver?
+
+Identify accounts with minors that have a key associated with the account but do not yet have a signed family waiver.
+
+```
+rm output/families.csv
+python selectids.py minors
+python updaterows.py account -m minors output/families.csv
+python selectids.py keys
+python updaterows.py account -m keys output/families.csv
+python selectids.py family_waivers
+python updaterows.py account -m family_waiver output/families.csv
+```
+
+Sort by minors, keys, family_waiver
 
 
 
 ### Which adults without minor aged children need to sign a waiver?
 
-### Which families need to sign a family waiver?
 

@@ -40,8 +40,8 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
 
     # Iterate over keys
     for row in reader:
-        first_name = row["First Name"].strip()
-        last_name = row["Last Name"].strip()
+        first_name = row["FirstName"].strip()
+        last_name = row["LastName"].strip()
         email = row["Email"].strip()
         account_num = row["UserName"]
 

@@ -35,8 +35,9 @@ def backup_file(filename: str) -> bool:
     if backup_name is None:
         print(f"Error: file must be <name>.csv")
         return False
-    print(f"Note: moving '{filename}' to '{backup_name}'")
-    os.rename(filename, backup_name)
+    if os.path.exists(filename):
+        print(f"Note: moving '{filename}' to '{backup_name}'")
+        os.rename(filename, backup_name)
     return True
 
 

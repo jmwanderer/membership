@@ -41,7 +41,7 @@ def check_waiver(
         if member.is_minor():
             minors += 1
 
-    return minors == 0 or minors == len(waiver.minors)
+    return minors == 0 or minors >= len(waiver.minors)
 
 
 def main() -> None:

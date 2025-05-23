@@ -81,6 +81,10 @@ def run_markup(
     if input_csv.fieldnames is None:
         print(f"Error: no field headers in {filename}")
         return
+
+    if id_col not in input_csv.fieldnames:
+        print(f"Error: looking to match {id_col} in {filename}, but it isn't there.")
+        return
     column_names = list(input_csv.fieldnames)
 
     for row in input_csv:
@@ -207,22 +211,21 @@ if __name__ == "__main__":
         prog="updaterows", description="Set and clear fields on matching rows"
     )
 
+    parser.add_argument("idtype", choices=["account", "member"])
     parser.add_argument("-m", "--mark_field", type=str, default="")
     parser.add_argument("-c", "--clear_field", type=str, default="")
-    parser.add_argument("-i", "--id_type", type=str, default="account")
     parser.add_argument("filename")
     args = parser.parse_args(sys.argv[1:])
 
     filename = args.filename
     backup_filename = get_backup_filename(filename)
-    if args.id_type == "account":
+    if args.idtype == "account":
         id_col = csvfile.ACCOUNT_NUM
         id_file = "output/account_ids.csv"
-    elif args.id_type == "member":
+    elif args.idtype == "member":
         id_col = csvfile.MEMBER_ID
         id_file = "output/member_ids.csv"
     else:
-        print("Error: id_type must be 'member' or 'acount'")
         sys.exit(-1)
 
     if backup_filename is None:
@@ -231,7 +234,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(filename):
         # Create the file if necessary
-        if args.id_type == "account":
+        if args.idtype == "account":
             create_accounts_file(filename)
         else:
             create_members_file(filename)

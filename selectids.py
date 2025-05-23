@@ -3,15 +3,15 @@ Run pre-programmed queries and load results as account and member ids.
 The loaded ids are used by updaterows.py to alter the rows matching the loaded ids.
 
 Queries:
-- members that have signed individual waivers
-- members that have singed complete family waivers
-- members that have signed in-complete family waivers
+- members covered by an attestation, individual waiver, or family waiver
+- adult members that have signed individual waivers or attestations
+- members / accounts that have singed complete family waivers
+- members / accounts that have signed in-complete family waivers
 - members / accounts that have signed an attestation
 - members / accounts that have keys
 - members / accounts with children on the swim team
-- members covered by a waiver (includes individual + family + attestation)
 - match ids and fullnames from specific files
-
+- match firstname lastname from specific files
 
 The IDs are stored in:
     - output/member_ids.csv
@@ -137,7 +137,7 @@ def write_ids(account_ids: set[str], member_ids: set[str]):
     for entry in account_ids:
         output_csv.writerow([entry])
     output_file.close()
-    print(f"Note: wrote {accounts_filename}")
+    print(f"Note: wrote {len(account_ids)} records to {accounts_filename}")
 
     # Write member ids
     members_filename = "output/member_ids.csv"
@@ -147,7 +147,7 @@ def write_ids(account_ids: set[str], member_ids: set[str]):
     for entry in member_ids:
         output_csv.writerow([entry])
     output_file.close()
-    print(f"Note: wrote {members_filename}")
+    print(f"Note: wrote {len(member_ids)} records to {members_filename}")
 
 
 @dataclass
@@ -205,7 +205,7 @@ family_waivers = DataSource(
 
 
 # Source only adult signers on a waiver record
-individual_waivers = DataSource(
+adult_waivers = DataSource(
     filename="output/member_waivers.csv",
     fullname=True,
     fullname_columns=[
@@ -230,14 +230,18 @@ attest_signer = DataSource(
 keys = DataSource(
     filename="input/keys.csv",
     fullname=False,
-    name_columns=[("First Name", "Last Name")],
+    name_columns=[("FirstName", "LastName")],
 )
 
 # Match full names in a custom CSV file
 fullnames = DataSource(
     filename="output/fullnames.csv", fullname=True, fullname_columns=["name"]
 )
-
+names = DataSource(
+    filename="output/names.csv",
+    fullname=False,
+    name_columns=[("First Name", "Last Name")],
+)
 
 # Load IDs from a custom CSV file (member ids if present, otherwise account ids)
 ids = DataSource(
@@ -251,13 +255,13 @@ ids = DataSource(
 #
 QUERY_LIST = [
     DataQuery("waivers", NOSRC),
+    DataQuery("individual_waivers", NOSRC),
     DataQuery("fullnames", fullnames),
+    DataQuery("names", names),
     DataQuery("ids", ids),
     DataQuery("keys", keys),
+    DataQuery("minors", NOSRC),
     DataQuery("swimteam", swimteam),
-    DataQuery(
-        "individual_waivers", individual_waivers, lambda x: x["complete"].lower() == "y"
-    ),
     DataQuery(
         "family_waivers",
         family_waivers,
@@ -271,6 +275,9 @@ QUERY_LIST = [
     DataQuery("attest_signer", attest_signer),
 ]
 
+# Don't expose as we always want to report attestation signers + individual waivers
+adult_waivered_query = DataQuery("individual_waivers", adult_waivers, lambda x: x["type"].lower() == "individual")
+ 
 QUERIES = {dq.name: dq for dq in QUERY_LIST}
 
 
@@ -286,17 +293,19 @@ def load_data_query(
     input_file = open(input_filename, newline="")
     print(f"Note: reading names from '{input_filename}'")
     if fullnames:
+        print(f"Note: Reading fullname column(s) '{','.join(query.datasource.fullname_columns)}' from {input_filename}")
         names = read_full_name_columns(
             input_file, query.datasource.fullname_columns, query.condition
         )
     else:
+        print(f"Note: Reading name columns '{','.join([str(x) for x in query.datasource.name_columns])}' from {input_filename}")
         member_names = read_name_columns(
             input_file, query.datasource.name_columns, query.condition
         )
     input_file.close()
     print("")
 
-    print("Looking up member names...")
+    print("Note: Looking up member names...")
     if fullnames:
         account_ids, member_ids = lookup_ids_fullnames(membership, names)
     else:
@@ -328,8 +337,10 @@ def load_ids_query(
         if not load_account_nums and not load_member_ids:
             # Favor member id first
             if csvfile.MEMBER_ID in row:
+                print(f"Note: Reading '{csvfile.MEMBER_ID}' from '{filename}'")
                 load_member_ids = True
             elif csvfile.ACCOUNT_NUM in row:
+                print(f"Note: Reading '{csvfile.ACCOUNT_NUM}' from '{filename}'")
                 load_account_nums = True
 
         if load_account_nums:
@@ -353,6 +364,16 @@ def load_ids_query(
     print("")
     return (account_ids, member_ids)
 
+def load_minor_members(membership: memberdata.Membership) -> tuple[set[str], set[str]]:
+    account_ids: set[str] = set()
+    member_ids: set[str] = set()
+
+    for member in membership.all_members():
+        if member.is_minor():
+            member_ids.add(member.member_id)
+            account_ids.add(member.account_num)
+    return (account_ids, member_ids)
+
 
 def main(query: DataQuery):
     # Read membership data
@@ -365,13 +386,24 @@ def main(query: DataQuery):
             membership, QUERIES["family_waivers"]
         )
         account_ids2, member_ids2 = load_data_query(
-            membership, QUERIES["individual_waivers"]
+            membership, adult_waivered_query
         )
         account_ids3, member_ids3 = load_data_query(
             membership, QUERIES["attest_signer"]
         )
-        account_ids = account_ids1 | account_ids2 | account_ids3
+        account_ids = set()  # Account ids in this combination are misleading
         member_ids = member_ids1 | member_ids2 | member_ids3
+    elif query.name == "individual_waivers":
+        account_ids1, member_ids1 = load_data_query(
+            membership, adult_waivered_query
+        )
+        account_ids2, member_ids2 = load_data_query(
+            membership, QUERIES["attest_signer"]
+        )
+        account_ids = account_ids1 | account_ids2
+        member_ids = member_ids1 | member_ids2 
+    elif query.name == "minors":
+        account_ids, member_ids = load_minor_members(membership)
     elif query.name == "ids":
         account_ids, member_ids = load_ids_query(membership, query.datasource.filename)
     else:
