@@ -33,15 +33,17 @@ class AdultRecord:
         self.member = member
         self.key_address = ""
         self.signed = False
+        self.web_link: str = ""
 
     FIELD_NAME = "name"
     FIELD_EMAIL = "email_address"
     FIELD_KEY_EMAIL = "key_email"
+    FIELD_WEB_LINK = "web_link"
 
     @staticmethod
     def get_header() -> list[str]:
         return [ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED,
-                AdultRecord.FIELD_NAME, AdultRecord.FIELD_EMAIL, AdultRecord.FIELD_KEY_EMAIL]
+                AdultRecord.FIELD_NAME, AdultRecord.FIELD_EMAIL, AdultRecord.FIELD_KEY_EMAIL, AdultRecord.FIELD_WEB_LINK]
 
     def get_row(self):
         row = {}
@@ -51,6 +53,7 @@ class AdultRecord:
         row[AdultRecord.FIELD_NAME] = self.member.name.fullname()
         row[AdultRecord.FIELD_EMAIL] = self.member.email
         row[AdultRecord.FIELD_KEY_EMAIL] = self.key_address
+        row[AdultRecord.FIELD_WEB_LINK] = self.web_link
         return row
 
     @staticmethod
@@ -64,6 +67,7 @@ class AdultRecord:
         record = AdultRecord(member_entry)
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
         record.key_address = row[AdultRecord.FIELD_KEY_EMAIL]
+        record.web_link = row[AdultRecord.FIELD_WEB_LINK]
         return record
 
     @staticmethod 
@@ -109,7 +113,8 @@ class FamilyRecord:
     def __init__(self) -> None: 
         self.adults: list[MemberEntry] = []
         self.minors: list[MemberEntry] = []
-        self.signed = False
+        self.signed: bool = False
+        self.web_link: str = ""
 
     FIELD_NAME ="name"
     FIELD_EMAIL = "email_address"
@@ -126,13 +131,15 @@ class FamilyRecord:
     FIELD_MINOR4 = "minor4"
     FIELD_MINOR5 = "minor5"
 
+    FIELD_WEB_LINK = "web_link"
+
     HEADER = [ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED,
               FIELD_NAME, FIELD_EMAIL,
               FIELD_NAME2, FIELD_EMAIL2,
               FIELD_NAME3, FIELD_EMAIL3,
               FIELD_NAME4, FIELD_EMAIL4,
               FIELD_MINOR1 ,FIELD_MINOR2,
-              FIELD_MINOR3, FIELD_MINOR4, FIELD_MINOR5 ]
+              FIELD_MINOR3, FIELD_MINOR4, FIELD_MINOR5, FIELD_WEB_LINK ]
 
     @staticmethod
     def get_header() -> list[str]:
@@ -146,6 +153,7 @@ class FamilyRecord:
         row[csvfile.ACCOUNT_NUM] = self.adults[0].account_num
         row[csvfile.MEMBER_ID] = self.adults[0].member_id
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
+        row[FamilyRecord.FIELD_WEB_LINK] = self.web_link
         for i, member in enumerate(self.adults):
             row[FamilyRecord.HEADER[i * 2 + 3]] = member.name.fullname()
             row[FamilyRecord.HEADER[i * 2 + 4]] = member.email
@@ -164,7 +172,7 @@ class FamilyRecord:
 
         record = FamilyRecord()
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
-        account_num = member_entry.account_num
+        record.web_link = row[FamilyRecord.FIELD_WEB_LINK]
         record.adults.append(member_entry)
 
         for index in range(5, 10, 2):

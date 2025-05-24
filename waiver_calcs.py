@@ -137,6 +137,7 @@ def update_waiver_status() -> None:
 
         waiver_doc = waiver_doc_map.get(name)
         if waiver_doc is not None:
+            adult_record.web_link = waiver_doc.web_view_link
             adult_record.signed = csvfile.is_signed(waiver_doc.complete)
             continue
 
@@ -151,6 +152,7 @@ def update_waiver_status() -> None:
         if waiver_doc is None:
             continue
         family_record.signed = csvfile.is_signed(waiver_doc.complete)
+        family_record.web_link = waiver_doc.web_view_link
 
     
     waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
