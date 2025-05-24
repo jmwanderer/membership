@@ -29,10 +29,14 @@ def main() -> None:
     filenames: set[str] = set(attestation.file_name for attestation in attestations)
 
     print("Processing Files:")
+    skipped_count = 0
+    parsed_count = 0
+ 
     for file in files:
         # Check if file has already been processed
         if file["name"] in filenames:
-            print(f"Note: already parsed {file['name']} - skipping")
+            #print(f"Note: already parsed {file['name']} - skipping")
+            skipped_count += 1
             continue
 
         print(f"{file['name']}")
@@ -42,7 +46,11 @@ def main() -> None:
         attestation_pdf.web_view_link = file["webViewLink"]
         attestation = attestation_pdf.parse_attestation()
         attestations.append(attestation)
+        parsed_count += 1
 
+
+
+    print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     docs.Attestation.write_csv(attestations)
     print(f"Wrote output: {docs.attestations_csv_filename}")
 
