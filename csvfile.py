@@ -40,6 +40,15 @@ def backup_file(filename: str) -> bool:
         os.rename(filename, backup_name)
     return True
 
+def is_signed(field_val: str) -> bool:
+    return len(field_val) > 0 and field_val.lower()[0] == 'y'
+
+def signed_str(signed: bool) -> str:
+    if signed:
+        return "yes"
+    return "no"
+
 
 ACCOUNT_NUM = "Account#"
 MEMBER_ID = "Member#"
+SIGNED = "signed"

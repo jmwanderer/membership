@@ -15,44 +15,14 @@ Outputs:
 - unknown_list_to_sign.csv
 """
 
+
 import csv
 
 import csvfile
 import memberdata
-from memberdata import MemberEntry, AccountEntry, Membership
+from memberdata import MemberEntry, Membership
+from  waivers import MemberWaiverGroupings, AdultRecord, FamilyRecord
 import keys
-
-
-class FamilyRecord:
-    """
-    Represents a family or potential family for which we need more information
-    """
-
-    def __init__(self, account_num: str):
-        self.account_num = account_num
-        self.adults: list[MemberEntry] = []
-        self.minors: list[MemberEntry] = []
-
-
-class MemberWaiverGroupings:
-    """
-    Results of generating groupings for member waiver requests
-    """
-
-    def __init__(self) -> None:
-        # Adult members with no minor children as members
-        self.no_minor_children: list[MemberEntry] = []
-
-        # Parents and minor children
-        self.with_minor_children: list[FamilyRecord] = []
-
-        # Adults potentially with minor children and minor children
-        self.unknown_status: list[FamilyRecord] = []
-
-        # Statistics for membership
-        self.no_minors_count = 0
-        self.unknown_parents_count = 0
-        self.known_parents_count = 0
 
 
 def select_possible_parents(
@@ -140,7 +110,7 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
         for member in members:
             if member.is_minor() or member in possible_parents:
                 continue
-            groups.no_minor_children.append(member)
+            groups.no_minor_children.append(AdultRecord(member))
 
         # If this account has no minor aged children, we are done with it
         if not membership.has_minor_children(account.account_num):
@@ -153,7 +123,7 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
             # Use defined rec instead of guessing
             num_minors = 0
             for parent_rec in parent_recs:
-                family = FamilyRecord(account.account_num)
+                family = FamilyRecord()
                 for parent in parent_rec.parents:
                     family.adults.append(parent)
                 for minor in parent_rec.minors:
@@ -175,7 +145,7 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
             known_parents = True
             groups.known_parents_count += 1
 
-        family = FamilyRecord(account.account_num)
+        family = FamilyRecord()
         for member in parents:
             family.adults.append(member)
         for member in members:
@@ -201,15 +171,15 @@ def write_groups(groups: MemberWaiverGroupings, member_keys: dict[str, keys.KeyE
     output_csv = csv.writer(output_file)
     row = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "name", "email_address", "key_email"]
     output_csv.writerow(row)
-    for member in groups.no_minor_children:
+    for record in groups.no_minor_children:
         key_email = ""
-        if member.member_id in member_keys:
-            key_email = member_keys[member.member_id].member_email
+        if record.member.member_id in member_keys:
+            key_email = member_keys[record.member.member_id].member_email
         row = [
-            member.account_num,
-            member.member_id,
-            member.name.fullname(),
-            member.email,
+            record.member.account_num,
+            record.member.member_id,
+            record.member.name.fullname(),
+            record.member.email,
             key_email,
         ]
         output_csv.writerow(row)
@@ -235,7 +205,7 @@ def write_groups(groups: MemberWaiverGroupings, member_keys: dict[str, keys.KeyE
     ]
     output_csv.writerow(row)
     for family in groups.with_minor_children:
-        row = [family.account_num]
+        row = [family.adults[0].account_num]
         for member in family.adults:
             row.extend([member.name.fullname(), member.email])
         while len(row) < 4:
@@ -271,7 +241,7 @@ def write_groups(groups: MemberWaiverGroupings, member_keys: dict[str, keys.KeyE
     ]
     output_csv.writerow(row)
     for family in groups.unknown_status:
-        row = [family.account_num]
+        row = [family.adults[0].account_num]
         for member in family.adults:
             row.extend([member.name.fullname(), member.email])
         while len(row) < 8:

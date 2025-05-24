@@ -61,6 +61,37 @@ class WaiveredMember:
         return row
 
 
+def check_waiver(
+    membership: memberdata.Membership, waiver: docs.MemberWaiver
+) -> bool:
+    """
+    Return True if waiver is considered to be complete.
+    All required signatures and minors are included for a family waiver.
+    A complete family waiver means that all minors and all signers are covered
+    TODO: check that both parents have signed
+    """
+
+    if len(waiver.signatures) < 1:
+        return False
+
+    if waiver.type == docs.MemberWaiver.TYPE_INDIVIDUAL:
+        return True
+
+    name = waiver.signatures[0].name
+    account = membership.get_account_by_fullname(name)
+    if account is None:
+        print(f"Warning: no account for name '{name}'")
+        return False
+
+    # Count number of minor children
+    minors = 0
+    for member in membership.get_members_for_account_num(account.account_num):
+        if member.is_minor():
+            minors += 1
+
+    return minors == 0 or minors <= len(waiver.minors)
+
+
 def main() -> None:
     membership = memberdata.Membership()
     membership.read_csv_files()

@@ -96,6 +96,7 @@ def run_markup(
                 row[clear_col] = ""
                 matched_ids[id_value] = 1
 
+    # TODO: consider using csvfile function
     # Backup original file
     os.rename(filename, backup_filename)
 

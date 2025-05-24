@@ -161,6 +161,7 @@ class Membership:
         result = list(self.account_map.keys())
         return result
 
+    # TOD: fix this name - confusing. should be pre-configured families
     def get_families_for_account(self, account_num: str) -> list[ParentRec]:
         result = self.parent_map.get(account_num)
         if result is None:
@@ -197,6 +198,20 @@ class Membership:
         if member_name.lower() not in self.member_name_map:
             return []
         return self.member_name_map[member_name.lower()]
+
+    def get_one_member_by_fullname(self, account_num: str, name: str, minor: bool) -> MemberEntry | None:
+        members = self.get_members_by_fullname(name)
+        result = None
+        for member in members:
+            if account_num == member.account_num and minor == member.is_minor():
+                if result is not None:
+                    print(f"Error: duplicate name in account {name}")
+                    return None
+
+                result = member
+        if result is None:
+            print(f"Warning: didn't find account: {account_num}, name: {name}, minor: {minor}")
+        return result
 
     def accounts(self) -> list[AccountEntry]:
         result: list[AccountEntry]
