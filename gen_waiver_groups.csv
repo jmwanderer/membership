@@ -20,7 +20,7 @@ import csv
 
 import csvfile
 import memberdata
-from memberdata import MemberEntry, Membership
+import waivers
 from  waivers import MemberWaiverGroupings, AdultRecord, FamilyRecord
 import keys
 
@@ -91,11 +91,12 @@ def select_parents(
     return possible_parents
 
 
-def generate_groups(membership: Membership) -> MemberWaiverGroupings:
+def generate_groups(membership: memberdata.Membership) -> MemberWaiverGroupings:
     """
     Generate groups of waiver requests
     """
     groups = MemberWaiverGroupings()
+    member_keys = keys.gen_member_key_map(membership)
 
     # Iterate through accounts
     for account in membership.active_member_accounts():
@@ -110,7 +111,10 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
         for member in members:
             if member.is_minor() or member in possible_parents:
                 continue
-            groups.no_minor_children.append(AdultRecord(member))
+            record = AdultRecord(member)
+            if member.member_id in member_keys:
+                record.key_address = member_keys[member.member_id].member_email
+            groups.no_minor_children.append(record)
 
         # If this account has no minor aged children, we are done with it
         if not membership.has_minor_children(account.account_num):
@@ -159,110 +163,13 @@ def generate_groups(membership: Membership) -> MemberWaiverGroupings:
     return groups
 
 
-def write_groups(groups: MemberWaiverGroupings, member_keys: dict[str, keys.KeyEntry]):
-    """
-    Write waiver request groups to CSV files
-    """
-
-    # Create a list of adults that do not have minor children
-    output_filename = "output/adults_no_minor_children.csv"
-    csvfile.backup_file(output_filename)
-    output_file = open(output_filename, "w", newline="")
-    output_csv = csv.writer(output_file)
-    row = [csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, "name", "email_address", "key_email"]
-    output_csv.writerow(row)
-    for record in groups.no_minor_children:
-        key_email = ""
-        if record.member.member_id in member_keys:
-            key_email = member_keys[record.member.member_id].member_email
-        row = [
-            record.member.account_num,
-            record.member.member_id,
-            record.member.name.fullname(),
-            record.member.email,
-            key_email,
-        ]
-        output_csv.writerow(row)
-    output_file.close()
-    print(f"Note: created file {output_filename}")
-
-    # Create a list of parents and minor children
-    output_filename = "output/parents_to_sign.csv"
-    csvfile.backup_file(output_filename)
-    output_file = open(output_filename, "w", newline="")
-    output_csv = csv.writer(output_file)
-    row = [
-        csvfile.ACCOUNT_NUM,
-        "name",
-        "email_address",
-        "name2",
-        "email_address2",
-        "minor1",
-        "minor2",
-        "minor3",
-        "minor4",
-        "minor5",
-    ]
-    output_csv.writerow(row)
-    for family in groups.with_minor_children:
-        row = [family.adults[0].account_num]
-        for member in family.adults:
-            row.extend([member.name.fullname(), member.email])
-        while len(row) < 4:
-            row.extend(["", ""])
-        for member in family.minors:
-            row.append(member.name.fullname())
-        while len(row) < 10:
-            row.extend([""])
-        output_csv.writerow(row)
-    output_file.close()
-    print(f"Note: created file {output_filename}")
-
-    # Create a list of families with unnkown parentage
-    output_filename = "output/unknown_list_to_sign.csv"
-    csvfile.backup_file(output_filename)
-    output_file = open(output_filename, "w", newline="")
-    output_csv = csv.writer(output_file)
-    row = [
-        csvfile.ACCOUNT_NUM,
-        "name",
-        "email_address",
-        "name2",
-        "email_address2",
-        "name3",
-        "email_address3",
-        "name4",
-        "email_address4",
-        "minor1",
-        "minor2",
-        "minor3",
-        "minor4",
-        "minor5",
-    ]
-    output_csv.writerow(row)
-    for family in groups.unknown_status:
-        row = [family.adults[0].account_num]
-        for member in family.adults:
-            row.extend([member.name.fullname(), member.email])
-        while len(row) < 8:
-            row.extend(["", ""])
-        for member in family.minors:
-            row.append(member.name.fullname())
-        while len(row) < 14:
-            row.extend([""])
-        output_csv.writerow(row)
-    output_file.close()
-    print(f"Note: created file {output_filename}")
-
-
 def main():
     # Read membership data
     membership = memberdata.Membership()
     membership.read_csv_files()
-    member_keys = keys.gen_member_key_map(membership)
 
     groupings = generate_groups(membership)
-    write_groups(groupings, member_keys)
+    groupings.write_csv_files()
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ import os
 import csvfile
 import memberdata
 from memberdata import MemberEntry
+import keys
 
 class AdultRecord:
     """
@@ -30,7 +31,7 @@ class AdultRecord:
     """
     def __init__(self, member: MemberEntry):
         self.member = member
-        self.key_adress = ""
+        self.key_address = ""
         self.signed = False
 
     FIELD_NAME = "name"
@@ -49,7 +50,7 @@ class AdultRecord:
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
         row[AdultRecord.FIELD_NAME] = self.member.name.fullname()
         row[AdultRecord.FIELD_EMAIL] = self.member.email
-        row[AdultRecord.FIELD_KEY_EMAIL] = self.key_adress
+        row[AdultRecord.FIELD_KEY_EMAIL] = self.key_address
         return row
 
     @staticmethod
@@ -62,7 +63,7 @@ class AdultRecord:
             return None
         record = AdultRecord(member_entry)
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
-        record.key_adress = row[AdultRecord.FIELD_KEY_EMAIL]
+        record.key_address = row[AdultRecord.FIELD_KEY_EMAIL]
         return record
 
     @staticmethod 
@@ -92,6 +93,7 @@ class AdultRecord:
         if not csvfile.backup_file(csv_file):
             return
 
+        print(f"Note: Write {csv_file}")
         with open(csv_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=AdultRecord.get_header())
             writer.writeheader()
@@ -205,6 +207,7 @@ class FamilyRecord:
         if not csvfile.backup_file(csv_file):
             return
 
+        print(f"Note: Write {csv_file}")
         with open(csv_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=FamilyRecord.get_header())
             writer.writeheader()
@@ -234,10 +237,28 @@ class MemberWaiverGroupings:
         self.known_parents_count = 0
 
 
+    adult_waiver_filename = "output/adults_no_minor_children.csv"
+    familey_waiver_filename = "output/parents_to_sign.csv"
+    unknown_waiver_filename = "output/unknown_list_to_sign.csv"
+
+    @staticmethod
+    def read_csv_files(membership: memberdata.Membership) -> MemberWaiverGroupings:
+        groupings = MemberWaiverGroupings()
+        groupings.no_minor_children = AdultRecord.read_csv(membership, MemberWaiverGroupings.adult_waiver_filename)
+        groupings.with_minor_children = FamilyRecord.read_csv(membership, MemberWaiverGroupings.familey_waiver_filename)
+        groupings.unknown_status = FamilyRecord.read_csv(membership, MemberWaiverGroupings.unknown_waiver_filename)
+        return groupings
+
+    def write_csv_files(self) -> None:
+        AdultRecord.write_csv(self.no_minor_children, MemberWaiverGroupings.adult_waiver_filename)
+        FamilyRecord.write_csv(self.with_minor_children, MemberWaiverGroupings.familey_waiver_filename)
+        FamilyRecord.write_csv(self.unknown_status, MemberWaiverGroupings.unknown_waiver_filename)
+ 
 
 def simple_test() -> None:
     membership = memberdata.Membership()
     membership.read_csv_files()
+    member_keys = keys.gen_member_key_map(membership)
 
     adult_records: list[AdultRecord] = []
     family_records: list[FamilyRecord] = []
@@ -255,6 +276,8 @@ def simple_test() -> None:
         else:
             for member in members:
                 adult_record = AdultRecord(member)
+                if member.member_id in member_keys:
+                    adult_record.key_address = member_keys[member.member_id].member_email
                 adult_records.append(adult_record)
 
     family_csv = "test/family_records.csv"
