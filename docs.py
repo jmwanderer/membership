@@ -205,6 +205,20 @@ class MemberWaiver:
             f.close()
         print(f"Note: wrote {len(waivers)} member waiver records.")
 
+    @staticmethod
+    def create_doc_map(member_waivers: list[MemberWaiver]) -> dict[str,MemberWaiver]:
+        doc_map: dict[str, MemberWaiver] = {}
+        # fix my prioritit  family > adult > atttest
+        for waiver_doc in member_waivers:
+            for signature in waiver_doc.signatures:
+                if waiver_doc.complete:
+                    current_waiver_doc = doc_map.get(signature.name)
+                    # Don't replace a family waiver with an individual
+                    if (current_waiver_doc is None or
+                        current_waiver_doc.type != MemberWaiver.TYPE_FAMILY):
+                        doc_map[signature.name] = waiver_doc
+        return doc_map
+
 
 # Default location to store attestations.
 attestations_csv_filename = "output/attestations.csv"
@@ -383,6 +397,14 @@ class Attestation:
                 writer.writerow(attestation.get_row())
             f.close()
         print(f"Note: write {len(attestations)} attestation records")
+
+    @staticmethod
+    def create_doc_map(attestations: list[Attestation]) -> dict[str, Attestation]:
+        doc_map: dict[str, Attestation] = {}
+        for attestation in attestations:
+            doc_map[attestation.adults[0].name] = attestation
+        return doc_map
+
 
 
 guestwaiver_csv_filename = "output/guest_waivers.csv"

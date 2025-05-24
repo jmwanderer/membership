@@ -20,8 +20,8 @@ import csv
 
 import csvfile
 import memberdata
-import waivers
-from  waivers import MemberWaiverGroupings, AdultRecord, FamilyRecord
+import waiverrec
+from  waiverrec import MemberWaiverGroups, AdultRecord, FamilyRecord
 import keys
 
 
@@ -91,11 +91,11 @@ def select_parents(
     return possible_parents
 
 
-def generate_groups(membership: memberdata.Membership) -> MemberWaiverGroupings:
+def generate_groups(membership: memberdata.Membership) -> MemberWaiverGroups:
     """
     Generate groups of waiver requests
     """
-    groups = MemberWaiverGroupings()
+    groups = MemberWaiverGroups()
     member_keys = keys.gen_member_key_map(membership)
 
     # Iterate through accounts

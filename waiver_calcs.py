@@ -16,6 +16,7 @@ import csv
 import docs
 import csvfile
 import memberdata
+import waiverrec
 
 waiver_out_filename = "output/waivered_members.csv"
 
@@ -62,7 +63,7 @@ class WaiveredMember:
 
 
 def check_waiver(
-    membership: memberdata.Membership, waiver: docs.MemberWaiver
+    membership: memberdata.Membership, groups: waiverrec.MemberWaiverGroups, waiver: docs.MemberWaiver
 ) -> bool:
     """
     Return True if waiver is considered to be complete.
@@ -83,85 +84,67 @@ def check_waiver(
         print(f"Warning: no account for name '{name}'")
         return False
 
-    # Count number of minor children
-    minors = 0
-    for member in membership.get_members_for_account_num(account.account_num):
-        if member.is_minor():
-            minors += 1
+    family_record = groups.find_family_record(name)
+    if family_record is None:
+        print(f"Warning: family waiver record not found for {name}")
+        return False
 
-    return minors == 0 or minors <= len(waiver.minors)
+    if len(family_record.adults) > len(waiver.signatures):
+        return False
+
+    return len(family_record.minors) <= len(waiver.minors)
+
+
+def update_waiver_complete(membership: memberdata.Membership, waiver_groups: waiverrec.MemberWaiverGroups, waiver_docs: list[docs.MemberWaiver]) -> None:
+    # Update complete state of family waivers
+    for waiver_doc in waiver_docs:
+        waiver_doc.set_complete(check_waiver(membership, waiver_groups, waiver_doc))
+
+
+def update_waiver_status() -> None:
+    pass
+    membership = memberdata.Membership()
+    membership.read_csv_files()
+
+    attestations = docs.Attestation.read_csv()
+    member_waivers = docs.MemberWaiver.read_csv()
+    waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
+
+    update_waiver_complete(membership, waiver_groups, member_waivers)
+    waiver_doc_map = docs.MemberWaiver.create_doc_map(member_waivers)
+    attest_doc_map = docs.Attestation.create_doc_map(attestations)
+
+    # Update the signed state of waviers 
+    for adult_record in waiver_groups.no_minor_children:
+        adult_record.signed = False
+        name = adult_record.member.name.fullname()
+
+        waiver_doc = waiver_doc_map.get(name)
+        if waiver_doc is not None:
+            adult_record.signed = csvfile.is_signed(waiver_doc.complete)
+            continue
+
+        attest_doc = attest_doc_map.get(name)
+        if attest_doc is not None:
+            adult_record.signed = True
+
+    # Update signed state of family waivers
+    for family_record in waiver_groups.with_minor_children:
+        name = family_record.adults[0].name.fullname()
+        waiver_doc = waiver_doc_map.get(name)
+        if waiver_doc is None:
+            continue
+        family_record.signed = csvfile.is_signed(waiver_doc.complete)
+
+    
+    waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
+
+
+
 
 
 def main() -> None:
-    membership = memberdata.Membership()
-    membership.read_csv_files()
-    attestations = docs.Attestation.read_csv()
-    member_waivers = docs.MemberWaiver.read_csv()
-
-    waivers: list[WaiveredMember] = []
-
-    # Set of member ids
-    covered_member_ids: set[str] = set()
-
-    # Scan attestations
-    for entry in attestations:
-        signing_name = entry.adults[0].name
-        signing_email = entry.adults[0].email
-        members = membership.get_members_by_fullname(signing_name)
-        if len(members) != 1:
-            # Find member with matching email
-            members = list(filter(lambda x: x.email == signing_email, members))
-
-        if len(members) != 1:
-            print(
-                f"Error: unable to determine signer '{signing_name}' in doc {entry.web_view_link}"
-            )
-            continue
-
-        if members[0].member_id not in covered_member_ids:
-            covered_member_ids.add(members[0].member_id)
-            waivers.append(WaiveredMember(members[0], entry.web_view_link, True))
-
-    # Scan member waivers
-    for member_waiver in member_waivers:
-        for signature in member_waiver.signatures:
-            members = membership.get_members_by_fullname(signature.name)
-            if len(members) != 1:
-                print(
-                    f"Error: unable to determine signer '{signature.name}' in doc {member_waiver.web_view_link} ({len(members)})"
-                )
-            else:
-                if members[0].member_id not in covered_member_ids:
-                    covered_member_ids.add(members[0].member_id)
-                    waivers.append(
-                        WaiveredMember(members[0], member_waiver.web_view_link, True)
-                    )
-
-        if member_waiver.complete:
-            for minor in member_waiver.minors:
-                members = membership.get_members_by_fullname(minor)
-                if len(members) != 1:
-                    print(
-                        f"Error: unable to determine minor '{minor}' in doc {member_waiver.web_view_link}"
-                    )
-                else:
-                    if members[0].member_id not in covered_member_ids:
-                        covered_member_ids.add(members[0].member_id)
-                        waivers.append(
-                            WaiveredMember(
-                                members[0], member_waiver.web_view_link, True
-                            )
-                        )
-
-    output_file = open(waiver_out_filename, "w", newline="")
-    output_csv = csv.DictWriter(output_file, fieldnames=WaiveredMember.get_header())
-    output_csv.writeheader()
-
-    for waiver in waivers:
-        output_csv.writerow(waiver.get_row())
-    output_file.close()
-    print(f"Note: created {waiver_out_filename}")
-
+    update_waiver_status()
 
 if __name__ == "__main__":
     main()

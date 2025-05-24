@@ -64,7 +64,6 @@ def main() -> None:
         waiver.minors = waiver_pdf.minors.copy()
         waiver.file_name = file_name
         waiver.web_view_link = web_view_link
-        waiver.set_complete(waiver_calcs.check_waiver(membership, waiver))
         waivers.append(waiver)
 
     docs.MemberWaiver.write_csv(waivers)

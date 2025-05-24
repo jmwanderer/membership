@@ -216,7 +216,7 @@ class FamilyRecord:
             f.close()
         
 
-class MemberWaiverGroupings:
+class MemberWaiverGroups:
     """
     Results of generating groupings for member waiver requests
     """
@@ -236,23 +236,34 @@ class MemberWaiverGroupings:
         self.unknown_parents_count = 0
         self.known_parents_count = 0
 
+    def find_adult_record(self, name: str) -> AdultRecord|None:
+        for record in self.no_minor_children:
+            if record.member.name.fullname() == name:
+                return record
+        return None
+    
+    def find_family_record(self, name: str) -> FamilyRecord|None:
+        for record in self.with_minor_children:
+            if record.adults[0].name.fullname() == name:
+                return record
+        return None
 
-    adult_waiver_filename = "output/adults_no_minor_children.csv"
-    familey_waiver_filename = "output/parents_to_sign.csv"
-    unknown_waiver_filename = "output/unknown_list_to_sign.csv"
+    adult_waiver_filename = "output/adult_records.csv"
+    familey_waiver_filename = "output/family_records.csv"
+    unknown_waiver_filename = "output/unknown_families.csv"
 
     @staticmethod
-    def read_csv_files(membership: memberdata.Membership) -> MemberWaiverGroupings:
-        groupings = MemberWaiverGroupings()
-        groupings.no_minor_children = AdultRecord.read_csv(membership, MemberWaiverGroupings.adult_waiver_filename)
-        groupings.with_minor_children = FamilyRecord.read_csv(membership, MemberWaiverGroupings.familey_waiver_filename)
-        groupings.unknown_status = FamilyRecord.read_csv(membership, MemberWaiverGroupings.unknown_waiver_filename)
+    def read_csv_files(membership: memberdata.Membership) -> MemberWaiverGroups:
+        groupings = MemberWaiverGroups()
+        groupings.no_minor_children = AdultRecord.read_csv(membership, MemberWaiverGroups.adult_waiver_filename)
+        groupings.with_minor_children = FamilyRecord.read_csv(membership, MemberWaiverGroups.familey_waiver_filename)
+        groupings.unknown_status = FamilyRecord.read_csv(membership, MemberWaiverGroups.unknown_waiver_filename)
         return groupings
 
     def write_csv_files(self) -> None:
-        AdultRecord.write_csv(self.no_minor_children, MemberWaiverGroupings.adult_waiver_filename)
-        FamilyRecord.write_csv(self.with_minor_children, MemberWaiverGroupings.familey_waiver_filename)
-        FamilyRecord.write_csv(self.unknown_status, MemberWaiverGroupings.unknown_waiver_filename)
+        AdultRecord.write_csv(self.no_minor_children, MemberWaiverGroups.adult_waiver_filename)
+        FamilyRecord.write_csv(self.with_minor_children, MemberWaiverGroups.familey_waiver_filename)
+        FamilyRecord.write_csv(self.unknown_status, MemberWaiverGroups.unknown_waiver_filename)
  
 
 def simple_test() -> None:
