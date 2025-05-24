@@ -13,16 +13,15 @@ from dataclasses import dataclass
 
 import pdfplumber
 
-import attest
 import dateutil
+import docs
 
 
 @dataclass
 class Signature:
     """
-    Represents a single signature in a documetn
+    Represents a single signature in a document
     """
-
     name: str
     date: str
 
@@ -219,11 +218,11 @@ class AttestationPDF:
             result += "\n\t" + minor
         return result
 
-    def parse_attestation(self) -> attest.Attestation:
+    def parse_attestation(self) -> docs.Attestation:
         """
         Parse lines from the PDF file and return an Attestation class
         """
-        result = attest.Attestation()
+        result = docs.Attestation()
         result.file_name = self.file_name
         result.web_view_link = self.web_view_link
         for entry in self._getAdultMemberEntries():
@@ -232,22 +231,22 @@ class AttestationPDF:
             result.minors.append(entry)
         return result
 
-    def _getAdultMemberEntries(self) -> list[attest.AttestEntry]:
-        result: list[attest.AttestEntry] = []
+    def _getAdultMemberEntries(self) -> list[docs.AttestEntry]:
+        result: list[docs.AttestEntry] = []
 
         for line in self.adults:
             result.append(AttestationPDF._parseAdult(line))
         return result
 
-    def _getMinorMemberEntries(self) -> list[attest.AttestEntry]:
-        result: list[attest.AttestEntry] = []
+    def _getMinorMemberEntries(self) -> list[docs.AttestEntry]:
+        result: list[docs.AttestEntry] = []
 
         for line in self.minors:
             result.append(AttestationPDF._parseMinor(line))
         return result
 
     @staticmethod
-    def _parseAdult(line: str) -> attest.AttestEntry:
+    def _parseAdult(line: str) -> docs.AttestEntry:
         # Look for an email address
         m = re.search(r"\S+@\S+", line)
         if m:
@@ -259,13 +258,13 @@ class AttestationPDF:
             name = line[0:start]
             email = ""
 
-        return attest.AttestEntry(name.strip(), email.strip(), birthdate)
+        return docs.AttestEntry(name.strip(), email.strip(), birthdate)
 
     @staticmethod
-    def _parseMinor(line: str) -> attest.AttestEntry:
+    def _parseMinor(line: str) -> docs.AttestEntry:
         start, birthdate = dateutil.find_date(line)
         name = line[0:start]
-        return attest.AttestEntry(name.strip(), "", birthdate)
+        return docs.AttestEntry(name.strip(), "", birthdate)
 
 
 # Strings in the PDF file to scrape

@@ -8,7 +8,7 @@ Skips documents previously parsed.
 from googleapiclient.discovery import build  # type: ignore
 
 import parse_pdf
-import guestwaiver
+import docs
 import gdrive
 
 
@@ -16,10 +16,10 @@ def main() -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
     """
-    waivers: list[guestwaiver.GuestWaiver] = []
+    waivers: list[docs.GuestWaiver] = []
 
     # Load existing waivers
-    waivers = guestwaiver.read_csv()
+    waivers = docs.GuestWaiver.read_csv()
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
@@ -46,7 +46,7 @@ def main() -> None:
         file_name = file["name"]
         web_view_link = file["webViewLink"]
         print(web_view_link)
-        waiver = guestwaiver.GuestWaiver()
+        waiver = docs.GuestWaiver()
         print(f"date {waiver_pdf.date}")
         waiver.date_signed = waiver_pdf.date
         waiver.adult_signer = waiver_pdf.adult
@@ -55,7 +55,7 @@ def main() -> None:
         waiver.web_view_link = web_view_link
         waivers.append(waiver)
 
-    guestwaiver.write_csv(waivers)
+    docs.GuestWaiver.write_csv(waivers)
 
 
 if __name__ == "__main__":

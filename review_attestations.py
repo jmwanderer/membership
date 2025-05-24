@@ -1,6 +1,6 @@
 import datetime
 
-import attest
+import docs
 import memberdata
 
 # TODO: add some type of handling of multiple attestations for same household
@@ -46,7 +46,7 @@ def review_attestation(membership, attestation):
 
 
 def main():
-    attestations = attest.read_attestations_csv()
+    attestations = docs.Attestation.read_csv()
     membership = memberdata.Membership()
     membership.read_csv_files()
 

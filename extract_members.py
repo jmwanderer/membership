@@ -9,12 +9,12 @@ from googleapiclient.discovery import build  # type: ignore
 
 import memberdata
 import parse_pdf
-import memberwaiver
+import docs
 import gdrive
 
 
 def check_waiver(
-    membership: memberdata.Membership, waiver: memberwaiver.MemberWaiver
+    membership: memberdata.Membership, waiver: docs.MemberWaiver
 ) -> bool:
     """
     Return True if waiver is considered to be complete.
@@ -26,7 +26,7 @@ def check_waiver(
     if len(waiver.signatures) < 1:
         return False
 
-    if waiver.type == memberwaiver.MemberWaiver.TYPE_INDIVIDUAL:
+    if waiver.type == docs.MemberWaiver.TYPE_INDIVIDUAL:
         return True
 
     name = waiver.signatures[0].name
@@ -53,8 +53,8 @@ def main() -> None:
     membership.read_csv_files()
 
     # Load existing waivers
-    waivers: list[memberwaiver.MemberWaiver] = []
-    waivers = memberwaiver.read_csv()
+    waivers: list[docs.MemberWaiver] = []
+    waivers = docs.MemberWaiver.read_csv()
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
@@ -80,16 +80,16 @@ def main() -> None:
         file_name = file["name"]
         web_view_link = file["webViewLink"]
         print(web_view_link)
-        waiver = memberwaiver.MemberWaiver()
+        waiver = docs.MemberWaiver()
         for signature in waiver_pdf.signatures:
             waiver.signatures.append(
-                memberwaiver.Signature(signature.name, signature.date)
+                docs.Signature(signature.name, signature.date)
             )
         # Set type of waiver. We assume 1 sig, no minors is an individual waiver
         if len(waiver_pdf.signatures) > 1 or len(waiver_pdf.minors) > 0:
-            waiver.type = memberwaiver.MemberWaiver.TYPE_FAMILY
+            waiver.type = docs.MemberWaiver.TYPE_FAMILY
         else:
-            waiver.type = memberwaiver.MemberWaiver.TYPE_INDIVIDUAL
+            waiver.type = docs.MemberWaiver.TYPE_INDIVIDUAL
 
         waiver.minors = waiver_pdf.minors.copy()
         waiver.file_name = file_name
@@ -97,7 +97,7 @@ def main() -> None:
         waiver.set_complete(check_waiver(membership, waiver))
         waivers.append(waiver)
 
-    memberwaiver.write_csv(waivers)
+    docs.MemberWaiver.write_csv(waivers)
 
 
 if __name__ == "__main__":

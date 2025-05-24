@@ -6,7 +6,7 @@ Skips files previously parsed.
 
 from googleapiclient.discovery import build  # type: ignore
 
-import attest
+import docs
 import parse_pdf
 import gdrive
 
@@ -15,8 +15,8 @@ def main() -> None:
     """
     Scrape all attestation PDF files and create a CSV file
     """
-    attestations: list[attest.Attestation] = []
-    attestations = attest.read_attestations_csv()
+    attestations: list[docs.Attestation] = []
+    attestations = docs.Attestation.read_csv()
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
@@ -43,8 +43,8 @@ def main() -> None:
         attestation = attestation_pdf.parse_attestation()
         attestations.append(attestation)
 
-    attest.write_attestations_csv(attestations)
-    print(f"Wrote output: {attest.attestations_csv_filename}")
+    docs.Attestation.write_csv(attestations)
+    print(f"Wrote output: {docs.attestations_csv_filename}")
 
 
 if __name__ == "__main__":

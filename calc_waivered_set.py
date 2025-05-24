@@ -13,10 +13,9 @@ Output:
 from dataclasses import dataclass
 import csv
 
-import attest
+import docs
 import csvfile
 import memberdata
-import memberwaiver
 
 waiver_out_filename = "output/waivered_members.csv"
 
@@ -65,8 +64,8 @@ class WaiveredMember:
 def main() -> None:
     membership = memberdata.Membership()
     membership.read_csv_files()
-    attestations = attest.read_attestations_csv()
-    member_waivers = memberwaiver.read_csv()
+    attestations = docs.Attestation.read_csv()
+    member_waivers = docs.MemberWaiver.read_csv()
 
     waivers: list[WaiveredMember] = []
 
