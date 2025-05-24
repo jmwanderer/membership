@@ -170,7 +170,7 @@ class FamilyRecord:
         for index in range(5, 10, 2):
             name = row[FamilyRecord.HEADER[index]]
             if len(name.strip()) > 0:
-                member_entry = membership.get_one_member_by_fullname(account_num, name, False)
+                member_entry = membership.get_one_member_by_fullname(name, False)
                 if member_entry is not None:
                     record.adults.append(member_entry)
 
@@ -178,7 +178,7 @@ class FamilyRecord:
         for index in range(11, 16):
             name = row[FamilyRecord.HEADER[index]]
             if len(name.strip()) > 0:
-                member_entry = membership.get_one_member_by_fullname(account_num, name, True)
+                member_entry = membership.get_one_member_by_fullname(name, True)
                 if member_entry is not None:
                     record.minors.append(member_entry)
 
@@ -244,8 +244,9 @@ class MemberWaiverGroups:
     
     def find_family_record(self, name: str) -> FamilyRecord|None:
         for record in self.with_minor_children:
-            if record.adults[0].name.fullname() == name:
-                return record
+            for adult in record.adults:
+                if adult.name.fullname() == name:
+                    return record
         return None
 
     adult_waiver_filename = "output/adult_records.csv"

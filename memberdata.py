@@ -199,18 +199,18 @@ class Membership:
             return []
         return self.member_name_map[member_name.lower()]
 
-    def get_one_member_by_fullname(self, account_num: str, name: str, minor: bool) -> MemberEntry | None:
+    def get_one_member_by_fullname(self, name: str, minor: bool) -> MemberEntry | None:
         members = self.get_members_by_fullname(name)
         result = None
         for member in members:
-            if account_num == member.account_num and minor == member.is_minor():
+            if minor == member.is_minor():
                 if result is not None:
                     print(f"Error: duplicate name in account {name}")
                     return None
 
                 result = member
         if result is None:
-            print(f"Warning: didn't find account: {account_num}, name: {name}, minor: {minor}")
+            print(f"Warning: didn't find member:  name: {name}, minor: {minor}")
         return result
 
     def accounts(self) -> list[AccountEntry]:

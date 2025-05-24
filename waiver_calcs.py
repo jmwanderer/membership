@@ -98,7 +98,22 @@ def check_waiver(
 def update_waiver_complete(membership: memberdata.Membership, waiver_groups: waiverrec.MemberWaiverGroups, waiver_docs: list[docs.MemberWaiver]) -> None:
     # Update complete state of family waivers
     for waiver_doc in waiver_docs:
-        waiver_doc.set_complete(check_waiver(membership, waiver_groups, waiver_doc))
+        complete = check_waiver(membership, waiver_groups, waiver_doc)
+        waiver_doc.set_complete(complete)
+
+def review_member_waiver_docs(membership: memberdata.Membership, waiver_docs: list[docs.MemberWaiver]) -> None:
+    print("Reviewing member waiver documents")
+    for waiver_doc in waiver_docs:
+        account_num = 0
+        for signature in waiver_doc.signatures:
+            member = membership.get_one_member_by_fullname(signature.name, False)
+            if member is None:
+                print(f"Warning: No member found for signature {signature.name} in {waiver_doc.web_view_link}")
+                continue
+            if account_num == 0:
+                account_num = member.account_num 
+            if account_num != member.account_num:
+                print(f"Error: signatures from different accounts {signature.name}")
 
 
 def update_waiver_status() -> None:
@@ -111,6 +126,7 @@ def update_waiver_status() -> None:
     waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
 
     update_waiver_complete(membership, waiver_groups, member_waivers)
+    review_member_waiver_docs(membership, member_waivers)
     waiver_doc_map = docs.MemberWaiver.create_doc_map(member_waivers)
     attest_doc_map = docs.Attestation.create_doc_map(attestations)
 
