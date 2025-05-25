@@ -1,10 +1,11 @@
-Add generation of waivered member list
 
 
 Consider a script to upload new versions of existing files to google drive:
 - attestations.csv
 - member_waivers.csv
 - guest_waivers.csv
+
+Consider how to update the Google sheet  - waiverd members
 
 
 Consider a script to move signed PDFs to the proper directory

@@ -12,8 +12,10 @@ family waivers, and which minors are include on the waiver.
 
 
 import memberdata
+import docs
 from  waiverrec import MemberWaiverGroups, AdultRecord, FamilyRecord
 import keys
+import waiver_calcs
 
 
 def select_possible_parents(
@@ -159,8 +161,12 @@ def main():
     membership = memberdata.Membership()
     membership.read_csv_files()
 
-    groupings = generate_groups(membership)
-    groupings.write_csv_files()
+    # Create new groups
+    groups = generate_groups(membership)
+    groups.write_csv_files()
+
+    # Update group status based on waiver documents
+    waiver_calcs.update_waiver_status(membership)
 
 
 if __name__ == "__main__":

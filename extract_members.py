@@ -74,10 +74,10 @@ def main() -> None:
         parsed_count += 1
 
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
-
-    waiver_calcs.update_waiver_complete(membership, groups, waivers)
-    waiver_calcs.review_member_waiver_docs(membership, waivers)
     docs.MemberWaiver.write_csv(waivers)
+
+    # Update status of any waiver records
+    waiver_calcs.update_waiver_status(membership)
 
 
 if __name__ == "__main__":
