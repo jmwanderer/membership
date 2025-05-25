@@ -10,6 +10,8 @@ Output:
 - waivered_members.csv
 """
 
+import sys
+
 from dataclasses import dataclass
 import csv
 
@@ -17,6 +19,7 @@ import docs
 import csvfile
 import memberdata
 import waiverrec
+import keys
 
 waiver_out_filename = "output/waivered_members.csv"
 
@@ -117,7 +120,7 @@ def review_member_waiver_docs(membership: memberdata.Membership, waiver_docs: li
 
 
 def update_waiver_status() -> None:
-    pass
+    print("Note: updating waiver recrods status")
     membership = memberdata.Membership()
     membership.read_csv_files()
 
@@ -153,16 +156,78 @@ def update_waiver_status() -> None:
             continue
         family_record.signed = csvfile.is_signed(waiver_doc.complete)
         family_record.web_link = waiver_doc.web_view_link
-
     
     waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
+
+
+def report_waiver_stats() -> None:
+    membership = memberdata.Membership()
+    membership.read_csv_files()
+
+    member_waivers = docs.MemberWaiver.read_csv()
+    waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
+    member_keys = keys.gen_member_key_map(membership)
+
+    waivered_adult_count: int = 0
+    unwaivered_adult_count: int = 0
+    unwaivered_adult_with_keys_count: int = 0
+    waivered_family_count: int = 0
+    waivered_family_members: int = 0
+    unwaivered_family_count: int = 0
+    unwaivered_family_with_keys_count: int = 0
+    unwaivered_family_members: int = 0
+    
+
+    # Count varius records
+    for adult_record in waiver_groups.no_minor_children:
+        if adult_record.signed:
+            waivered_adult_count += 1
+        else:
+            unwaivered_adult_count += 1
+            if adult_record.member.member_id in member_keys:
+                unwaivered_adult_with_keys_count += 1
+
+    # Update signed state of family waivers
+    for family_record in waiver_groups.with_minor_children:
+        if family_record.signed:
+            waivered_family_count += 1
+            waivered_family_members += (len(family_record.adults) + len(family_record.minors))
+        else:
+            unwaivered_family_count += 1
+            unwaivered_family_members += (len(family_record.adults) + len(family_record.minors))
+            has_key = False
+            for adult in family_record.adults:
+                if adult.member_id in member_keys:
+                    has_key = True
+            for minor in family_record.minors:
+                if minor.member_id in member_keys:
+                    has_key = True
+            if has_key:
+                unwaivered_family_with_keys_count += 1
+
+
+    print()
+    print("Stats")
+    print(f"Member waiver docs: {len(member_waivers)}")
+    print(f"Adults waivered: {waivered_adult_count} unwaivered: {unwaivered_adult_count}")
+    print(f"Unwaivered adults with keys {unwaivered_adult_with_keys_count}")
+    print(f"Waivered families: {waivered_family_members} members in {waivered_family_count} familes")
+    print(f"Unwaivered  families:{unwaivered_family_members} members in {unwaivered_family_count} familes - {unwaivered_adult_with_keys_count} with keys")
+
+
 
 
 
 
 
 def main() -> None:
-    update_waiver_status()
+    if len(sys.argv) == 2 and sys.argv[1].lower() == "update":
+        update_waiver_status()
+    elif len(sys.argv) > 1:
+        print("Usage: {sys.argv[0]} [ update ]")
+        sys.exit(-1)
+
+    report_waiver_stats()
 
 if __name__ == "__main__":
     main()
