@@ -1,7 +1,5 @@
-Bug 1: two families in 1 account - 
-breaks check complete waiver - need to take into account parents
+Add generation of waivered member list
 
-Bug 2: process waiver and account isn't found - shouldn't file it? Ensure warning in future use
 
 Consider a script to upload new versions of existing files to google drive:
 - attestations.csv

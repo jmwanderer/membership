@@ -38,24 +38,23 @@ Extract scripts:
 
 Script that create specific CSV files:
 
-#### Generate list of members with waivers
+#### Report stats on waivered members
 
-file: calc_waivered_set.py
+file: waiver_calcs.py
 
-Writes output/waivered_members.csv with member names and links to signed waiver documents 
 
-#### Generate Signature Request Groups
+#### Generate Groups for Signature Request 
 
-file: gen_sign_groups.py
+file: gen_waiver_groups.py
 
 Generate a CSV of adult accounts and accounts with minor children.
 If there are multiple adults, guess which adults are the parents based on ages.
 If unable to guess, write to the unkown list.
 
 Generate CSV for bulk signature requests:
-- adult waivers: adults_no_minor_children.csv
-- familiy waivers with two parents and minors listed: parents_to_sign.csv
-- unknown families, needs resolution in input/parents.csv: unknown_list_to_sign.csv
+- adult waivers: adults_records.csv
+- familiy waivers with two parents and minors listed: family_records.csv
+- unknown families, needs resolution in input/parents.csv: unknown_familes.csv
 
 #### Compile Information for Keys
 
@@ -95,10 +94,6 @@ Runs pre-configured queries against CSV files in the *input/* and *output/* dire
 Resolves names in the files to member ids, and saves member ids and account ids for use by updaterows.py
 
 Available Queries:
-- waivers: members covered by any type of waiver
-- individual_waivers: members covered by an adult individual waivers or attestation signature
-- family_waivers: members / accounts covered by family waivers
-- family_waivers_incomplete: members that signed family waivers, invalid due to not listing all minors
 - attest_signer: members that signed attestations
 - keys: members / accounts holding keys
 - swimteam: members on swimteam / accounts with swimmers on the swimteam
@@ -116,61 +111,4 @@ Mark or clear a specified column in rows that match member ids or account ids lo
 
 
 ## How To
-
-### List waiver status of each member
-
-Ensure output/waivers.csv does not exist.
-
-```
-python selectids.py waivers
-python updaterows.py member -m waivered output/waivers.csv
-```
-
-### Find adult members with keys not yet requested for signatures
-
-There exists a file requests.csv that lists names of all adults that have been asked to sign waivers.
-Column name for name column is *name*
-
-Steps:
-- start with adults_no_minor_children.csv
-- add a column waivered reporting if the member is already covered by a waiber
-- add a column has_key reporting if the member has a key
-- add a column requested reporting that the member has alreyad been asked for a signature
-
-
-```
-mv requests.csv output/fullnames.csv
-python selectids.py waivers
-python updaterows.py member -m waivered output/adults_no_minor_children.csv
-python selectids.py fullnames
-python updaterows.py member -m requested output/adults_no_minor_children.csv
-python selectids.py keys
-python updaterows.py member -m has_key output/adults_no_minor_children.csv
-```
-
-Sort the adult_no_minor_chidren by the waivered, requested, and has_key columns. 
-
-Find the rows with waivered clear, requested clear, but has_key is marked.
-
-
-### Which families need to sign a family waiver?
-
-Identify accounts with minors that have a key associated with the account but do not yet have a signed family waiver.
-
-```
-rm output/families.csv
-python selectids.py minors
-python updaterows.py account -m minors output/families.csv
-python selectids.py keys
-python updaterows.py account -m keys output/families.csv
-python selectids.py family_waivers
-python updaterows.py account -m family_waiver output/families.csv
-```
-
-Sort by minors, keys, family_waiver
-
-
-
-### Which adults without minor aged children need to sign a waiver?
-
 

@@ -1,6 +1,7 @@
 """
 Download and parse member waiver PDF files on Google drive.
-Update member_waivers.csv with information
+Update waiver docs: member_waivers.csv with information
+Call waiver_calcs update and review functions to update member waiver records
 
 Skips previously downloaded files
 """

@@ -62,6 +62,7 @@ for key_entry in keys.read_key_entries():
 
 
 # Open output file
+print()
 print(f"Creating output file: {output_filename}")
 output_file = open(output_filename, "w", newline="")
 output_csv = csv.writer(output_file)

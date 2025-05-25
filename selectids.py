@@ -3,10 +3,6 @@ Run pre-programmed queries and load results as account and member ids.
 The loaded ids are used by updaterows.py to alter the rows matching the loaded ids.
 
 Queries:
-- members covered by an attestation, individual waiver, or family waiver
-- adult members that have signed individual waivers or attestations
-- members / accounts that have singed complete family waivers
-- members / accounts that have signed in-complete family waivers
 - members / accounts that have signed an attestation
 - members / accounts that have keys
 - members / accounts with children on the swim team
@@ -254,29 +250,15 @@ ids = DataSource(
 # Available queries
 #
 QUERY_LIST = [
-    DataQuery("waivers", NOSRC),
-    DataQuery("individual_waivers", NOSRC),
     DataQuery("fullnames", fullnames),
     DataQuery("names", names),
     DataQuery("ids", ids),
     DataQuery("keys", keys),
     DataQuery("minors", NOSRC),
     DataQuery("swimteam", swimteam),
-    DataQuery(
-        "family_waivers",
-        family_waivers,
-        lambda x: x["type"].lower() == "family" and x["complete"].lower() == "y",
-    ),
-    DataQuery(
-        "family_waivers_incomplete",
-        family_waivers,
-        lambda x: x["type"].lower() == "family" and x["complete"].lower() != "y",
-    ),
     DataQuery("attest_signer", attest_signer),
 ]
 
-# Don't expose as we always want to report attestation signers + individual waivers
-adult_waivered_query = DataQuery("individual_waivers", adult_waivers, lambda x: x["type"].lower() == "individual")
  
 QUERIES = {dq.name: dq for dq in QUERY_LIST}
 
@@ -381,28 +363,7 @@ def main(query: DataQuery):
     membership.read_csv_files()
     print("")
 
-    if query.name == "waivers":
-        account_ids1, member_ids1 = load_data_query(
-            membership, QUERIES["family_waivers"]
-        )
-        account_ids2, member_ids2 = load_data_query(
-            membership, adult_waivered_query
-        )
-        account_ids3, member_ids3 = load_data_query(
-            membership, QUERIES["attest_signer"]
-        )
-        account_ids = set()  # Account ids in this combination are misleading
-        member_ids = member_ids1 | member_ids2 | member_ids3
-    elif query.name == "individual_waivers":
-        account_ids1, member_ids1 = load_data_query(
-            membership, adult_waivered_query
-        )
-        account_ids2, member_ids2 = load_data_query(
-            membership, QUERIES["attest_signer"]
-        )
-        account_ids = account_ids1 | account_ids2
-        member_ids = member_ids1 | member_ids2 
-    elif query.name == "minors":
+    if query.name == "minors":
         account_ids, member_ids = load_minor_members(membership)
     elif query.name == "ids":
         account_ids, member_ids = load_ids_query(membership, query.datasource.filename)

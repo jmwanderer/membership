@@ -1,18 +1,6 @@
 """
-Determine sets of members for bulk requests of waiver signatures.
-
-This automates trying to determine which people are parents that need to sign
-family waivers, and which minors are include on the waiver.
-
-3 types of results
-- families with minor children  - request family waiver
-- adults with no minor children - request signature of single person on a waiver
-- unclear on parents - figure out who are parents, update parents.csv until empty
-
-Outputs:
-- parent_list_to_sign.csv
-- adult_list_to_sign.csv
-- unknown_list_to_sign.csv
+Model member waiver records
+- requests that may be completed by a waiver doc
 """
 
 from __future__ import annotations

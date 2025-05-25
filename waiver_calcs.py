@@ -1,13 +1,10 @@
 """
-Generate list of members that are covered by a signed waiver
+Logic to support waiver operations
+- complete
+- signed
+- update waiver records
 
-Input:
-- membership data
-- attestations.csv
-- member_waivers.csv
-
-Output:
-- waivered_members.csv
+Todo: Generate list of members that are covered by a signed waiver
 """
 
 import sys

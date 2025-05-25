@@ -8,19 +8,10 @@ family waivers, and which minors are include on the waiver.
 - families with minor children  - request family waiver
 - adults with no minor children - request signature of single person on a waiver
 - unclear on parents - figure out who are parents, update parents.csv until empty
-
-Outputs:
-- parent_list_to_sign.csv
-- adult_list_to_sign.csv
-- unknown_list_to_sign.csv
 """
 
 
-import csv
-
-import csvfile
 import memberdata
-import waiverrec
 from  waiverrec import MemberWaiverGroups, AdultRecord, FamilyRecord
 import keys
 
