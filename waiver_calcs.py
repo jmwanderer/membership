@@ -61,21 +61,21 @@ class WaiveredMember:
         }
         return row
 
-def gen_waivered_member_list(membership: memberdata.Membership, groups: waiverrec.MemberWaiverGroups) -> None:
+def gen_waivered_member_list(membership: memberdata.Membership, 
+                             groups: waiverrec.MemberWaiverGroups,
+                             attestations: list[docs.Attestation],
+                             waiver_docs: list[docs.MemberWaiver]) -> None:
     """
     Generate list of all memberes covered by a waiver using the waiver records.
+    TODO: not all waiver info is in the waivered groups. 
+    - adults with minor children that  signed a member waiver or incomplete family waiver
+    - adults with minor children that signed an attestation
     """
 
     waivers: list[WaiveredMember] = []
 
     # Set of member ids
     covered_member_ids: set[str] = set()
-
-    # Scan member adult waiver recs
-    for adult_record in groups.no_minor_children:
-        if adult_record.signed and adult_record.member.member_id not in covered_member_ids:
-            covered_member_ids.add(adult_record.member.member_id)
-            waivers.append(WaiveredMember(adult_record.member, adult_record.web_link, waiver_signed=True))
 
     # Scan family waiver recs
     for family_record in groups.with_minor_children:
@@ -89,6 +89,34 @@ def gen_waivered_member_list(membership: memberdata.Membership, groups: waiverre
             if minor.member_id not in covered_member_ids:
                 covered_member_ids.add(minor.member_id)
                 waivers.append(WaiveredMember(minor, family_record.web_link, waiver_signed=True))
+
+    # Scan member adult waiver recs
+    for adult_record in groups.no_minor_children:
+        if adult_record.signed and adult_record.member.member_id not in covered_member_ids:
+            covered_member_ids.add(adult_record.member.member_id)
+            waivers.append(WaiveredMember(adult_record.member, adult_record.web_link, waiver_signed=True))
+
+    # Adults with minor children may be covered by an attestation, individual member waiver, or incomplete family waiver
+    for attest in attestations:
+        if len(attest.adults) < 1:
+            continue
+        name = attest.adults[0].name        
+        member = membership.get_one_member_by_fullname(name, minor=False)
+        if member is None or member.member_id in covered_member_ids:
+            continue
+        covered_member_ids.add(member.member_id)
+        print(f"found new waivered member {name}")
+        waivers.append(WaiveredMember(member, attest.web_view_link, waiver_signed=True))
+
+    for waiver in waiver_docs:
+        for signature in waiver.signatures:
+            name = signature.name
+            member = membership.get_one_member_by_fullname(name, minor=False)
+            if member is None or member.member_id in covered_member_ids:
+                continue
+            covered_member_ids.add(member.member_id)
+            print(f"found new waivered member {name}")
+            waivers.append(WaiveredMember(member, waiver.web_view_link, waiver_signed=True))
 
     output_file = open(waivered_member_filename, "w", newline="")
     output_csv = csv.DictWriter(output_file, fieldnames=WaiveredMember.get_header())
@@ -193,13 +221,26 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
     for family_record in waiver_groups.with_minor_children:
         name = family_record.adults[0].name.fullname()
         waiver_doc = waiver_doc_map.get(name)
-        if waiver_doc is None:
+
+        if waiver_doc is not None:
+            family_record.signed = csvfile.is_signed(waiver_doc.complete)
+            family_record.web_link = waiver_doc.web_view_link
             continue
-        family_record.signed = csvfile.is_signed(waiver_doc.complete)
-        family_record.web_link = waiver_doc.web_view_link
-    
+
+        # Single parent signers of attestation
+        # TODO: ensure we have both sets of signatures and list of minors in the document
+        if len(family_record.adults) == 1:
+            attest_doc = attest_doc_map.get(name)
+            if attest_doc is None:
+                continue
+            # Are all of the minors covered?
+            if len(attest_doc.minors) >= len(family_record.minors):
+                family_record.signed = True
+                family_record.web_link = attest_doc.web_view_link
+
+   
     waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
-    gen_waivered_member_list(membership, waiver_groups)
+    gen_waivered_member_list(membership, waiver_groups, attestations, member_waivers)
 
 
 def report_waiver_stats() -> None:
@@ -251,10 +292,12 @@ def report_waiver_stats() -> None:
     print()
     print("Stats")
     print(f"Member waiver docs: {len(member_waivers)}")
-    print(f"Adults waivered: {waivered_adult_count} unwaivered: {unwaivered_adult_count}")
-    print(f"Unwaivered adults with keys {unwaivered_adult_with_keys_count}")
-    print(f"Waivered families: {waivered_family_members} members in {waivered_family_count} familes")
-    print(f"Unwaivered  families:{unwaivered_family_members} members in {unwaivered_family_count} familes - {unwaivered_adult_with_keys_count} with keys")
+    print(f"Adults signed: {waivered_adult_count}, unsigned: {unwaivered_adult_count}")
+    print(f"Unsigned adults with keys {unwaivered_adult_with_keys_count}")
+    print(f"Signed families: {waivered_family_members} members in {waivered_family_count} familes")
+    print(f"Unsigned  families:{unwaivered_family_members} members in {unwaivered_family_count} familes, {unwaivered_adult_with_keys_count} with keys")
+    print()
+    print("Note: these stats report progress on needed signatures. Does not report all adults covered by waivers")
 
 
 
