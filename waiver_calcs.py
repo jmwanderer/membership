@@ -351,7 +351,7 @@ def report_waiver_stats() -> None:
     print(f"Adults waivers: {waivered_adult_count} signed, {unwaivered_adult_count} unsigned")
     print(f"Adults with keys no waiver: {unwaivered_adult_with_keys_count}")
     print(f"Family waivers signed: {waivered_family_members} members in {waivered_family_count} families")
-    print(f"Family waivers unsigned: {unwaivered_family_members} members in {unwaivered_family_count} families, {unwaivered_adult_with_keys_count} with keys")
+    print(f"Family waivers unsigned: {unwaivered_family_members} members in {unwaivered_family_count} families, {unwaivered_family_with_keys_count} with keys")
     print()
     print("Note: these stats report progress on needed signatures. Does not report all adults covered by waivers")
     print()
