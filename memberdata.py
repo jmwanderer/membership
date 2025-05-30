@@ -116,7 +116,7 @@ class AccountEntry:
 
     LOADED_ACCOUNT_TYPES = [
         "Proprietary Member Annual",
-        "Staff",
+        #"Staff",
         "Special Leave with Alumni Passes",
     ]
 

@@ -7,6 +7,7 @@ import os
 from dataclasses import dataclass
 
 import memberdata
+import csvfile
 
 
 # Input file
@@ -20,6 +21,7 @@ class KeyEntry:
     member_name: memberdata.MemberName
     account_num: str
     member_email: str
+    enabled: bool
 
 
 def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
@@ -44,10 +46,11 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
         last_name = row["LastName"].strip()
         email = row["Email"].strip()
         account_num = row["UserName"]
+        enabled = csvfile.is_true_value(row["EnableMobileCredential"])
 
         member_name = memberdata.MemberName(first_name=first_name, last_name=last_name)
         entry = KeyEntry(
-            member_name=member_name, account_num=account_num, member_email=email
+            member_name=member_name, account_num=account_num, member_email=email, enabled=enabled
         )
         key_entry_list.append(entry)
 

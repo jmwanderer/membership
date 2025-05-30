@@ -241,7 +241,7 @@ class MemberWaiverGroups:
     def find_family_record(self, name: str) -> FamilyRecord|None:
         for record in self.with_minor_children:
             for adult in record.adults:
-                if adult.name.fullname() == name:
+                if adult.name.fullname().lower() == name.lower():
                     return record
         return None
 
