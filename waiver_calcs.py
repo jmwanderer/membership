@@ -136,16 +136,16 @@ def gen_waivered_member_list(membership: memberdata.Membership,
             covered_member_ids.add(member.member_id)
             waivers.append(WaiveredMember(member, attest.web_view_link, waiver_signed=True))
 
-    for waiver in waiver_docs:
-        for signature in waiver.signatures:
+    for waiver_doc in waiver_docs:
+        for signature in waiver_doc.signatures:
             name = signature.name
             member = membership.get_one_member_by_fullname(name, minor=False)
             if member is None:
-                print(f"No result for {name} from {waiver.web_view_link}")
+                print(f"No result for {name} from {waiver_doc.web_view_link}")
                 continue
             if not member.member_id in covered_member_ids:
                 covered_member_ids.add(member.member_id)
-                waivers.append(WaiveredMember(member, waiver.web_view_link, waiver_signed=True))
+                waivers.append(WaiveredMember(member, waiver_doc.web_view_link, waiver_signed=True))
 
     output_file = open(waivered_member_filename, "w", newline="")
     output_csv = csv.DictWriter(output_file, fieldnames=WaiveredMember.get_header())
@@ -204,13 +204,13 @@ def update_waiver_complete(membership: memberdata.Membership, waiver_groups: wai
 def review_member_waiver_docs(membership: memberdata.Membership, waiver_docs: list[docs.MemberWaiver]) -> None:
     print("Reviewing member waiver documents")
     for waiver_doc in waiver_docs:
-        account_num = 0
+        account_num = ''
         for signature in waiver_doc.signatures:
             member = membership.get_one_member_by_fullname(signature.name, False)
             if member is None:
                 print(f"Warning: No member found for signature {signature.name} in {waiver_doc.web_view_link}")
                 continue
-            if account_num == 0:
+            if account_num == '':
                 account_num = member.account_num 
             if account_num != member.account_num:
                 print(f"Error: signatures from different accounts {signature.name}")
@@ -252,7 +252,8 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
         name = family_record.adults[0].name.fullname()
         waiver_doc = waiver_doc_map.get(name)
 
-        if waiver_doc is not None:
+        # Ensure this is a family waiver
+        if waiver_doc is not None and waiver_doc.type == docs.MemberWaiver.TYPE_FAMILY:
             family_record.signed = csvfile.is_signed(waiver_doc.complete)
             family_record.web_link = waiver_doc.web_view_link
             continue

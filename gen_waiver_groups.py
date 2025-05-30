@@ -12,7 +12,6 @@ family waivers, and which minors are include on the waiver.
 
 
 import memberdata
-import docs
 from  waiverrec import MemberWaiverGroups, AdultRecord, FamilyRecord
 import keys
 import waiver_calcs

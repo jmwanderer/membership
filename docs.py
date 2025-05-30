@@ -107,16 +107,17 @@ class MemberWaiver:
         Generate a CSV row for the waiver
         """
         row = {}
-        row[MemberWaiver.FIELD_LINK] = self.web_view_link
-        row[MemberWaiver.FIELD_FILENAME] = self.file_name
-        row[MemberWaiver.FIELD_TYPE] = self.type
-        row[MemberWaiver.FIELD_COMPLETE] = self.complete
-
         for i, sig in enumerate(self.signatures):
             row[MemberWaiver.HEADER[i * 2]] = sig.date
             row[MemberWaiver.HEADER[i * 2 + 1]] = sig.name
         for i, name in enumerate(self.minors):
             row[MemberWaiver.HEADER[i + 8]] = name
+
+        # Write these second to avoid above loops from overwriting
+        row[MemberWaiver.FIELD_LINK] = self.web_view_link
+        row[MemberWaiver.FIELD_FILENAME] = self.file_name
+        row[MemberWaiver.FIELD_TYPE] = self.type
+        row[MemberWaiver.FIELD_COMPLETE] = self.complete
         return row
 
     def read_row(self, row):
@@ -196,6 +197,10 @@ class MemberWaiver:
 
     @staticmethod
     def write_csv(waivers: list[MemberWaiver], csv_file: str = memberwaiver_csv_filename):
+
+        if not csvfile.backup_file(csv_file):
+            return
+
         print(f"Note: writing waiver file '{csv_file}'")
         with open(csv_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=MemberWaiver.HEADER)
@@ -207,8 +212,10 @@ class MemberWaiver:
 
     @staticmethod
     def create_doc_map(member_waivers: list[MemberWaiver]) -> dict[str,MemberWaiver]:
+        """
+        TODO: May need to build a list first and then select the best waiver from the list.
+        """
         doc_map: dict[str, MemberWaiver] = {}
-        # fix my prioritit  family > adult > atttest
         for waiver_doc in member_waivers:
             for signature in waiver_doc.signatures:
                 if waiver_doc.complete:
@@ -388,6 +395,10 @@ class Attestation:
         """
         Write a set of attesttions to a CSV file
         """
+
+        if not csvfile.backup_file(attestations_csv_file):
+            return
+
         print(f"Note: writing attestations file '{attestations_csv_file}'")
 
         with open(attestations_csv_file, "w", newline="") as f:
@@ -459,12 +470,13 @@ class GuestWaiver:
         Generate a CSV row for the waiver
         """
         row = {}
+        for i, name in enumerate(self.minors):
+            row[GuestWaiver.HEADER[i + 2]] = name
         row[GuestWaiver.FIELD_LINK] = self.web_view_link
         row[GuestWaiver.FIELD_FILENAME] = self.file_name
         row[GuestWaiver.FIELD_DATE] = self.date_signed
         row[GuestWaiver.FIELD_SIGNER] = self.adult_signer
-        for i, name in enumerate(self.minors):
-            row[GuestWaiver.HEADER[i + 2]] = name
+ 
         return row
 
     def read_row(self, row):
@@ -512,6 +524,10 @@ class GuestWaiver:
 
     @staticmethod
     def write_csv(waivers: list[GuestWaiver], csv_file: str = guestwaiver_csv_filename):
+
+        if not csvfile.backup_file(csv_file):
+            return
+
         print(f"Note: writing waiver file '{csv_file}'")
         with open(csv_file, "w", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=GuestWaiver.HEADER)
@@ -564,6 +580,10 @@ def simple_test_member_waiver() -> None:
     MemberWaiver.write_csv(waivers, filename)
     waivers = MemberWaiver.read_csv(filename)
     os.unlink(filename)
+    for name in csvfile.get_backup_filenames(filename):
+        if os.path.exists(name):
+            os.unlink(name)
+
 
 def simple_test_attest():
 
@@ -633,6 +653,10 @@ def simple_test_attest():
     attests = Attestation.read_csv(attestations_csv_file=attest_filename)
     assert len(attests) == 2
     os.unlink(attest_filename)
+    for name in csvfile.get_backup_filenames(attest_filename):
+        if os.path.exists(name):
+            os.unlink(name)
+
 
 def simple_test_guest() -> None:
     waivers: list[GuestWaiver] = []
@@ -661,7 +685,9 @@ def simple_test_guest() -> None:
     GuestWaiver.write_csv(waivers, waiver_filename)
     waivers = GuestWaiver.read_csv()
     os.unlink(waiver_filename)
-
+    for name in csvfile.get_backup_filenames(waiver_filename):
+        if os.path.exists(name):
+            os.unlink(name)
 
 
 if __name__ == "__main__":

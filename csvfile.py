@@ -9,35 +9,38 @@ import re
 import os
 
 
-def get_backup_filename(filename: str) -> str | None:
+def get_backup_filenames(filename: str) -> list[str]:
     """
     Search for a backup filename not in use
     """
     m = re.match(r"(.+)\.csv", filename)
     if m is None:
-        return None
+        return []
     prefix = m.group(1)
-    value = 1
-    # Avoid an infinite loop in a hypothetical pathalogical case.
-    while value < 10000:
-        backup_name = f"{prefix}.{value}.csv"
-        if not os.path.exists(backup_name):
-            return backup_name
-        value += 1
-    return None
-
+    result = []
+    result.append(f"{prefix}.bck1.csv")
+    result.append(f"{prefix}.bck2.csv")
+    return result
 
 def backup_file(filename: str) -> bool:
     """
     Rename a CSV file to save as a backup
     """
-    backup_name = get_backup_filename(filename)
-    if backup_name is None:
+    backup_names = get_backup_filenames(filename)
+    if len(backup_names) == 0:
         print(f"Error: file must be <name>.csv")
         return False
+
+    # unlink bck2
+    if os.path.exists(backup_names[1]):
+        os.unlink(backup_names[1])
+    # mv bck1 to bck2
+    if os.path.exists(backup_names[0]):
+        os.rename(backup_names[0], backup_names[1])
+    # mv filename to bck1
     if os.path.exists(filename):
         #print(f"Note: moving '{filename}' to '{backup_name}'")
-        os.rename(filename, backup_name)
+        os.rename(filename, backup_names[0])
     return True
 
 def is_signed(field_val: str) -> bool:

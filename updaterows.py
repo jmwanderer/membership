@@ -40,7 +40,6 @@ def read_ids_file(ids_filename: str) -> list[str]:
 
 def run_markup(
     filename: str,
-    backup_filename: str,
     mark_col: str,
     clear_col: str,
     id_col: str,
@@ -57,7 +56,6 @@ def run_markup(
     rows: list[dict[str, str]] = []
 
     # Read input file
-    print(f"Update {filename} save backup to {backup_filename}")
     input_file = open(filename, "r", newline="")
     print(f"Note: reading {filename}")
     input_csv = csv.DictReader(input_file)
@@ -96,9 +94,10 @@ def run_markup(
                 row[clear_col] = ""
                 matched_ids[id_value] = 1
 
-    # TODO: consider using csvfile function
-    # Backup original file
-    os.rename(filename, backup_filename)
+
+    if not csvfile.backup_file(filename):
+        print(f"Error: {filename} must end in .csv")
+        return
 
     # Write data out
     output_file = open(filename, "w", newline="")
@@ -202,7 +201,6 @@ if __name__ == "__main__":
     args = parser.parse_args(sys.argv[1:])
 
     filename = args.filename
-    backup_filename = csvfile.get_backup_filename(filename)
     if args.idtype == "account":
         id_col = csvfile.ACCOUNT_NUM
         id_file = "output/account_ids.csv"
@@ -210,10 +208,6 @@ if __name__ == "__main__":
         id_col = csvfile.MEMBER_ID
         id_file = "output/member_ids.csv"
     else:
-        sys.exit(-1)
-
-    if backup_filename is None:
-        print(f"Input file {filename} must end in .csv")
         sys.exit(-1)
 
     if not os.path.exists(filename):
@@ -225,7 +219,6 @@ if __name__ == "__main__":
 
     run_markup(
         filename,
-        backup_filename,
         args.mark_field,
         args.clear_field,
         id_col,
