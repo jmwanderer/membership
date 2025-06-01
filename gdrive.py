@@ -12,10 +12,11 @@ from google_auth_oauthlib.flow import InstalledAppFlow  # type: ignore
 from googleapiclient.discovery import build  # type: ignore
 from googleapiclient.errors import HttpError  # type: ignore
 from googleapiclient.http import MediaIoBaseDownload  # type: ignore
+from googleapiclient.http import MediaIoBaseUpload   # type: ignore
 
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/drive"]
 creds = None
 
 
@@ -41,10 +42,9 @@ def login():
         with open("token.json", "w") as token:
             token.write(creds.to_json())
 
-
-def get_file_list(drive, folder_name):
+def get_folder_id(drive, folder_name):
     """
-    Return the list of files in a folder.
+    Return ID of a single folder matching folder_name
     """
     folderId = (
         drive.files()
@@ -65,8 +65,31 @@ def get_file_list(drive, folder_name):
     # however, we know there is only 1 folder with that name, so we just get the id of the 1st item in the list
     if len(folderIdResult) == 0:
         print(f"Error: no folders found for '{folder_name}'")
-        return []
+        return None
     fid = folderIdResult[0].get("id")
+    return fid
+
+
+def get_file_id(drive, folder_id, filename) -> str:
+    query = f"name='{filename}' and '{folder_id}' in parents"
+    results = drive.files().list(q=query).execute()
+    files = results.get('files', [])
+    if files is None or len(files) == 0:
+        print(f"file {filename} in {folder_id} not found")
+        return None
+    if len(files) != 1:
+        print(f"Found more than 1 ({len(files)}) for {filename}")
+        return None
+    return files[0]['id']
+
+
+def get_file_list(drive, folder_name):
+    """
+    Return the list of files in a folder.
+    """
+    fid = get_folder_id(drive, folder_name)
+    if fid is None:
+        return []
 
     results = (
         drive.files()
@@ -79,6 +102,31 @@ def get_file_list(drive, folder_name):
     )
     items = results.get("files", [])
     return items
+
+def move_file(drive, file_id, new_folder_id):
+    # Get existing parents / folders
+    file = drive.files().get(fileId=file_id, fields='parents').execute()
+    previous_parents = file.get('parents', [])
+    body = {
+        'addParents': new_folder_id,
+        'removeParents': ','.join(previous_parents)
+    }
+    # Update files parent folder
+    drive.files().update(fileId=file_id, 
+                         addParents=new_folder_id,
+                         removeParents=','.join(previous_parents),
+                         fields='id, parents'
+                         ).execute()
+    print(f"Moved {file_id} to {new_folder_id}")
+
+def update_file(drive, file_id, contents: io.BytesIO):
+    media = MediaIoBaseUpload(contents, mimetype='text/csv')
+    updated_file = drive.files().update(
+        fileId=file_id,
+        media_body=media,
+        fields="id").execute()
+    return updated_file
+
 
 
 def download_file(drive, file_id) -> io.BytesIO:

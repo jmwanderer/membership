@@ -12,6 +12,29 @@ import docs
 import gdrive
 
 
+def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
+
+    folder_src_id = gdrive.get_folder_id(drive, folder_src_name)
+    folder_dst_id = gdrive.get_folder_id(drive, folder_dst_name)
+
+    files = gdrive.get_file_list(drive, folder_src_name)
+    for file in files:
+        name: str = file['name']
+        if name.endswith('pdf') and "Guest" in name:
+            print(f"move file {name}")
+            gdrive.move_file(drive, file['id'], folder_dst_id)
+
+def upload_guest_waiver_list(drive, local_file_name):
+    remote_folder_name = "2025"
+    remote_file_name = "guest_waivers.csv"
+
+    remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
+    remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
+    print(f"Update file {remote_file_id} in {remote_folder_id}")
+    with open(local_file_name, "r") as f:
+        gdrive.update_file(drive, remote_file_id, f)
+
+
 def main() -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
@@ -21,9 +44,13 @@ def main() -> None:
     # Load existing waivers
     waivers = docs.GuestWaiver.read_csv()
 
+    folder_src_name = "Requested signatures"
+    folder_name = "2025 Guest Waivers"
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
-    folder_name = "2025 Guest Waivers"
+    move_new_signed_docs(drive, folder_src_name, folder_name)
+
+
     files = gdrive.get_file_list(drive, folder_name)
     if not files:
         print("No files found.")
@@ -62,6 +89,7 @@ def main() -> None:
 
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     docs.GuestWaiver.write_csv(waivers)
+    upload_guest_waiver_list(drive, docs.guestwaiver_csv_filename)
 
 
 if __name__ == "__main__":
