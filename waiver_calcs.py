@@ -168,7 +168,6 @@ def check_waiver(
     Return True if waiver is considered to be complete.
     All required signatures and minors are included for a family waiver.
     A complete family waiver means that all minors and all signers are covered
-    TODO: check that both parents have signed
     """
 
     if len(waiver.signatures) < 1:
@@ -256,10 +255,11 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
         if waiver_doc is not None and waiver_doc.type == docs.MemberWaiver.TYPE_FAMILY:
             family_record.signed = csvfile.is_signed(waiver_doc.complete)
             family_record.web_link = waiver_doc.web_view_link
-            continue
+            # If not fully signed, look to the attest doc
+            if family_record.signed:
+                continue
 
         # Single parent signers of attestation
-        # TODO: ensure we have both sets of signatures and list of minors in the document
         if len(family_record.adults) == 1:
             attest_doc = attest_doc_map.get(name)
             if attest_doc is None:

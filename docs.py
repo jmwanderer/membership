@@ -218,12 +218,22 @@ class MemberWaiver:
         doc_map: dict[str, MemberWaiver] = {}
         for waiver_doc in member_waivers:
             for signature in waiver_doc.signatures:
-                if waiver_doc.complete:
-                    current_waiver_doc = doc_map.get(signature.name)
-                    # Don't replace a family waiver with an individual
-                    if (current_waiver_doc is None or
-                        current_waiver_doc.type != MemberWaiver.TYPE_FAMILY):
-                        doc_map[signature.name] = waiver_doc
+                current_waiver_doc = doc_map.get(signature.name)
+
+                # If no waiver yet identified, take this one
+                if current_waiver_doc is None:
+                    doc_map[signature.name] = waiver_doc
+                    continue
+
+                # Don't replace a family waiver with an individual
+                if current_waiver_doc.type != MemberWaiver.TYPE_FAMILY:
+                    doc_map[signature.name] = waiver_doc
+                    continue
+
+                # Prefer the complete waiver
+                if not current_waiver_doc.complete:
+                    doc_map[signature.name] = waiver_doc
+
         return doc_map
 
 
