@@ -211,6 +211,7 @@ class Membership:
                 result = member
         if result is None:
             print(f"Warning: didn't find member:  name: {name}, minor: {minor}")
+            print(f"Is this name in the member database?")
         return result
 
     def accounts(self) -> list[AccountEntry]:

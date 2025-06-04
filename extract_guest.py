@@ -5,6 +5,8 @@ Update guest_waivers.csv
 Skips documents previously parsed.
 """
 
+import time
+
 from googleapiclient.discovery import build  # type: ignore
 
 import parse_pdf
@@ -50,6 +52,8 @@ def main() -> None:
     drive = build("drive", "v3", credentials=gdrive.creds)
     move_new_signed_docs(drive, folder_src_name, folder_name)
 
+    print("Sleeping 5 seconds to ensure gdrive syncs")
+    time.sleep(5)
 
     files = gdrive.get_file_list(drive, folder_name)
     if not files:

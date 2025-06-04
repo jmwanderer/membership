@@ -6,6 +6,7 @@ Call waiver_calcs update and review functions to update member waiver records
 Skips previously downloaded files
 """
 
+import time
 from googleapiclient.discovery import build  # type: ignore
 
 import memberdata
@@ -61,6 +62,8 @@ def main() -> None:
     folder_src_name = "Requested signatures"
     move_new_signed_docs(drive, folder_src_name, folder_name)
 
+    print("Sleep 5 seconds for gdrive to sync.")
+    time.sleep(5)
 
     files = gdrive.get_file_list(drive, folder_name)
     if not files:

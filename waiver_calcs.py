@@ -228,12 +228,20 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
     update_waiver_complete(membership, waiver_groups, member_waivers)
     review_member_waiver_docs(membership, member_waivers)
     waiver_doc_map = docs.MemberWaiver.create_doc_map(member_waivers)
+    # Also add lower case
+    names = list(waiver_doc_map.keys())
+    for name in names:
+        waiver_doc_map[name.lower()] = waiver_doc_map[name]
+
     attest_doc_map = docs.Attestation.create_doc_map(attestations)
+    names = list(attest_doc_map.keys())
+    for name in names:
+        attest_doc_map[name.lower()] = attest_doc_map[name]
 
     # Update the signed state of waviers 
     for adult_record in waiver_groups.no_minor_children:
         adult_record.signed = False
-        name = adult_record.member.name.fullname()
+        name = adult_record.member.name.fullname().lower()
 
         waiver_doc = waiver_doc_map.get(name)
         if waiver_doc is not None:
@@ -248,7 +256,7 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
 
     # Update signed state of family waivers
     for family_record in waiver_groups.with_minor_children:
-        name = family_record.adults[0].name.fullname()
+        name = family_record.adults[0].name.fullname().lower()
         waiver_doc = waiver_doc_map.get(name)
 
         # Ensure this is a family waiver
