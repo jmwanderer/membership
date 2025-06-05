@@ -262,6 +262,135 @@ class MemberWaiverGroups:
         FamilyRecord.write_csv(self.with_minor_children, MemberWaiverGroups.familey_waiver_filename)
         FamilyRecord.write_csv(self.unknown_status, MemberWaiverGroups.unknown_waiver_filename)
  
+class MemberRecord:
+    """
+    Reports the waiver status details for any type of member waiver request
+    Family or adult. Reporting only
+    """
+
+    def __init__(self) -> None: 
+        self.adults: list[MemberEntry] = []
+        self.minors: list[MemberEntry] = []
+        self.signed: bool = False
+        self.has_key: bool = False
+        self.web_link: str = ""
+
+    FIELD_NAME1 ="name1"
+    FIELD_NAME2 ="name2"
+    FIELD_MINOR1 = "minor1"
+    FIELD_MINOR2 = "minor2"
+    FIELD_MINOR3 = "minor3"
+    FIELD_MINOR4 = "minor4"
+    FIELD_MINOR5 = "minor5"
+
+    FIELD_WEB_LINK = "web_link"
+    FIELD_HAS_KEY = "has_key"
+
+    HEADER =[ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED, FIELD_HAS_KEY,
+           FIELD_NAME1, FIELD_NAME2, FIELD_MINOR1, FIELD_MINOR2,
+           FIELD_MINOR3, FIELD_MINOR4,  FIELD_MINOR5, FIELD_WEB_LINK ]
+
+    @staticmethod
+    def get_header() -> list[str]:
+        return MemberRecord.HEADER
+   
+    def get_row(self):
+        row = {}
+        if len(self.adults) == 0:
+            return row
+
+        row[csvfile.ACCOUNT_NUM] = self.adults[0].account_num
+        row[csvfile.MEMBER_ID] = self.adults[0].member_id
+        row[csvfile.SIGNED] = "signed" if self.signed else ""
+        row[MemberRecord.FIELD_HAS_KEY] = "has key" if self.has_key else ""
+        row[MemberRecord.FIELD_NAME1] = self.adults[0].name.fullname()
+        if len(self.adults) > 1:
+            row[MemberRecord.FIELD_NAME2] = self.adults[1].name.fullname()
+        for i, minor in enumerate(self.minors):
+            row[MemberRecord.HEADER[i + 6]] = minor.name.fullname()
+        row[MemberRecord.FIELD_WEB_LINK] = self.web_link
+        return row
+
+    def get_account_num(self) -> str:
+        if len(self.adults) > 0:
+            return self.adults[0].account_num
+        return "0"
+
+    def get_member_id(self) -> str:
+        if len(self.adults) > 0:
+            return self.adults[0].member_id
+        return "0"
+
+    def has_minors(self) -> bool:
+        return len(self.minors) > 0
+
+    def get_member_ids(self) -> list[str]:
+        ids: list[str] = []
+        for adult_record in self.adults:
+            ids.append(adult_record.member_id)
+        for minor_record in self.minors:
+            ids.append(minor_record.member_id)
+        return ids
+
+    @staticmethod
+    def key_func(record: MemberRecord) -> tuple[int, bool, int]:
+        return (int(record.get_account_num()), not record.has_minors(), int(record.get_member_id()))
+
+    @staticmethod
+    def write_csv(records: list[MemberRecord], csv_file: str) -> None:
+        if not csvfile.backup_file(csv_file):
+            return
+
+        print(f"Note: Write {csv_file}")
+        with open(csv_file, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=MemberRecord.get_header())
+            writer.writeheader()
+            for record in records:
+                writer.writerow(record.get_row())
+            f.close()
+
+    member_csv = "output/member_records.csv"
+
+    @staticmethod
+    def gen_records(groups: MemberWaiverGroups, member_keys: dict[str,keys.KeyEntry]) -> list[MemberRecord]:
+        """
+        """
+        member_records: list[MemberRecord] = []
+
+        for adult_record in groups.no_minor_children:
+            member_record = MemberRecord()
+            member_record.adults.append(adult_record.member)
+            member_record.web_link = adult_record.web_link
+            member_record.signed = adult_record.signed
+            for member_id in member_record.get_member_ids():
+                if member_id in member_keys:
+                    member_record.has_key = True
+            member_records.append(member_record)
+
+        for family_record in groups.with_minor_children:
+            member_record = MemberRecord()
+            member_record.adults = family_record.adults.copy()
+            member_record.minors = family_record.minors.copy()
+            member_record.signed = family_record.signed
+            member_record.web_link = family_record.web_link
+            for member_id in member_record.get_member_ids():
+                if member_id in member_keys:
+                    member_record.has_key = True
+            member_records.append(member_record)
+
+        for family_record in groups.unknown_status:
+            member_record = MemberRecord()
+            member_record.adults = family_record.adults.copy()
+            member_record.minors = family_record.minors.copy()
+            for member_id in member_record.get_member_ids():
+                if member_id in member_keys:
+                    member_record.has_key = True
+            member_records.append(member_record)
+
+        member_records.sort(key=MemberRecord.key_func)
+        return member_records
+
+
 
 def simple_test() -> None:
     membership = memberdata.Membership()
@@ -287,6 +416,13 @@ def simple_test() -> None:
                 if member.member_id in member_keys:
                     adult_record.key_address = member_keys[member.member_id].member_email
                 adult_records.append(adult_record)
+
+    groups = MemberWaiverGroups()
+    groups.no_minor_children = adult_records
+    groups.with_minor_children = family_records
+    member_records: list[MemberRecord] = MemberRecord.gen_records(groups, member_keys)
+    member_csv = "test/member_records.csv"
+    MemberRecord.write_csv(member_records, member_csv)
 
     family_csv = "test/family_records.csv"
     adult_csv = "test/adult_records.csv"

@@ -277,7 +277,11 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
                 family_record.signed = True
                 family_record.web_link = attest_doc.web_view_link
 
-   
+    member_records: list[waiverrec.MemberRecord] = []
+    member_keys = keys.gen_member_key_map(membership)
+    member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
+    waiverrec.MemberRecord.write_csv(member_records, waiverrec.MemberRecord.member_csv)
+
     waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
     docs.MemberWaiver.write_csv(member_waivers)
     gen_waivered_member_list(membership, waiver_groups, attestations, member_waivers)

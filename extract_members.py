@@ -29,15 +29,20 @@ def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
             print(f"move file {name}")
             gdrive.move_file(drive, file['id'], folder_dst_id)
 
-def upload_member_waiver_list(drive, local_file_name):
-    remote_folder_name = "2025"
-    remote_file_name = "member_waivers.csv"
+
+def upload_member_csv_file(drive, local_file_name, remote_file_name):
+    remote_folder_name = "2025jim"
 
     remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
-    print(f"Update file {remote_file_id} in {remote_folder_id}")
-    with open(local_file_name, "r") as f:
-        gdrive.update_file(drive, remote_file_id, f)
+    if remote_file_id is None:
+        print(f"Upload new file {remote_file_name} to {remote_folder_id}")
+        with open(local_file_name, "r") as f:
+            gdrive.upload_csv_file(drive, remote_folder_id, remote_file_name, f)
+    else:
+        print(f"Update file {remote_file_id} in {remote_folder_id}")
+        with open(local_file_name, "r") as f:
+            gdrive.update_csv_file(drive, remote_file_id, f)
 
 
 
@@ -112,8 +117,8 @@ def main() -> None:
     # Update status of any waiver records
     waiver_calcs.update_waiver_status(membership)
 
-    upload_member_waiver_list(drive, docs.memberwaiver_csv_filename)
-
+    upload_member_csv_file(drive, docs.memberwaiver_csv_filename, "member_waivers.csv")
+    upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, "member_records.csv")
 
 if __name__ == "__main__":
     main()

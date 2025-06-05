@@ -70,7 +70,7 @@ def get_folder_id(drive, folder_name):
     return fid
 
 
-def get_file_id(drive, folder_id, filename) -> str:
+def get_file_id(drive, folder_id, filename) -> str|None:
     query = f"name='{filename}' and '{folder_id}' in parents"
     results = drive.files().list(q=query).execute()
     files = results.get('files', [])
@@ -119,7 +119,7 @@ def move_file(drive, file_id, new_folder_id):
                          ).execute()
     print(f"Moved {file_id} to {new_folder_id}")
 
-def update_file(drive, file_id, contents: io.BytesIO):
+def update_csv_file(drive, file_id, contents: io.BytesIO):
     media = MediaIoBaseUpload(contents, mimetype='text/csv')
     updated_file = drive.files().update(
         fileId=file_id,
@@ -127,7 +127,15 @@ def update_file(drive, file_id, contents: io.BytesIO):
         fields="id").execute()
     return updated_file
 
-
+def upload_csv_file(drive, folder_id: str, filename: str, contents: io.BytesIO):
+    media = MediaIoBaseUpload(contents, mimetype='text/csv')
+    metadata = {'name': filename, 
+                'parents': [folder_id]}
+    updated_file = drive.files().create(
+        body=metadata,
+        media_body=media,
+        fields="id").execute()
+    return updated_file
 
 def download_file(drive, file_id) -> io.BytesIO:
     """

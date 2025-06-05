@@ -34,7 +34,7 @@ def upload_guest_waiver_list(drive, local_file_name):
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
     print(f"Update file {remote_file_id} in {remote_folder_id}")
     with open(local_file_name, "r") as f:
-        gdrive.update_file(drive, remote_file_id, f)
+        gdrive.update_csv_file(drive, remote_file_id, f)
 
 
 def main() -> None:
