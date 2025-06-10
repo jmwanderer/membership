@@ -384,6 +384,8 @@ class Attestation:
         """
         result = []
         print(f"Note: reading attestations file '{attestations_csv_file}'")
+        if not os.path.exists(attestations_csv_file):
+            return result
 
         with open(attestations_csv_file, "r", newline="") as f:
             reader = csv.reader(f)
