@@ -231,7 +231,7 @@ class MemberWaiver:
                     continue
 
                 # Prefer the complete waiver
-                if not current_waiver_doc.complete:
+                if not current_waiver_doc.is_complete():
                     doc_map[signature.name] = waiver_doc
 
         return doc_map

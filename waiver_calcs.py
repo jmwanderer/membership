@@ -246,7 +246,7 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
         waiver_doc = waiver_doc_map.get(name)
         if waiver_doc is not None:
             adult_record.web_link = waiver_doc.web_view_link
-            adult_record.signed = csvfile.is_signed(waiver_doc.complete)
+            adult_record.signed = waiver_doc.is_complete()
             continue
 
         attest_doc = attest_doc_map.get(name)
@@ -261,7 +261,7 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
 
         # Ensure this is a family waiver
         if waiver_doc is not None and waiver_doc.type == docs.MemberWaiver.TYPE_FAMILY:
-            family_record.signed = csvfile.is_signed(waiver_doc.complete)
+            family_record.signed = waiver_doc.is_complete()
             family_record.web_link = waiver_doc.web_view_link
             # If not fully signed, look to the attest doc
             if family_record.signed:

@@ -31,7 +31,7 @@ def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
 
 
 def upload_member_csv_file(drive, local_file_name, remote_file_name):
-    remote_folder_name = "2025jim"
+    remote_folder_name = "2025"
 
     remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
