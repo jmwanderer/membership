@@ -39,8 +39,11 @@ def read_name_columns(
     reader = csv.DictReader(stream)
     for row in reader:
         count += 1
+        if not cond(row):
+            continue
+
         for fn_col, ln_col in name_columns:
-            if len(row[fn_col]) > 0 or len(row[ln_col]) > 0 and cond(row):
+            if len(row[fn_col]) > 0 or len(row[ln_col]) > 0:
                 result.append(memberdata.MemberName(row[fn_col], row[ln_col]))
     print(f"Note: read {len(result)} entries from {count} records")
     return result
@@ -59,9 +62,11 @@ def read_full_name_columns(
     reader = csv.DictReader(stream)
     for row in reader:
         count += 1
+        if not cond(row):
+            continue
+
         for column in columns:
-            if len(row[column]) > 0 and cond(row):
-                result.append(row[column])
+            result.append(row[column])
 
     print(f"Note: read {len(result)} entries from {count} records")
     return result
@@ -229,6 +234,12 @@ keys = DataSource(
     name_columns=[("FirstName", "LastName")],
 )
 
+waivered = DataSource(
+    filename="output/waivered_members.csv",
+    fullname=False,
+    name_columns=[("First Name", "Last Name")],
+)
+
 # Match full names in a custom CSV file
 fullnames = DataSource(
     filename="output/fullnames.csv", fullname=True, fullname_columns=["name"]
@@ -254,8 +265,10 @@ QUERY_LIST = [
     DataQuery("names", names),
     DataQuery("ids", ids),
     DataQuery("keys", keys),
+    DataQuery("ekeys", keys, lambda x : csvfile.is_true_value(x["EnableMobileCredential"])),
     DataQuery("minors", NOSRC),
     DataQuery("swimteam", swimteam),
+    DataQuery("waivered", waivered),
     DataQuery("attest_signer", attest_signer),
 ]
 
@@ -355,7 +368,6 @@ def load_minor_members(membership: memberdata.Membership) -> tuple[set[str], set
             member_ids.add(member.member_id)
             account_ids.add(member.account_num)
     return (account_ids, member_ids)
-
 
 def main(query: DataQuery):
     # Read membership data

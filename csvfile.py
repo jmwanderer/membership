@@ -52,8 +52,8 @@ def signed_str(signed: bool) -> str:
     return "no"
 
 def is_true_value(field_val: str) -> bool:
+    field_val = field_val.strip()
     return len(field_val) > 0 and (field_val.lower()[0] == 't' or field_val.lower()[0] == 'y')
-
 
 ACCOUNT_NUM = "Account#"
 MEMBER_ID = "Member#"
