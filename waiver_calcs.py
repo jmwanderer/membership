@@ -130,7 +130,8 @@ def gen_waivered_member_list(membership: memberdata.Membership,
         name = attest.adults[0].name        
         member = membership.get_one_member_by_fullname(name, minor=False)
         if member is None:
-            print(f"No result for {name} from {attest.web_view_link}")
+            if not attest.is_reviewed():
+                print(f"No result for {name} from {attest.web_view_link}")
             continue
         if not member.member_id in covered_member_ids:
             covered_member_ids.add(member.member_id)
@@ -141,7 +142,8 @@ def gen_waivered_member_list(membership: memberdata.Membership,
             name = signature.name
             member = membership.get_one_member_by_fullname(name, minor=False)
             if member is None:
-                print(f"No result for {name} from {waiver_doc.web_view_link}")
+                if not waiver_doc.is_reviewed():
+                    print(f"No result for {name} from {waiver_doc.web_view_link}")
                 continue
             if not member.member_id in covered_member_ids:
                 covered_member_ids.add(member.member_id)
@@ -207,7 +209,8 @@ def review_member_waiver_docs(membership: memberdata.Membership, waiver_docs: li
         for signature in waiver_doc.signatures:
             member = membership.get_one_member_by_fullname(signature.name, False)
             if member is None:
-                print(f"Warning: No member found for signature {signature.name} in {waiver_doc.web_view_link}")
+                if not waiver_doc.is_reviewed():
+                    print(f"Warning: No member found for signature {signature.name} in {waiver_doc.web_view_link}")
                 continue
             if account_num == '':
                 account_num = member.account_num 

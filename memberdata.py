@@ -202,10 +202,7 @@ class Membership:
     def get_one_member_by_fullname(self, name: str, minor: bool) -> MemberEntry | None:
         members = self.get_members_by_fullname(name)
         if len(members) == 0:
-            print(f"Warning: didn't find member:  name: {name}, minor: {minor}")
-            print(f"Is this name in the member database?")
             return None
-
 
         # Look for adult entry vs minor entry
         result = None

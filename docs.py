@@ -43,6 +43,7 @@ class MemberWaiver:
         self.minors: list[str] = []
         self.complete = "?"
         self.type = "?"
+        self.reviewed = "?"
 
     def __str__(self) -> str:
         result = self.file_name
@@ -55,6 +56,10 @@ class MemberWaiver:
 
     def is_complete(self) -> bool:
         return self.complete.lower() == "y"
+
+    def is_reviewed(self) -> bool:
+        return self.reviewed.lower() == "y"
+
 
     def set_complete(self, complete: bool) -> None:
         if complete:
@@ -77,6 +82,7 @@ class MemberWaiver:
     FIELD_MINOR4 = "minor4"
     FIELD_TYPE = "type"
     FIELD_COMPLETE = "complete"
+    FIELD_REVIEWED = "reviewed"
     FIELD_LINK = "link"
     FIELD_FILENAME = "file"
 
@@ -84,6 +90,7 @@ class MemberWaiver:
     TYPE_FAMILY = "family"
 
     HEADER = [
+        FIELD_REVIEWED,
         FIELD_DATE1,
         FIELD_SIGNER1,
         FIELD_DATE2,
@@ -108,16 +115,17 @@ class MemberWaiver:
         """
         row = {}
         for i, sig in enumerate(self.signatures):
-            row[MemberWaiver.HEADER[i * 2]] = sig.date
-            row[MemberWaiver.HEADER[i * 2 + 1]] = sig.name
+            row[MemberWaiver.HEADER[i * 2 + 1]] = sig.date
+            row[MemberWaiver.HEADER[i * 2 + 2]] = sig.name
         for i, name in enumerate(self.minors):
-            row[MemberWaiver.HEADER[i + 8]] = name
+            row[MemberWaiver.HEADER[i + 9]] = name
 
         # Write these second to avoid above loops from overwriting
         row[MemberWaiver.FIELD_LINK] = self.web_view_link
         row[MemberWaiver.FIELD_FILENAME] = self.file_name
         row[MemberWaiver.FIELD_TYPE] = self.type
         row[MemberWaiver.FIELD_COMPLETE] = self.complete
+        row[MemberWaiver.FIELD_REVIEWED] = self.reviewed
         return row
 
     def read_row(self, row):
@@ -126,8 +134,11 @@ class MemberWaiver:
         """
         self.web_view_link = row[MemberWaiver.FIELD_LINK]
         self.file_name = row[MemberWaiver.FIELD_FILENAME]
+        self.reviewed = row[MemberWaiver.FIELD_REVIEWED]
         if MemberWaiver.FIELD_COMPLETE in row:
             self.complete = row[MemberWaiver.FIELD_COMPLETE]
+        if MemberWaiver.FIELD_REVIEWED in row:
+            self.type = row[MemberWaiver.FIELD_REVIEWED]
         if MemberWaiver.FIELD_TYPE in row:
             self.type = row[MemberWaiver.FIELD_TYPE]
 
@@ -258,6 +269,7 @@ class Attestation:
     def __init__(self) -> None:
         self.file_name: str = ""
         self.web_view_link: str = ""
+        self.reviewed: str = ""
         self.adults: list[AttestEntry] = []
         self.minors: list[AttestEntry] = []
 
@@ -270,6 +282,9 @@ class Attestation:
             result += "\n\t" + str(minor)
 
         return result
+
+    def is_reviewed(self) -> bool:
+        return csvfile.is_true_value(self.reviewed)
 
     # CSV fields
     FIELD_ADULT1 = "adult1"
@@ -294,6 +309,7 @@ class Attestation:
     FIELD_MINOR4_BIRTHDATE = "minor4_birthdate"
     FIELD_MINOR5 = "minor5"
     FIELD_MINOR5_BIRTHDATE = "minor5_birthdate"
+    FIELD_REVIEWED = "reviewed"
     FIELD_LINK = "link"
     FIELD_NAME = "name"
 
@@ -320,6 +336,7 @@ class Attestation:
         FIELD_MINOR4_BIRTHDATE,
         FIELD_MINOR5,
         FIELD_MINOR5_BIRTHDATE,
+        FIELD_REVIEWED,
         FIELD_LINK,
         FIELD_NAME,
     ]
@@ -328,9 +345,10 @@ class Attestation:
         """
         Generate a CSV row for this attestation
         """
-        row = [""] * 24
-        row[22] = self.file_name
-        row[23] = self.web_view_link
+        row = [""] * 25
+        row[22] = self.reviewed
+        row[23] = self.file_name
+        row[24] = self.web_view_link
 
         index = 0
         for adult in self.adults:
@@ -354,8 +372,9 @@ class Attestation:
         Initialize an attestation from a CSV row
         """
 
-        self.file_name = row[22]
-        self.web_view_link = row[23]
+        self.reviewed = row[22]
+        self.file_name = row[23]
+        self.web_view_link = row[24]
         for index in range(0, 4):
             name = row[index * 3].strip()
             email = row[index * 3 + 1].strip()

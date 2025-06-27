@@ -169,6 +169,8 @@ class FamilyRecord:
                 member_entry = membership.get_one_member_by_fullname(name, False)
                 if member_entry is not None:
                     record.adults.append(member_entry)
+                else:
+                    print(f"Warning: member in family record not found {name}")
 
        
         for index in range(11, 16):
@@ -177,6 +179,8 @@ class FamilyRecord:
                 member_entry = membership.get_one_member_by_fullname(name, True)
                 if member_entry is not None:
                     record.minors.append(member_entry)
+                else:
+                    print(f"Warning: minor in family record not found {name}")
 
         return record
     
