@@ -96,7 +96,18 @@ def generate_groups(membership: memberdata.Membership) -> MemberWaiverGroups:
         if not account.is_proprietary_member() and not account.is_alumni_pass():
             continue
 
-        possible_parents = select_possible_parents(membership, account)
+        # Load defined parents
+        parent_recs = membership.get_families_for_account(account.account_num)
+        if len(parent_recs) == 0:
+            # If not defined, select who might be parents
+            possible_parents = select_possible_parents(membership, account)
+        else:
+            # If defined, include all parents in list of possible parents to include in family records, not adult records
+            possible_parents = []
+            for parent_rec in parent_recs:
+                for parent in parent_rec.parents:
+                    possible_parents.append(parent)
+
         members = membership.get_members_for_account_num(account.account_num)
 
         # Collect adults without minor aged children
@@ -113,8 +124,7 @@ def generate_groups(membership: memberdata.Membership) -> MemberWaiverGroups:
             groups.no_minors_count += 1
             continue
 
-        # Check defined parent listings
-        parent_recs = membership.get_families_for_account(account.account_num)
+        # Process parent recs if parents defined
         if len(parent_recs) > 0:
             # Use defined rec instead of guessing
             num_minors = 0
