@@ -30,8 +30,7 @@ def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
             gdrive.move_file(drive, file['id'], folder_dst_id)
 
 
-def upload_member_csv_file(drive, local_file_name, remote_file_name):
-    remote_folder_name = "2025"
+def upload_member_csv_file(drive, local_file_name, remote_folder_name, remote_file_name):
 
     remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
@@ -117,8 +116,10 @@ def main() -> None:
     # Update status of any waiver records
     waiver_calcs.update_waiver_status(membership)
 
-    upload_member_csv_file(drive, docs.memberwaiver_csv_filename, "member_waivers.csv")
-    upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, "member_records.csv")
+    remote_folder_name = "2025 Member Waivers"
+    upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
+    remote_folder_name = "2025"
+    upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
 
 if __name__ == "__main__":
     main()
