@@ -277,6 +277,7 @@ class MemberRecord:
         self.minors: list[MemberEntry] = []
         self.signed: bool = False
         self.has_key: bool = False
+        self.key_enabled: bool = False
         self.web_link: str = ""
 
     FIELD_NAME1 ="name1"
@@ -289,8 +290,9 @@ class MemberRecord:
 
     FIELD_WEB_LINK = "web_link"
     FIELD_HAS_KEY = "has_key"
+    FIELD_KEY_ENABLED = "key_enabled"
 
-    HEADER =[ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED, FIELD_HAS_KEY,
+    HEADER =[ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED, FIELD_HAS_KEY, FIELD_KEY_ENABLED,
            FIELD_NAME1, FIELD_NAME2, FIELD_MINOR1, FIELD_MINOR2,
            FIELD_MINOR3, FIELD_MINOR4,  FIELD_MINOR5, FIELD_WEB_LINK ]
 
@@ -307,11 +309,12 @@ class MemberRecord:
         row[csvfile.MEMBER_ID] = self.adults[0].member_id
         row[csvfile.SIGNED] = "signed" if self.signed else ""
         row[MemberRecord.FIELD_HAS_KEY] = "has key" if self.has_key else ""
+        row[MemberRecord.FIELD_KEY_ENABLED] = "enabled" if self.key_enabled else ""
         row[MemberRecord.FIELD_NAME1] = self.adults[0].name.fullname()
         if len(self.adults) > 1:
             row[MemberRecord.FIELD_NAME2] = self.adults[1].name.fullname()
         for i, minor in enumerate(self.minors):
-            row[MemberRecord.HEADER[i + 6]] = minor.name.fullname()
+            row[MemberRecord.HEADER[i + 7]] = minor.name.fullname()
         row[MemberRecord.FIELD_WEB_LINK] = self.web_link
         return row
 
@@ -369,6 +372,7 @@ class MemberRecord:
             for member_id in member_record.get_member_ids():
                 if member_id in member_keys:
                     member_record.has_key = True
+                    member_record.key_enabled = member_keys[member_id].enabled
             member_records.append(member_record)
 
         for family_record in groups.with_minor_children:
@@ -380,6 +384,8 @@ class MemberRecord:
             for member_id in member_record.get_member_ids():
                 if member_id in member_keys:
                     member_record.has_key = True
+                    if member_keys[member_id].enabled:
+                        member_record.key_enabled = True
             member_records.append(member_record)
 
         for family_record in groups.unknown_status:
@@ -389,6 +395,9 @@ class MemberRecord:
             for member_id in member_record.get_member_ids():
                 if member_id in member_keys:
                     member_record.has_key = True
+                    if member_keys[member_id].enabled:
+                        member_record.key_enabled = True
+ 
             member_records.append(member_record)
 
         member_records.sort(key=MemberRecord.key_func)
