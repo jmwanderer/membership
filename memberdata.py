@@ -5,6 +5,7 @@ Access Membership accounts and members via exported CSV files
 import csv
 import os
 import datetime
+import sys
 from dataclasses import dataclass, field
 from collections.abc import Iterator
 
@@ -305,19 +306,17 @@ class Membership:
                     # print(f"Skipping member {name}")
                     continue
 
-                birthdate_str = ""
-                if MemberEntry.FIELD_BIRTHDATE in row:
-                    birthdate_str = row[MemberEntry.FIELD_BIRTHDATE].strip()
-                if birthdate_str == "":
+                if MemberEntry.FIELD_BIRTHDATE not in row:
+                    print("Error: member file does not contain birthdates")
+                    sys.exit(-1)
+                birthdate_str = row[MemberEntry.FIELD_BIRTHDATE].strip()
+                try:
+                    birthdate = datetime.date.fromisoformat(birthdate_str)
+                except ValueError as e:
+                    print(
+                        f"Note: Invalid birthdate for member {name}: {birthdate_str}"
+                    )
                     birthdate = datetime.date.min
-                else:
-                    try:
-                        birthdate = datetime.date.fromisoformat(birthdate_str)
-                    except ValueError as e:
-                        print(
-                            f"Note: Invalid birthdate for member {name}: {birthdate_str}"
-                        )
-                        birthdate = datetime.date.min
 
                 member = MemberEntry(
                     name,
