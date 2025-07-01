@@ -280,6 +280,34 @@ class MemberRecord:
         self.key_enabled: bool = False
         self.web_link: str = ""
 
+    def rank(self) -> int:
+        """
+        Return a rank value for the record to use in sorting.
+        Sort order:
+            1 - unsigned, has key, key enabled
+            2 - signed, has key, key not enabled
+            3 - unsinged, has key, key not enabled
+            4 - signed, has key, key enabled
+            5 - unsigned, any, any
+            6 - signed, any, any
+        """
+        if not self.signed:
+            if self.has_key:
+                if self.key_enabled:
+                    return 1
+                else:
+                    return 3
+            else:
+                return 5
+        else:
+            if self.has_key:
+                if self.key_enabled:
+                    return 4
+                else:
+                    return 2
+            else:
+                return 6
+            
     FIELD_NAME1 ="name1"
     FIELD_NAME2 ="name2"
     FIELD_MINOR1 = "minor1"
@@ -340,8 +368,8 @@ class MemberRecord:
         return ids
 
     @staticmethod
-    def key_func(record: MemberRecord) -> tuple[int, bool, int]:
-        return (int(record.get_account_num()), not record.has_minors(), int(record.get_member_id()))
+    def key_func(record: MemberRecord) -> tuple[int, int, bool, int]:
+        return (record.rank(), int(record.get_account_num()), not record.has_minors(), int(record.get_member_id()))
 
     @staticmethod
     def write_csv(records: list[MemberRecord], csv_file: str) -> None:
