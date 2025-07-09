@@ -92,6 +92,7 @@ def main() -> None:
         parsed_count += 1
 
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
+    waivers.sort(key=docs.GuestWaiver.key_func)
     docs.GuestWaiver.write_csv(waivers)
     upload_guest_waiver_list(drive, docs.guestwaiver_csv_filename)
 

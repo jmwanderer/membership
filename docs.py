@@ -25,6 +25,13 @@ class Signature:
     name: str
     date: str
 
+    @staticmethod
+    def last_name(fullname: str) -> str:
+        index = fullname.rfind(' ')
+        if index == -1:
+            return fullname
+        return fullname[index+1:]
+
 
 memberwaiver_csv_filename = "output/member_waivers.csv"
 
@@ -529,6 +536,9 @@ class GuestWaiver:
         if len(row[GuestWaiver.FIELD_MINOR4]) > 0:
             self.minors.append(row[GuestWaiver.FIELD_MINOR4])
 
+    @staticmethod
+    def key_func(record: GuestWaiver) -> str:
+        return Signature.last_name(record.adult_signer)
 
     @staticmethod
     def read_csv(csv_file: str = guestwaiver_csv_filename) -> list[GuestWaiver]:
