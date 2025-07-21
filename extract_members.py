@@ -36,12 +36,10 @@ def upload_member_csv_file(drive, local_file_name, remote_folder_name, remote_fi
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
     if remote_file_id is None:
         print(f"Upload new file {remote_file_name} to {remote_folder_id}")
-        with open(local_file_name, "r") as f:
-            gdrive.upload_csv_file(drive, remote_folder_id, remote_file_name, f)
+        gdrive.upload_csv_file(drive, remote_folder_id, remote_file_name, local_file_name)
     else:
         print(f"Update file {remote_file_id} in {remote_folder_id}")
-        with open(local_file_name, "r") as f:
-            gdrive.update_csv_file(drive, remote_file_id, f)
+        gdrive.update_csv_file(drive, remote_file_id, local_file_name)
 
 
 

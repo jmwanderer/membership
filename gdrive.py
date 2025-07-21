@@ -13,7 +13,7 @@ from googleapiclient.discovery import build  # type: ignore
 from googleapiclient.errors import HttpError  # type: ignore
 from googleapiclient.http import MediaIoBaseDownload  # type: ignore
 from googleapiclient.http import MediaIoBaseUpload   # type: ignore
-
+from googleapiclient.http import MediaFileUpload   # type: ignore
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ["https://www.googleapis.com/auth/drive"]
@@ -119,16 +119,16 @@ def move_file(drive, file_id, new_folder_id):
                          ).execute()
     print(f"Moved {file_id} to {new_folder_id}")
 
-def update_csv_file(drive, file_id, contents: io.BytesIO):
-    media = MediaIoBaseUpload(contents, mimetype='text/csv')
+def update_csv_file(drive, file_id, name: str):
+    media = MediaFileUpload(name, mimetype='text/csv')
     updated_file = drive.files().update(
         fileId=file_id,
         media_body=media,
         fields="id").execute()
     return updated_file
 
-def upload_csv_file(drive, folder_id: str, filename: str, contents: io.BytesIO):
-    media = MediaIoBaseUpload(contents, mimetype='text/csv')
+def upload_csv_file(drive, folder_id: str, filename: str, name: str):
+    media = MediaFileUpload(name, mimetype='text/csv')
     metadata = {'name': filename, 
                 'parents': [folder_id]}
     updated_file = drive.files().create(
