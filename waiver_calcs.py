@@ -231,11 +231,7 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
     update_waiver_complete(membership, waiver_groups, member_waivers)
     review_member_waiver_docs(membership, member_waivers)
     waiver_doc_map = docs.MemberWaiver.create_doc_map(member_waivers)
-    # Also add lower case
-    names = list(waiver_doc_map.keys())
-    for name in names:
-        waiver_doc_map[name.lower()] = waiver_doc_map[name]
-
+    # Also add lower case - TODO: remove this, fix in create doc map
     attest_doc_map = docs.Attestation.create_doc_map(attestations)
     names = list(attest_doc_map.keys())
     for name in names:
@@ -283,9 +279,13 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
     member_records: list[waiverrec.MemberRecord] = []
     member_keys = keys.gen_member_key_map(membership)
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
+    print("Note: writing member records CSV")
     waiverrec.MemberRecord.write_csv(member_records, waiverrec.MemberRecord.member_csv)
 
+    print("Note: writing all waiver groups CSV")
     waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
+
+    print("Note: writing member waivers")
     docs.MemberWaiver.write_csv(member_waivers)
     gen_waivered_member_list(membership, waiver_groups, attestations, member_waivers)
 
