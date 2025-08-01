@@ -4,6 +4,7 @@ Download and parse attestation files. Update output/attestations.csv
 Skips files previously parsed.
 """
 
+import time
 from googleapiclient.discovery import build  # type: ignore
 
 import docs
@@ -45,6 +46,12 @@ def main() -> None:
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
     folder_name = "2025 Household Attestations and Household Waivers"
+    folder_src_name = "Requested signatures"
+    move_new_signed_docs(drive, folder_src_name, folder_name)
+
+    print("Sleep 5 seconds for gdrive to sync.")
+    time.sleep(5)
+
     files = gdrive.get_file_list(drive, folder_name)
     if not files:
         print("No files found.")
