@@ -10,6 +10,30 @@ import docs
 import parse_pdf
 import gdrive
 
+def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
+
+    folder_src_id = gdrive.get_folder_id(drive, folder_src_name)
+    folder_dst_id = gdrive.get_folder_id(drive, folder_dst_name)
+
+    files = gdrive.get_file_list(drive, folder_src_name)
+    for file in files:
+        name: str = file['name']
+        if name.endswith('pdf') and "Attestation" in name:
+            print(f"move file {name}")
+            gdrive.move_file(drive, file['id'], folder_dst_id)
+
+
+def upload_attestation_csv_file(drive, local_file_name, remote_folder_name, remote_file_name):
+
+    remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
+    remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
+    if remote_file_id is None:
+        print(f"Upload new file {remote_file_name} to {remote_folder_id}")
+        gdrive.upload_csv_file(drive, remote_folder_id, remote_file_name, local_file_name)
+    else:
+        print(f"Update file {remote_file_id} in {remote_folder_id}")
+        gdrive.update_csv_file(drive, remote_file_id, local_file_name)
+
 
 def main() -> None:
     """
@@ -54,6 +78,9 @@ def main() -> None:
     docs.Attestation.write_csv(attestations)
     print(f"Wrote output: {docs.attestations_csv_filename}")
 
+    remote_folder_name = "2025"
+    #upload_member_csv_file(drive, docs.attestatons_csv_filename, remote_folder_name, "attestations.csv")
+ 
 
 if __name__ == "__main__":
     main()

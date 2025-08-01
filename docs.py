@@ -62,11 +62,13 @@ class MemberWaiver:
         return result
 
     def is_complete(self) -> bool:
-        return self.complete.lower() == "y"
+        """
+        True means all minors are covered in waiver
+        """
+        return csvfile.is_true_value(self.complete)
 
     def is_reviewed(self) -> bool:
         return self.reviewed.lower() == "y"
-
 
     def set_complete(self, complete: bool) -> None:
         if complete:
@@ -287,10 +289,10 @@ class Attestation:
         return csvfile.is_true_value(self.reviewed)
 
     def is_complete(self) -> bool:
-        return self.complete.lower() == "y"
-
-    def is_reviewed(self) -> bool:
-        return self.reviewed.lower() == "y"
+        """
+        True means that all minors are covered in waiver.
+        """
+        return csvfile.is_true_value(self.complete)
 
     def set_complete(self, complete: bool) -> None:
         if complete:
