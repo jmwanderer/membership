@@ -69,7 +69,7 @@ def main() -> None:
 
         # Check if file has been parsed already.
         if file["name"] in filenames:
-            print(f"Note: already parsed {file['name']} - skipping")
+            #print(f"Note: already parsed {file['name']} - skipping")
             skipped_count += 1
             continue
 
@@ -93,7 +93,7 @@ def main() -> None:
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     waivers.sort(key=docs.GuestWaiver.key_func)
     docs.GuestWaiver.write_csv(waivers)
-    upload_guest_waiver_list(drive, docs.guestwaiver_csv_filename)
+    #upload_guest_waiver_list(drive, docs.guestwaiver_csv_filename)
 
 
 if __name__ == "__main__":

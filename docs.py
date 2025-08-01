@@ -33,7 +33,7 @@ class Signature:
         return fullname[index+1:]
 
 
-memberwaiver_csv_filename = "output/member_waivers.csv"
+memberwaiver_csv_filename = "data/member_waivers.csv"
 
 class MemberWaiver:
     """
@@ -258,7 +258,7 @@ class MemberWaiver:
 
 
 # Default location to store attestations.
-attestations_csv_filename = "output/attestations.csv"
+attestations_csv_filename = "data/attestations.csv"
 
 
 @dataclass
@@ -458,7 +458,7 @@ class Attestation:
 
 
 
-guestwaiver_csv_filename = "output/guest_waivers.csv"
+guestwaiver_csv_filename = "data/guest_waivers.csv"
 class GuestWaiver:
     """
     Represents data for a guest waiver.
