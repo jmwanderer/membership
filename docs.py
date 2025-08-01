@@ -268,6 +268,7 @@ class Attestation:
     def __init__(self) -> None:
         self.file_name: str = ""
         self.web_view_link: str = ""
+        self.complete = "?"
         self.reviewed: str = ""
         self.adults: list[AttestEntry] = []
         self.minors: list[AttestEntry] = []
@@ -284,6 +285,18 @@ class Attestation:
 
     def is_reviewed(self) -> bool:
         return csvfile.is_true_value(self.reviewed)
+
+    def is_complete(self) -> bool:
+        return self.complete.lower() == "y"
+
+    def is_reviewed(self) -> bool:
+        return self.reviewed.lower() == "y"
+
+    def set_complete(self, complete: bool) -> None:
+        if complete:
+            self.complete = "Y"
+        else:
+            self.complete = "N"
 
     # CSV fields
     FIELD_ADULT1 = "adult1"
@@ -309,6 +322,7 @@ class Attestation:
     FIELD_MINOR5 = "minor5"
     FIELD_MINOR5_BIRTHDATE = "minor5_birthdate"
     FIELD_REVIEWED = "reviewed"
+    FIELD_COMPLETE = "minors_complete"
     FIELD_LINK = "link"
     FIELD_NAME = "name"
 
@@ -335,6 +349,7 @@ class Attestation:
         FIELD_MINOR4_BIRTHDATE,
         FIELD_MINOR5,
         FIELD_MINOR5_BIRTHDATE,
+        FIELD_COMPLETE,
         FIELD_REVIEWED,
         FIELD_LINK,
         FIELD_NAME,
@@ -344,10 +359,11 @@ class Attestation:
         """
         Generate a CSV row for this attestation
         """
-        row = [""] * 25
-        row[22] = self.reviewed
-        row[23] = self.file_name
-        row[24] = self.web_view_link
+        row = [""] * 26
+        row[22] = self.complete
+        row[23] = self.reviewed
+        row[24] = self.file_name
+        row[25] = self.web_view_link
 
         index = 0
         for adult in self.adults:
@@ -371,9 +387,10 @@ class Attestation:
         Initialize an attestation from a CSV row
         """
 
-        self.reviewed = row[22]
-        self.file_name = row[23]
-        self.web_view_link = row[24]
+        self.complete = row[22]
+        self.reviewed = row[23]
+        self.file_name = row[24]
+        self.web_view_link = row[25]
         for index in range(0, 4):
             name = row[index * 3].strip()
             email = row[index * 3 + 1].strip()
