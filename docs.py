@@ -79,16 +79,13 @@ class MemberWaiver:
     FIELD_DATE1 = "date1"
     FIELD_SIGNER2 = "signer2"
     FIELD_DATE2 = "date2"
-    FIELD_SIGNER3 = "signer3"
-    FIELD_DATE3 = "date3"
-    FIELD_SIGNER4 = "signer4"
-    FIELD_DATE4 = "date4"
     FIELD_MINOR1 = "minor1"
     FIELD_MINOR2 = "minor2"
     FIELD_MINOR3 = "minor3"
     FIELD_MINOR4 = "minor4"
+    FIELD_MINOR5 = "minor5"
     FIELD_TYPE = "type"
-    FIELD_COMPLETE = "complete"
+    FIELD_COMPLETE = "minors_complete"
     FIELD_REVIEWED = "reviewed"
     FIELD_LINK = "link"
     FIELD_FILENAME = "file"
@@ -102,14 +99,11 @@ class MemberWaiver:
         FIELD_SIGNER1,
         FIELD_DATE2,
         FIELD_SIGNER2,
-        FIELD_DATE3,
-        FIELD_SIGNER3,
-        FIELD_DATE4,
-        FIELD_SIGNER4,
         FIELD_MINOR1,
         FIELD_MINOR2,
         FIELD_MINOR3,
         FIELD_MINOR4,
+        FIELD_MINOR5,
         FIELD_TYPE,
         FIELD_COMPLETE,
         FIELD_LINK,
@@ -121,11 +115,15 @@ class MemberWaiver:
         Generate a CSV row for the waiver
         """
         row = {}
-        for i, sig in enumerate(self.signatures):
-            row[MemberWaiver.HEADER[i * 2 + 1]] = sig.date
-            row[MemberWaiver.HEADER[i * 2 + 2]] = sig.name
+        if len(self.signatures) > 0:
+            row[MemberWaiver.HEADER[1]] = self.signatures[0].date
+            row[MemberWaiver.HEADER[2]] = self.signatures[0].name
+        if len(self.signatures) > 1:
+            row[MemberWaiver.HEADER[3]] = self.signatures[1].date
+            row[MemberWaiver.HEADER[4]] = self.signatures[1].name
+
         for i, name in enumerate(self.minors):
-            row[MemberWaiver.HEADER[i + 9]] = name
+            row[MemberWaiver.HEADER[i + 5]] = name
 
         # Write these second to avoid above loops from overwriting
         row[MemberWaiver.FIELD_LINK] = self.web_view_link
@@ -164,20 +162,6 @@ class MemberWaiver:
                     date=row[MemberWaiver.FIELD_DATE2],
                 )
             )
-        if len(row[MemberWaiver.FIELD_SIGNER3]) > 0:
-            self.signatures.append(
-                Signature(
-                    name=row[MemberWaiver.FIELD_SIGNER3],
-                    date=row[MemberWaiver.FIELD_DATE3],
-                )
-            )
-        if len(row[MemberWaiver.FIELD_SIGNER4]) > 0:
-            self.signatures.append(
-                Signature(
-                    name=row[MemberWaiver.FIELD_SIGNER4],
-                    date=row[MemberWaiver.FIELD_DATE4],
-                )
-            )
 
         self.minors = []
         if len(row[MemberWaiver.FIELD_MINOR1]) > 0:
@@ -188,6 +172,9 @@ class MemberWaiver:
             self.minors.append(row[MemberWaiver.FIELD_MINOR3])
         if len(row[MemberWaiver.FIELD_MINOR4]) > 0:
             self.minors.append(row[MemberWaiver.FIELD_MINOR4])
+        if len(row[MemberWaiver.FIELD_MINOR5]) > 0:
+            self.minors.append(row[MemberWaiver.FIELD_MINOR5])
+
 
 
     @staticmethod
@@ -231,7 +218,10 @@ class MemberWaiver:
     @staticmethod
     def create_doc_map(member_waivers: list[MemberWaiver]) -> dict[str,MemberWaiver]:
         """
+        Create a dictionary of selected waivers for each person.
+        We find the best waiver associated with a person.
         TODO: May need to build a list first and then select the best waiver from the list.
+        TODO: consider 1 function taking attestations and waivers
         """
         doc_map: dict[str, MemberWaiver] = {}
         for waiver_doc in member_waivers:
@@ -608,8 +598,6 @@ def simple_test_member_waiver() -> None:
     waiver = MemberWaiver()
     waiver.signatures.append(Signature("Adult1", "2019-11-01"))
     waiver.signatures.append(Signature("Adult2", "2019-11-02"))
-    waiver.signatures.append(Signature("Adult3", "2019-11-03"))
-    waiver.signatures.append(Signature("Adult4", "2019-11-04"))
     waiver.minors.append("Minor1")
     waiver.minors.append("Minor2")
     waiver.minors.append("Minor3")
