@@ -266,6 +266,56 @@ def review_and_update_waivers(membership: memberdata.Membership,
     update_waivers_complete(membership, waiver_groups, waiver_docs, attest_docs)
 
 
+def create_waiver_doc_map(member_waivers: list[docs.MemberWaiver]) -> dict[str,docs.MemberWaiver]:
+    """
+    Create a dictionary of preferred waiver docs for each person.
+    We find the best waiver associated with a person.
+    """
+    doc_map: dict[str, docs.MemberWaiver] = {}
+    for waiver_doc in member_waivers:
+        for signature in waiver_doc.signatures:
+            # Use lower case name
+            name = signature.name.lower()
+            current_waiver_doc = doc_map.get(name)
+
+            # If no waiver yet identified, take this one
+            if current_waiver_doc is None:
+                doc_map[name] = waiver_doc
+                continue
+
+            # Don't replace a family waiver with an individual
+            if current_waiver_doc.type != docs.MemberWaiver.TYPE_FAMILY:
+                doc_map[name] = waiver_doc
+                continue
+
+            # Prefer the complete waiver
+            if not current_waiver_doc.is_complete():
+                doc_map[name] = waiver_doc
+
+    return doc_map
+
+def create_attest_doc_map(attestations: list[docs.Attestation]) -> dict[str, docs.Attestation]:
+    """
+    Create a dictionary of preffered attest docs for each person
+    """
+    doc_map: dict[str, docs.Attestation] = {}
+    for attestation in attestations:
+        # Use lower case name
+        name = attestation.adults[0].name.lower()
+
+        # Handle mutliple docs
+        current_doc = doc_map.get(name)
+
+        if current_doc is None:
+            doc_map[name] = attestation
+            continue
+
+        # Don't replace a complete attestation with an incomplete
+        if not current_doc.is_complete():
+            doc_map[name] = attestation
+
+    return doc_map
+
 def update_waiver_status(waiver_groups: waiverrec.memberwaivergroups,
                          member_waivers: list[docs.memberwaiver],
                          attestations: list[docs.attestation]) -> None:
@@ -276,13 +326,10 @@ def update_waiver_status(waiver_groups: waiverrec.memberwaivergroups,
     """
     print("Note: updating waiver records status")
 
-    # TODO: fix this
-    waiver_doc_map = docs.MemberWaiver.create_doc_map(member_waivers)
-    # Also add lower case - TODO: remove this, fix in create doc map
-    attest_doc_map = docs.Attestation.create_doc_map(attestations)
-    names = list(attest_doc_map.keys())
-    for name in names:
-        attest_doc_map[name.lower()] = attest_doc_map[name]
+    # Preferred waivers per person (lower case names)
+    waiver_doc_map = create_waiver_doc_map(member_waivers)
+    # Preferred attestation per person (lower case names)
+    attest_doc_map = create_attest_doc_map(attestations)
 
     # Update the signed state of waviers 
     for adult_record in waiver_groups.no_minor_children:

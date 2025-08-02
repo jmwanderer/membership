@@ -84,12 +84,11 @@ def main() -> None:
         attestations.append(attestation)
         parsed_count += 1
 
-
-
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     if parsed_count > 0:
         docs.Attestation.write_csv(attestations)
         print(f"Wrote output: {docs.attestations_csv_filename}")
+        # TODO: Should probably be done somewhere else - may be modified later
         print(f"Update attestations.csv to Google Drive in '{remote_folder_name}")
         remote_folder_name = "2025"
         upload_attestation_csv_file(drive, docs.attestatons_csv_filename, remote_folder_name, "attestations.csv")

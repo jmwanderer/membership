@@ -217,37 +217,6 @@ class MemberWaiver:
             f.close()
         print(f"Note: wrote {len(waivers)} member waiver records.")
 
-    @staticmethod
-    def create_doc_map(member_waivers: list[MemberWaiver]) -> dict[str,MemberWaiver]:
-        """
-        Create a dictionary of selected waivers for each person.
-        We find the best waiver associated with a person.
-        TODO: May need to build a list first and then select the best waiver from the list.
-        TODO: consider 1 function taking attestations and waivers
-        """
-        doc_map: dict[str, MemberWaiver] = {}
-        for waiver_doc in member_waivers:
-            for signature in waiver_doc.signatures:
-                # Use lower case name
-                name = signature.name.lower()
-                current_waiver_doc = doc_map.get(name)
-
-                # If no waiver yet identified, take this one
-                if current_waiver_doc is None:
-                    doc_map[name] = waiver_doc
-                    continue
-
-                # Don't replace a family waiver with an individual
-                if current_waiver_doc.type != MemberWaiver.TYPE_FAMILY:
-                    doc_map[name] = waiver_doc
-                    continue
-
-                # Prefer the complete waiver
-                if not current_waiver_doc.is_complete():
-                    doc_map[name] = waiver_doc
-
-        return doc_map
-
 
 # Default location to store attestations.
 attestations_csv_filename = "data/attestations.csv"
@@ -457,14 +426,6 @@ class Attestation:
                 writer.writerow(attestation.get_row())
             f.close()
         print(f"Note: write {len(attestations)} attestation records")
-
-    @staticmethod
-    def create_doc_map(attestations: list[Attestation]) -> dict[str, Attestation]:
-        doc_map: dict[str, Attestation] = {}
-        for attestation in attestations:
-            doc_map[attestation.adults[0].name] = attestation
-        return doc_map
-
 
 
 guestwaiver_csv_filename = "data/guest_waivers.csv"
