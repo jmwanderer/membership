@@ -349,26 +349,34 @@ def update_waiver_status(waiver_groups: waiverrec.memberwaivergroups,
 
     # Update signed state of family waivers
     for family_record in waiver_groups.with_minor_children:
-        name = family_record.adults[0].name.fullname().lower()
-        waiver_doc = waiver_doc_map.get(name)
+        all_signed: bool = True
+        # TODO: capture multiple docs
+        web_link = None
 
-        # Ensure this is a family waiver
-        if waiver_doc is not None and waiver_doc.type == docs.MemberWaiver.TYPE_FAMILY:
-            family_record.signed = waiver_doc.is_complete()
-            family_record.web_link = waiver_doc.web_view_link
-            # If not fully signed, look to the attest doc
-            if family_record.signed:
-                continue
+        # TODO: capture who signed
+        for adult in family_record.adults:
+            signed = False
+            name = adult.name.fullname().lower()
+            waiver_doc = waiver_doc_map.get(name)
 
-        # Single parent signers of attestation
-        if len(family_record.adults) == 1:
+            # Check if signed and complete 
+            if waiver_doc is not None and waiver_doc.is_complete():
+                web_link = waiver_doc.web_view_link
+                signed = True
+
+            # Check attest doc 
             attest_doc = attest_doc_map.get(name)
-            if attest_doc is None:
-                continue
-            # Are all of the minors covered?
-            if len(attest_doc.minors) >= len(family_record.minors):
-                family_record.signed = True
-                family_record.web_link = attest_doc.web_view_link
+            if attest_doc is not None and attest_doc.is_complete():
+                web_link = attest_doc.web_view_link
+                signed = True
+            
+            if not signed:
+                all_signed = False
+
+        family_record.signed = all_signed
+        if web_link is not None:
+            family_record.web_link = web_link
+
 
 def generate_member_records(membership: memberdata.membership,
                             waiver_groups: waiverrec.memberwaivergroups,
