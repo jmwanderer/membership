@@ -3,7 +3,9 @@ Master control file for member waiver process
 """
 
 import sys
+from googleapiclient.discovery import build  # type: ignore
 
+import gdrive
 import docs
 import memberdata
 import keys
@@ -13,6 +15,17 @@ import gen_waiver_groups
 import waiverrec
 import waiver_calcs
 
+upload: bool = False
+
+def upload_member_waiver_records():
+    gdrive.login()
+    drive = build("drive", "v3", credentials=gdrive.creds)
+    remote_folder_name = "2025"
+    if upload:
+        extract_members.upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
+    else:
+        print("skipping upload of member_records.csv")
+
 def main(command: str):
     membership = memberdata.Membership()
     membership.read_csv_files()
@@ -21,8 +34,8 @@ def main(command: str):
     # Get new waiver files
     if command == "extract" or command == "all":
         print("Extract information from new documents.")
-        extract_members.main()
-        extract_attest.main()
+        extract_members.main(upload)
+        extract_attest.main(upload)
 
     # Create new groups
     if command == "generate" or command == "all":
@@ -49,6 +62,7 @@ def main(command: str):
     # Generate and save member records
     if command == "records"  or command == "all":
         waiver_calcs.generate_member_records(waiver_groups, member_keys)
+        upload_member_waiver_records()
 
 
 arguments = ["all", "extract", "generate", "review", "update", "records"]
