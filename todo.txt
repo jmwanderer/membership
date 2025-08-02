@@ -1,15 +1,15 @@
-Bugs:
-- regenerate waiver groups on import of new waivers
+Data:
+- fix attestaton warnings
 
-- warn if there are unknown families, refuse to process waivers
+Code:
+- gen request format (sig request)
+- step wise run waiver
+- enable waiver file uploads
+- capture multi-doc waiver status
+- capture who has signed and not
+
 
 Needed Features:
-- add ability to mark member waivers as reviewed and surpress warnings of unknown 
-signatures
-
-- add ability to update the parents file so that when adults are added to 
-the account, we don't forget who the parents are
-
 - upload parents file to gdrive to save info
 
 
