@@ -111,9 +111,8 @@ def main() -> None:
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     if parsed_count > 0:
         docs.MemberWaiver.write_csv(waivers)
-        # TODO: should probably be done somewhere else
-        print(f"Upload member_records to Google Drive in '{remote_folder_name}'")
         remote_folder_name = "2025 Member Waivers"
+        print(f"Upload member_records to Google Drive in '{remote_folder_name}'")
         upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
   
 def upload_member_waiver_records():
