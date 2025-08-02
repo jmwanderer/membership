@@ -17,18 +17,21 @@ import waiverrec
 import waiver_calcs
 
 
-def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
+def move_new_signed_docs(drive, folder_src_name, folder_dst_name) -> int:
 
+    count = 0
     folder_src_id = gdrive.get_folder_id(drive, folder_src_name)
     folder_dst_id = gdrive.get_folder_id(drive, folder_dst_name)
 
+    print(f"Checking for new documents in Google Drive at '{folder_src_name}'")
     files = gdrive.get_file_list(drive, folder_src_name)
     for file in files:
         name: str = file['name']
         if name.endswith('pdf') and "Member" in name:
             print(f"move file {name}")
+            count += 1
             gdrive.move_file(drive, file['id'], folder_dst_id)
-
+    return count
 
 def upload_member_csv_file(drive, local_file_name, remote_folder_name, remote_file_name):
 
@@ -48,11 +51,6 @@ def main() -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
     """
-    # Read membership data
-    membership = memberdata.Membership()
-    membership.read_csv_files()
-    groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
-
     # Load existing waivers
     waivers: list[docs.MemberWaiver] = []
     waivers = docs.MemberWaiver.read_csv()
@@ -62,10 +60,12 @@ def main() -> None:
     folder_name = "2025 Member Waivers"
 
     folder_src_name = "Requested signatures"
-    move_new_signed_docs(drive, folder_src_name, folder_name)
+    count = move_new_signed_docs(drive, folder_src_name, folder_name)
+    print(f"Moved {count} files")
 
-    print("Sleep 5 seconds for gdrive to sync.")
-    time.sleep(5)
+    if count > 0:
+        print("Sleep 5 seconds for gdrive to sync.")
+        time.sleep(5)
 
     files = gdrive.get_file_list(drive, folder_name)
     if not files:
@@ -109,15 +109,17 @@ def main() -> None:
         parsed_count += 1
 
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
-    docs.MemberWaiver.write_csv(waivers)
+    if parsed_count > 0:
+        docs.MemberWaiver.write_csv(waivers)
 
-    # Update status of any waiver records
-    waiver_calcs.update_waiver_status(membership)
-
-    remote_folder_name = "2025 Member Waivers"
-    #upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
+  
+def upload_member_waiver_records():
+    gdrive.login()
+    drive = build("drive", "v3", credentials=gdrive.creds)
     remote_folder_name = "2025"
-    #upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
+    upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
+    remote_folder_name = "2025 Member Waivers"
+    upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
 
 if __name__ == "__main__":
     main()
