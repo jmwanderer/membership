@@ -100,18 +100,20 @@ class FamilyRecord:
 
     def __init__(self) -> None: 
         self.adults: list[MemberEntry] = []
+        self.signatures: list[bool] = [False, False].copy()
+        self.web_links: list[str] = ["", ""].copy()
         self.minors: list[MemberEntry] = []
         self.signed: bool = False
-        self.web_link: str = ""
 
-    FIELD_NAME ="name"
-    FIELD_EMAIL = "email_address"
+    FIELD_NAME1 ="name1"
+    FIELD_EMAIL1 = "email_address1"
+    FIELD_SIGNATURE1 = "name1_signed"
+    FIELD_WEB_LINK1 = "web_link1"
+
     FIELD_NAME2 ="name2"
     FIELD_EMAIL2 = "email_address2"
-    FIELD_NAME3 ="name3"
-    FIELD_EMAIL3 = "email_address3"
-    FIELD_NAME4 ="name4"
-    FIELD_EMAIL4 = "email_address4"
+    FIELD_SIGNATURE2 = "name2_signed"
+    FIELD_WEB_LINK2 = "web_link2"
 
     FIELD_MINOR1 = "minor1"
     FIELD_MINOR2 = "minor2"
@@ -119,15 +121,13 @@ class FamilyRecord:
     FIELD_MINOR4 = "minor4"
     FIELD_MINOR5 = "minor5"
 
-    FIELD_WEB_LINK = "web_link"
 
     HEADER = [ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED,
-              FIELD_NAME, FIELD_EMAIL,
-              FIELD_NAME2, FIELD_EMAIL2,
-              FIELD_NAME3, FIELD_EMAIL3,
-              FIELD_NAME4, FIELD_EMAIL4,
+              FIELD_NAME1, FIELD_EMAIL1, FIELD_SIGNATURE1,
+              FIELD_NAME2, FIELD_EMAIL2, FIELD_SIGNATURE2,
               FIELD_MINOR1 ,FIELD_MINOR2,
-              FIELD_MINOR3, FIELD_MINOR4, FIELD_MINOR5, FIELD_WEB_LINK ]
+              FIELD_MINOR3, FIELD_MINOR4, FIELD_MINOR5, 
+              FIELD_WEB_LINK1, FIELD_WEB_LINK2 ]
 
     @staticmethod
     def get_header() -> list[str]:
@@ -141,39 +141,55 @@ class FamilyRecord:
         row[csvfile.ACCOUNT_NUM] = self.adults[0].account_num
         row[csvfile.MEMBER_ID] = self.adults[0].member_id
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
-        row[FamilyRecord.FIELD_WEB_LINK] = self.web_link
-        for i, member in enumerate(self.adults):
-            row[FamilyRecord.HEADER[i * 2 + 3]] = member.name.fullname()
-            row[FamilyRecord.HEADER[i * 2 + 4]] = member.email
+
+        member = self.adults[0]
+        row[FamilyRecord.HEADER[3]] = member.name.fullname()
+        row[FamilyRecord.HEADER[4]] = member.email
+        row[FamilyRecord.HEADER[5]] = csvfile.signed_str(self.signatures[0])
+        row[FamilyRecord.HEADER[14]] = self.web_links[0]
+
+        if len(self.adults) > 1:
+            member = self.adults[1]
+            row[FamilyRecord.HEADER[6]] = member.name.fullname()
+            row[FamilyRecord.HEADER[7]] = member.email
+        row[FamilyRecord.HEADER[8]] = csvfile.signed_str(self.signatures[1])
+        row[FamilyRecord.HEADER[15]] = self.web_links[1]
+
         for i, minor in enumerate(self.minors):
-            row[FamilyRecord.HEADER[i + 11]] = minor.name.fullname()
+            row[FamilyRecord.HEADER[i + 9]] = minor.name.fullname()
         return row
 
     @staticmethod
     def read_row(membership: memberdata.Membership, row: dict[str, str]) -> FamilyRecord|None:
         member_id = row[csvfile.MEMBER_ID]
-        name = row[FamilyRecord.FIELD_NAME]
+        name = row[FamilyRecord.FIELD_NAME1]
         member_entry = membership.get_member_by_id(member_id)
         if member_entry is None:
             print(f"Warning: no member id: {member_id} name: '{name}' found.")
             return None
 
+
         record = FamilyRecord()
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
-        record.web_link = row[FamilyRecord.FIELD_WEB_LINK]
+ 
+        # Populate adult 1 plus signature status and web link
         record.adults.append(member_entry)
+        record.signatures[0] = csvfile.is_signed(row[FamilyRecord.FIELD_SIGNATURE1])
+        record.web_links[0] = row[FamilyRecord.FIELD_WEB_LINK1]
 
-        for index in range(5, 10, 2):
-            name = row[FamilyRecord.HEADER[index]]
-            if len(name.strip()) > 0:
-                member_entry = membership.get_one_member_by_fullname(name, False)
-                if member_entry is not None:
-                    record.adults.append(member_entry)
-                else:
-                    print(f"Warning: member in family record not found {name}")
+        # Populate adult 2 plus signature status and web link
+        name = row[FamilyRecord.FIELD_NAME2]
+        if len(name.strip()) > 0:
+            member_entry = membership.get_one_member_by_fullname(name, False)
+            if member_entry is not None:
+                record.adults.append(member_entry)
+            else:
+                print(f"Warning: member in family record not found {name}")
+        record.signatures[1] = csvfile.is_signed(row[FamilyRecord.FIELD_SIGNATURE2])
+        record.web_links[1] = row[FamilyRecord.FIELD_WEB_LINK2]
 
-       
-        for index in range(11, 16):
+        # Populate minors
+        for index in range(9, 14):
             name = row[FamilyRecord.HEADER[index]]
             if len(name.strip()) > 0:
                 member_entry = membership.get_one_member_by_fullname(name, True)
@@ -408,7 +424,8 @@ class MemberRecord:
             member_record.adults = family_record.adults.copy()
             member_record.minors = family_record.minors.copy()
             member_record.signed = family_record.signed
-            member_record.web_link = family_record.web_link
+            if len(family_record.web_links) > 0:
+                member_record.web_link = family_record.web_links[0]
             for member_id in member_record.get_member_ids():
                 if member_id in member_keys:
                     member_record.has_key = True

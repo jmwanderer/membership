@@ -118,14 +118,15 @@ def gen_waivered_member_list(membership: memberdata.Membership,
     for family_record in groups.with_minor_children:
         if not family_record.signed:
             continue
-        for adult in family_record.adults:
+        for index, adult in enumerate(family_record.adults):
             if adult.member_id not in covered_member_ids:
                 covered_member_ids.add(adult.member_id)
-                waivers.append(WaiveredMember(adult, family_record.web_link, waiver_signed=True))
+                # TODO: this is broken
+                waivers.append(WaiveredMember(adult, family_record.web_links[index], waiver_signed=True))
         for minor in family_record.minors:
             if minor.member_id not in covered_member_ids:
                 covered_member_ids.add(minor.member_id)
-                waivers.append(WaiveredMember(minor, family_record.web_link, waiver_signed=True))
+                waivers.append(WaiveredMember(minor, family_record.web_links[0], waiver_signed=True))
 
     # Scan member adult waiver recs
     for adult_record in groups.no_minor_children:
@@ -349,32 +350,27 @@ def update_waiver_status(waiver_groups: waiverrec.memberwaivergroups,
     # Update signed state of family waivers
     for family_record in waiver_groups.with_minor_children:
         all_signed: bool = True
-        # TODO: capture multiple docs
-        web_link = None
 
-        # TODO: capture who signed
-        for adult in family_record.adults:
-            signed = False
+        for index, adult in enumerate(family_record.adults):
+            family_record.signatures[index] = False
             name = adult.name.fullname().lower()
-            waiver_doc = waiver_doc_map.get(name)
-
-            # Check if signed and complete 
-            if waiver_doc is not None and waiver_doc.is_complete():
-                web_link = waiver_doc.web_view_link
-                signed = True
 
             # Check attest doc 
             attest_doc = attest_doc_map.get(name)
             if attest_doc is not None and attest_doc.is_complete():
-                web_link = attest_doc.web_view_link
-                signed = True
-            
-            if not signed:
+                family_record.web_links[index] = attest_doc.web_view_link
+                family_record.signatures[index] = True
+
+            # Check if signed and complete 
+            waiver_doc = waiver_doc_map.get(name)
+            if waiver_doc is not None and waiver_doc.is_complete():
+                family_record.web_links[index] = waiver_doc.web_view_link
+                family_record.signatures[index] = True
+
+            if not family_record.signatures[index]:
                 all_signed = False
 
         family_record.signed = all_signed
-        if web_link is not None:
-            family_record.web_link = web_link
 
 
 def generate_member_records(waiver_groups: waiverrec.memberwaivergroups,
