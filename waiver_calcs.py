@@ -212,15 +212,17 @@ def update_waiver_record_status(waiver_groups: waiverrec.memberwaivergroups,
 
             # Check attest doc 
             attest_doc = attest_doc_map.get(name)
-            if attest_doc is not None and attest_doc.is_complete():
+            if attest_doc is not None:
                 family_record.web_links[index] = attest_doc.web_view_link
-                family_record.signatures[index] = True
+                if attest_doc.is_complete():
+                    family_record.signatures[index] = True
 
             # Check if signed and complete 
             waiver_doc = waiver_doc_map.get(name)
-            if waiver_doc is not None and waiver_doc.is_complete():
+            if waiver_doc is not None:
                 family_record.web_links[index] = waiver_doc.web_view_link
-                family_record.signatures[index] = True
+                if waiver_doc.is_complete():
+                    family_record.signatures[index] = True
 
             if not family_record.signatures[index]:
                 all_signed = False
