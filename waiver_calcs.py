@@ -8,7 +8,6 @@ Todo: Generate list of members that are covered by a signed waiver
 """
 
 from __future__ import annotations
-import sys
 
 from dataclasses import dataclass
 import csv
@@ -378,8 +377,7 @@ def update_waiver_status(waiver_groups: waiverrec.memberwaivergroups,
             family_record.web_link = web_link
 
 
-def generate_member_records(membership: memberdata.membership,
-                            waiver_groups: waiverrec.memberwaivergroups,
+def generate_member_records(waiver_groups: waiverrec.memberwaivergroups,
                             member_keys: dict[str, keys.KeyEntry]) -> None:
     member_records: list[waiverrec.MemberRecord] = []
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
@@ -485,7 +483,7 @@ def main() -> None:
     review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
     update_waiver_status(waiver_groups, member_waivers, attestations)
     report_waiver_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
-    generate_member_records(membership, waiver_groups, member_keys)
+    generate_member_records(waiver_groups, member_keys)
 
     waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
     docs.MemberWaiver.write_csv(member_waivers)
