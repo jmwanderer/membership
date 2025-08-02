@@ -171,9 +171,9 @@ def create_attest_doc_map(attestations: list[docs.Attestation]) -> dict[str, doc
 
     return doc_map
 
-def update_waiver_status(waiver_groups: waiverrec.memberwaivergroups,
-                         member_waivers: list[docs.memberwaiver],
-                         attestations: list[docs.attestation]) -> None:
+def update_waiver_record_status(waiver_groups: waiverrec.memberwaivergroups,
+                                member_waivers: list[docs.memberwaiver],
+                                attestations: list[docs.attestation]) -> None:
     """
     Determine and update the status for each desired waiver.
     Use the member waivers and attestations to update the status of each
@@ -236,7 +236,7 @@ def generate_member_records(waiver_groups: waiverrec.memberwaivergroups,
     waiverrec.MemberRecord.write_csv(member_records, waiverrec.MemberRecord.member_csv)
 
     
-def report_waiver_stats(membership: memberdata.Membership,
+def report_waiver_record_stats(membership: memberdata.Membership,
                         waiver_groups: waiverrec.MemberWaiverGroups,
                         member_waivers: list[docs.MemberWaiver],
                         attestations: list[docs.Attestation],
@@ -339,8 +339,9 @@ def main() -> None:
     member_keys = keys.gen_member_key_map(membership)
 
     review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
-    update_waiver_status(waiver_groups, member_waivers, attestations)
-    report_waiver_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
+    update_waiver_record_status(waiver_groups, member_waivers, attestations)
+    report_waiver_record_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
+
     generate_member_records(waiver_groups, member_keys)
 
     waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)

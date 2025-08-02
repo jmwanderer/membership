@@ -91,7 +91,7 @@ def main() -> None:
         # TODO: Should probably be done somewhere else - may be modified later
         print(f"Update attestations.csv to Google Drive in '{remote_folder_name}")
         remote_folder_name = "2025"
-        upload_attestation_csv_file(drive, docs.attestatons_csv_filename, remote_folder_name, "attestations.csv")
+        #upload_attestation_csv_file(drive, docs.attestatons_csv_filename, remote_folder_name, "attestations.csv")
  
 
 if __name__ == "__main__":

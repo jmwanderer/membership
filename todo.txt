@@ -3,11 +3,7 @@ Data:
 
 Code:
 - gen request format (sig request)
-- step wise run waiver
 - report multi-sig / multi-doc in member records
-- remove waivered members
-- upload test member waivers to test drive
-
 
 Needed Features:
 - upload parents file to gdrive to save info

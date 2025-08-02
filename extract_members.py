@@ -113,13 +113,13 @@ def main() -> None:
         docs.MemberWaiver.write_csv(waivers)
         remote_folder_name = "2025 Member Waivers"
         print(f"Upload member_records to Google Drive in '{remote_folder_name}'")
-        upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
+        #upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
   
 def upload_member_waiver_records():
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
     remote_folder_name = "2025"
-    upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
+    #upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
 
 if __name__ == "__main__":
     main()

@@ -5,7 +5,6 @@ Master control file for member waiver process
 import sys
 
 import docs
-import csvfile
 import memberdata
 import keys
 import extract_attest
@@ -20,27 +19,42 @@ def main(command: str):
     member_keys = keys.gen_member_key_map(membership)
 
     # Get new waiver files
-    extract_members.main()
-    extract_attest.main()
+    if command == "extract" or command == "all":
+        print("Extract information from new documents.")
+        extract_members.main()
+        extract_attest.main()
 
     # Create new groups
-    waiver_groups = gen_waiver_groups.generate_groups(membership)
+    if command == "generate" or command == "all":
+        print("Generate required waivers list")
+        waiver_groups = gen_waiver_groups.generate_groups(membership)
 
     # Read latest attestations and member waivers
     attestations = docs.Attestation.read_csv()
     member_waivers = docs.MemberWaiver.read_csv()
 
-    waiver_calcs.review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
-    waiver_calcs.update_waiver_status(waiver_groups, member_waivers, attestations)
-    waiver_calcs.report_waiver_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
+    if command == "review" or command == "all":
+        print("Updating waiver status")
+        # Update status on waiver docs - complete, OK, etc
+        waiver_calcs.review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
+        docs.MemberWaiver.write_csv(member_waivers)
+        docs.Attestation.write_csv(attestations)
+
+    if command == "update" or command == "all":
+        waiver_calcs.update_waiver_record_status(waiver_groups, member_waivers, attestations)
+        waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
+        waiver_calcs.report_waiver_record_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
+
 
     # Generate and save member records
-    waiver_calcs.generate_member_records(waiver_groups, member_keys)
-    waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
-    docs.MemberWaiver.write_csv(member_waivers)
-    docs.Attestation.write_csv(attestations)
+    if command == "records"  or command == "all":
+        waiver_calcs.generate_member_records(waiver_groups, member_keys)
 
+
+arguments = ["all", "extract", "generate", "review", "update", "records"]
 
 if __name__ == "__main__":
-    # TODO: pass in step
-    main("")
+    if len(sys.argv) < 2 or not sys.argv[1] in arguments:
+        print(f"Usage: run_member_waivers with one of: {arguments}")
+        sys.exit(-1)
+    main(sys.argv[1])
