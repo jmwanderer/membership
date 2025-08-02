@@ -174,9 +174,6 @@ def main():
     groups = generate_groups(membership)
     groups.write_csv_files()
 
-    # Update group status based on waiver documents
-    waiver_calcs.update_waiver_status(membership)
-
 
 if __name__ == "__main__":
     main()

@@ -88,10 +88,21 @@ class WaiveredMember:
         }
         return row
 
+def write_waivered_member_file(waivers: list[WaiveredMember]) -> None:
+    output_file = open(waivered_member_filename, "w", newline="")
+    output_csv = csv.DictWriter(output_file, fieldnames=WaiveredMember.get_header())
+    output_csv.writeheader()
+
+    for waiver in waivers:
+        output_csv.writerow(waiver.get_row())
+    output_file.close()
+    print(f"Note: created {waivered_member_filename}")
+
+
 def gen_waivered_member_list(membership: memberdata.Membership, 
                              groups: waiverrec.MemberWaiverGroups,
                              attestations: list[docs.Attestation],
-                             waiver_docs: list[docs.MemberWaiver]) -> None:
+                             waiver_docs: list[docs.MemberWaiver]) -> list[WaiveredMember]:
     """
     Generate list of all members covered by a waiver using the waiver records.
     TODO: not all waiver info is in the waivered groups. 
@@ -149,58 +160,70 @@ def gen_waivered_member_list(membership: memberdata.Membership,
                 covered_member_ids.add(member.member_id)
                 waivers.append(WaiveredMember(member, waiver_doc.web_view_link, waiver_signed=True))
 
-    output_file = open(waivered_member_filename, "w", newline="")
-    output_csv = csv.DictWriter(output_file, fieldnames=WaiveredMember.get_header())
-    output_csv.writeheader()
-
-    for waiver in waivers:
-        output_csv.writerow(waiver.get_row())
-    output_file.close()
-    print(f"Note: created {waivered_member_filename}")
+    return waivers
 
 
 
-
-
-
-def check_waiver(
-    membership: memberdata.Membership, groups: waiverrec.MemberWaiverGroups, waiver: docs.MemberWaiver
-) -> bool:
+def check_waiver(membership: memberdata.Membership, 
+                 groups: waiverrec.MemberWaiverGroups, 
+                 waiver: docs.MemberWaiver) -> bool:
     """
     Return True if waiver is considered to be complete.
-    All required signatures and minors are included for a family waiver.
-    A complete family waiver means that all minors and all signers are covered
+    A complete waiver is one that includes all minors of the signatory
     """
-
-    if len(waiver.signatures) < 1:
-        return False
-
-    if waiver.type == docs.MemberWaiver.TYPE_INDIVIDUAL:
-        return True
-
     name = waiver.signatures[0].name
     account = membership.get_account_by_fullname(name)
+
     if account is None:
         print(f"Warning: no account for name '{name}'")
         return False
 
     family_record = groups.find_family_record(name)
     if family_record is None:
-        # This happens if the family no longer has minor children
-        # print(f"Warning: family waiver record not found for {name}")
+        # No minors in the family
         return True
 
-    if len(family_record.adults) > len(waiver.signatures):
-        return False
-
+    # TODO: check names
     return len(family_record.minors) <= len(waiver.minors)
 
 
-def update_waiver_complete(membership: memberdata.Membership, waiver_groups: waiverrec.MemberWaiverGroups, waiver_docs: list[docs.MemberWaiver]) -> None:
-    # Update complete state of family waivers
+def check_attestation(membership: memberdata.Membership, 
+                      groups: waiverrec.MemberWaiverGroups, 
+                      attest: docs.Attestation) -> bool:
+    """
+    Return True if an attestaton waiver is considered complete
+    A complete waiver is one that includes all minors of the signatory
+    """
+    name = attest.adults[0].name
+    account = membership.get_account_by_fullname(name)
+
+    if account is None:
+        print(f"Warning: no account for name '{name}'")
+        return False
+
+    family_record = groups.find_family_record(name)
+    if family_record is None:
+        # No minors in the family
+        return True
+
+    # TODO: check names
+    return len(family_record.minors) <= len(attest.minors)
+
+
+
+def update_waivers_complete(membership: memberdata.Membership, 
+                            waiver_groups: waiverrec.MemberWaiverGroups, 
+                            waiver_docs: list[docs.MemberWaiver],
+                            attest_docs: list[docs.Attestation]) -> None:
+
+    # Determine if a waiver and attestation cover the minor children
     for waiver_doc in waiver_docs:
         complete = check_waiver(membership, waiver_groups, waiver_doc)
         waiver_doc.set_complete(complete)
+    for attest_doc in attest_docs:
+        complete = check_attestation(membership, waiver_groups, attest_doc)
+        attest_doc.set_complete(complete)
+
 
 def review_member_waiver_docs(membership: memberdata.Membership, waiver_docs: list[docs.MemberWaiver]) -> None:
     print("Reviewing member waiver documents")
@@ -218,18 +241,42 @@ def review_member_waiver_docs(membership: memberdata.Membership, waiver_docs: li
                 print(f"Error: signatures from different accounts {signature.name}")
 
 
-def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
+def review_member_attest_docs(membership: memberdata.Membership, attest_docs: list[docs.Attestation]) -> None:
+    print("Reviewing member attestation documents")
+    for attest_doc in attest_docs:
+        if len(attest_doc.adults) < 1:
+            print(f"Warning: missing a signatory in {attest_doc.web_view_link}")
+        else:
+            adult = attest_doc.adults[0]
+            member = membership.get_one_member_by_fullname(adult.name, False)
+            if member is None and not attest_doc.is_reviewed():
+                print(f"Warning: No member found for signature {adult.name} in {attest_doc.web_view_link}")
+
+
+def review_and_update_waivers(membership: memberdata.Membership,
+                              waiver_groups: waiverrec.MemberWaiverGroups,
+                              waiver_docs: list[docs.MemberWaiver],
+                              attest_docs: list[docs.Attestation]) -> None:
+    """
+    Review all of the attestation and waiver documents - check for inconsistencies / errors.
+    Update minor complete status reflecting if all minors are covered
+    """
+    review_member_waiver_docs(membership, waiver_docs)
+    review_member_attest_docs(membership, attest_docs)
+    update_waivers_complete(membership, waiver_groups, waiver_docs, attest_docs)
+
+
+def update_waiver_status(waiver_groups: waiverrec.memberwaivergroups,
+                         member_waivers: list[docs.memberwaiver],
+                         attestations: list[docs.attestation]) -> None:
+    """
+    Determine and update the status for each desired waiver.
+    Use the member waivers and attestations to update the status of each
+    desired waiver.
+    """
     print("Note: updating waiver records status")
-    if membership is None:
-        membership = memberdata.Membership()
-        membership.read_csv_files()
 
-    attestations = docs.Attestation.read_csv()
-    member_waivers = docs.MemberWaiver.read_csv()
-    waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
-
-    update_waiver_complete(membership, waiver_groups, member_waivers)
-    review_member_waiver_docs(membership, member_waivers)
+    # TODO: fix this
     waiver_doc_map = docs.MemberWaiver.create_doc_map(member_waivers)
     # Also add lower case - TODO: remove this, fix in create doc map
     attest_doc_map = docs.Attestation.create_doc_map(attestations)
@@ -276,28 +323,22 @@ def update_waiver_status(membership: memberdata.Membership|None = None) -> None:
                 family_record.signed = True
                 family_record.web_link = attest_doc.web_view_link
 
+def generate_member_records(membership: memberdata.membership,
+                            waiver_groups: waiverrec.memberwaivergroups,
+                            member_keys: dict[str, keys.KeyEntry]) -> None:
     member_records: list[waiverrec.MemberRecord] = []
-    member_keys = keys.gen_member_key_map(membership)
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
     print("Note: writing member records CSV")
     waiverrec.MemberRecord.write_csv(member_records, waiverrec.MemberRecord.member_csv)
 
-    print("Note: writing all waiver groups CSV")
-    waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
+    
+def report_waiver_stats(membership: memberdata.Membership,
+                        waiver_groups: waiverrec.MemberWaiverGroups,
+                        member_waivers: list[docs.MemberWaiver],
+                        attestations: list[docs.Attestation],
+                        member_keys: dict[str, keys.KeyEntry]) -> None:
 
-    print("Note: writing member waivers")
-    docs.MemberWaiver.write_csv(member_waivers)
-    gen_waivered_member_list(membership, waiver_groups, attestations, member_waivers)
-
-
-def report_waiver_stats() -> None:
-    membership = memberdata.Membership()
-    membership.read_csv_files()
-
-    member_waivers = docs.MemberWaiver.read_csv()
-    waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
-    member_keys = keys.gen_member_key_map(membership)
-    waivered_members = WaiveredMember.read_csv(membership)
+    waivered_members = gen_waivered_member_list(membership, waiver_groups, attestations, member_waivers)
 
     waivered_adult_count: int = 0
     unwaivered_adult_count: int = 0
@@ -325,7 +366,6 @@ def report_waiver_stats() -> None:
             waivered_minors += 1
         else:
             waivered_adults += 1
-
 
     # Count varius records
     for adult_record in waiver_groups.no_minor_children:
@@ -378,13 +418,24 @@ def report_waiver_stats() -> None:
 
 
 def main() -> None:
-    if len(sys.argv) == 2 and sys.argv[1].lower() == "update":
-        update_waiver_status()
-    elif len(sys.argv) > 1:
-        print("Usage: {sys.argv[0]} [ update ]")
-        sys.exit(-1)
+    print("Usage: {sys.argv[0]} [ update ]")
 
-    report_waiver_stats()
+    membership = memberdata.Membership()
+    membership.read_csv_files()
+    waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
+    attestations = docs.Attestation.read_csv()
+    member_waivers = docs.MemberWaiver.read_csv()
+    member_keys = keys.gen_member_key_map(membership)
+
+    review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
+    update_waiver_status(waiver_groups, member_waivers, attestations)
+    report_waiver_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
+    generate_member_records(membership, waiver_groups, member_keys)
+
+    waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
+    docs.MemberWaiver.write_csv(member_waivers)
+    docs.Attestation.write_csv(attestations)
+
 
 if __name__ == "__main__":
     main()
