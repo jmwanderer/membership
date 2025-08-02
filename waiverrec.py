@@ -290,11 +290,12 @@ class MemberRecord:
 
     def __init__(self) -> None: 
         self.adults: list[MemberEntry] = []
+        self.signatures: list[bool] = [False, False].copy()
         self.minors: list[MemberEntry] = []
         self.signed: bool = False
         self.has_key: bool = False
         self.key_enabled: bool = False
-        self.web_link: str = ""
+        self.web_links: list[str] = ["", ""].copy()
 
     def rank(self) -> int:
         """
@@ -325,20 +326,25 @@ class MemberRecord:
                 return 6
             
     FIELD_NAME1 ="name1"
+    FIELD_SIGNATURE1 = "signed1"
+    FIELD_WEB_LINK1 = "web_link1"
     FIELD_NAME2 ="name2"
+    FIELD_SIGNATURE2 = "signed2"
+    FIELD_WEB_LINK2 = "web_link2"
+
     FIELD_MINOR1 = "minor1"
     FIELD_MINOR2 = "minor2"
     FIELD_MINOR3 = "minor3"
     FIELD_MINOR4 = "minor4"
     FIELD_MINOR5 = "minor5"
 
-    FIELD_WEB_LINK = "web_link"
     FIELD_HAS_KEY = "has_key"
     FIELD_KEY_ENABLED = "key_enabled"
 
     HEADER =[ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED, FIELD_HAS_KEY, FIELD_KEY_ENABLED,
-           FIELD_NAME1, FIELD_NAME2, FIELD_MINOR1, FIELD_MINOR2,
-           FIELD_MINOR3, FIELD_MINOR4,  FIELD_MINOR5, FIELD_WEB_LINK ]
+           FIELD_NAME1, FIELD_SIGNATURE1, FIELD_NAME2, FIELD_SIGNATURE2,
+           FIELD_MINOR1, FIELD_MINOR2,
+           FIELD_MINOR3, FIELD_MINOR4,  FIELD_MINOR5, FIELD_WEB_LINK1, FIELD_WEB_LINK2 ]
 
     @staticmethod
     def get_header() -> list[str]:
@@ -354,12 +360,18 @@ class MemberRecord:
         row[csvfile.SIGNED] = "signed" if self.signed else ""
         row[MemberRecord.FIELD_HAS_KEY] = "has key" if self.has_key else ""
         row[MemberRecord.FIELD_KEY_ENABLED] = "enabled" if self.key_enabled else ""
+
         row[MemberRecord.FIELD_NAME1] = self.adults[0].name.fullname()
+        row[MemberRecord.FIELD_SIGNATURE1] = "signed" if self.signatures[0] else ""
+        row[MemberRecord.FIELD_WEB_LINK1] = self.web_links[0]
+
         if len(self.adults) > 1:
             row[MemberRecord.FIELD_NAME2] = self.adults[1].name.fullname()
+            row[MemberRecord.FIELD_SIGNATURE2] = "signed" if self.signatures[1] else ""
+            row[MemberRecord.FIELD_WEB_LINK2] = self.web_links[1]
+
         for i, minor in enumerate(self.minors):
-            row[MemberRecord.HEADER[i + 7]] = minor.name.fullname()
-        row[MemberRecord.FIELD_WEB_LINK] = self.web_link
+            row[MemberRecord.HEADER[i + 9]] = minor.name.fullname()
         return row
 
     def get_account_num(self) -> str:
@@ -411,8 +423,9 @@ class MemberRecord:
         for adult_record in groups.no_minor_children:
             member_record = MemberRecord()
             member_record.adults.append(adult_record.member)
-            member_record.web_link = adult_record.web_link
+            member_record.web_links[0] = adult_record.web_link
             member_record.signed = adult_record.signed
+            member_record.signatures[0] = adult_record.signed
             for member_id in member_record.get_member_ids():
                 if member_id in member_keys:
                     member_record.has_key = True
@@ -424,8 +437,9 @@ class MemberRecord:
             member_record.adults = family_record.adults.copy()
             member_record.minors = family_record.minors.copy()
             member_record.signed = family_record.signed
-            if len(family_record.web_links) > 0:
-                member_record.web_link = family_record.web_links[0]
+            member_record.signatures = family_record.signatures.copy()
+            member_record.web_links = family_record.web_links.copy()
+
             for member_id in member_record.get_member_ids():
                 if member_id in member_keys:
                     member_record.has_key = True

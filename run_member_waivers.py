@@ -41,6 +41,8 @@ def main(command: str):
     if command == "generate" or command == "all":
         print("Generate required waivers list")
         waiver_groups = gen_waiver_groups.generate_groups(membership)
+    else:
+        waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
 
     # Read latest attestations and member waivers
     attestations = docs.Attestation.read_csv()
