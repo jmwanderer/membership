@@ -111,15 +111,15 @@ def main() -> None:
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     if parsed_count > 0:
         docs.MemberWaiver.write_csv(waivers)
-
+        print(f"Upload member_records to Google Drive in '{remote_folder_name}'")
+        remote_folder_name = "2025 Member Waivers"
+        upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
   
 def upload_member_waiver_records():
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
     remote_folder_name = "2025"
     upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
-    remote_folder_name = "2025 Member Waivers"
-    upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
 
 if __name__ == "__main__":
     main()

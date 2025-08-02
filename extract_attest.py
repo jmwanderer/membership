@@ -90,12 +90,9 @@ def main() -> None:
     if parsed_count > 0:
         docs.Attestation.write_csv(attestations)
         print(f"Wrote output: {docs.attestations_csv_filename}")
-
-def upload_attestations():
-    gdrive.login()
-    drive = build("drive", "v3", credentials=gdrive.creds)
-    remote_folder_name = "2025"
-    upload_attestation_csv_file(drive, docs.attestatons_csv_filename, remote_folder_name, "attestations.csv")
+        print(f"Update attestations.csv to Google Drive in '{remote_folder_name}")
+        remote_folder_name = "2025"
+        upload_attestation_csv_file(drive, docs.attestatons_csv_filename, remote_folder_name, "attestations.csv")
  
 
 if __name__ == "__main__":
