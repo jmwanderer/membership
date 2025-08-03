@@ -229,6 +229,46 @@ def update_waiver_record_status(waiver_groups: waiverrec.memberwaivergroups,
 
         family_record.signed = all_signed
 
+def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
+                                   member_keys: dict[str, keys.KeyEntry]) -> None:
+    ACCOUNT_NUM = csvfile.ACCOUNT_NUM
+    MEMBER_ID = csvfile.MEMBER_ID
+    FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
+    FIELD_NAME = waiverrec.AdultRecord.FIELD_NAME
+    FIELD_EMAIL = waiverrec.AdultRecord.FIELD_EMAIL
+
+    HEADER = [ ACCOUNT_NUM, MEMBER_ID,
+              FIELD_KEY,
+              FIELD_NAME, FIELD_EMAIL ]
+
+    rows: list[dict[str,str]] = []
+
+    for record in adult_records:
+        # Check if anyone has a key
+        has_key = record.member.member_id in member_keys
+        if not record.signed:
+            # Create a row
+            row = { ACCOUNT_NUM: record.member.account_num,
+                MEMBER_ID: record.member.member_id,
+                FIELD_KEY: has_key,
+                FIELD_NAME: record.member.name.fullname(),
+                FIELD_EMAIL: record.member.email
+               }
+            rows.append(row)
+
+    csv_file = "output/single_signer_request.csv" 
+    if not csvfile.backup_file(csv_file):
+        return
+
+    print(f"Note: write {csv_file}")
+    with open(csv_file, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=HEADER)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        f.close()
+
+
 def generate_single_signer_family_request(family_records: list[waiverrec.FamilyRecord],
                                           member_keys: dict[str, keys.KeyEntry]) -> None:
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM

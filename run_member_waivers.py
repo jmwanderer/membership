@@ -63,6 +63,7 @@ def main(command: str):
     # Generate and save member records
     if command == "records"  or command == "all":
         waiver_calcs.generate_single_signer_family_request(waiver_groups.with_minor_children, member_keys)
+        waiver_calcs.generate_single_signer_request(waiver_groups.no_minor_children, member_keys)
         waiver_calcs.generate_member_records(waiver_groups, member_keys)
         upload_member_waiver_records()
 
