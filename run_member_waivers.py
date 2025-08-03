@@ -60,9 +60,9 @@ def main(command: str):
         waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
         waiver_calcs.report_waiver_record_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
 
-
     # Generate and save member records
     if command == "records"  or command == "all":
+        waiver_calcs.generate_single_signer_family_request(waiver_groups.with_minor_children, member_keys)
         waiver_calcs.generate_member_records(waiver_groups, member_keys)
         upload_member_waiver_records()
 

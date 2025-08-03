@@ -229,6 +229,65 @@ def update_waiver_record_status(waiver_groups: waiverrec.memberwaivergroups,
 
         family_record.signed = all_signed
 
+def generate_single_signer_family_request(family_records: list[waiverrec.FamilyRecord],
+                                          member_keys: dict[str, keys.KeyEntry]) -> None:
+    ACCOUNT_NUM = csvfile.ACCOUNT_NUM
+    MEMBER_ID = csvfile.MEMBER_ID
+    FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
+    FIELD_NAME = waiverrec.AdultRecord.FIELD_NAME
+    FIELD_EMAIL = waiverrec.AdultRecord.FIELD_EMAIL
+    FIELD_MINOR1 = waiverrec.FamilyRecord.FIELD_MINOR1
+    FIELD_MINOR2 = waiverrec.FamilyRecord.FIELD_MINOR2
+    FIELD_MINOR3 = waiverrec.FamilyRecord.FIELD_MINOR3
+    FIELD_MINOR4 = waiverrec.FamilyRecord.FIELD_MINOR4
+    FIELD_MINOR5 = waiverrec.FamilyRecord.FIELD_MINOR5
+
+    HEADER = [ ACCOUNT_NUM, MEMBER_ID,
+              FIELD_KEY,
+              FIELD_NAME, FIELD_EMAIL,
+              FIELD_MINOR1, 
+              FIELD_MINOR2, 
+              FIELD_MINOR3, 
+              FIELD_MINOR4, 
+              FIELD_MINOR5 ]
+
+    rows: list[dict[str,str]] = []
+
+    for record in family_records:
+        # Check if anyone has a key
+        has_key = False
+        for adult in record.adults:
+            if adult.member_id in member_keys:
+                has_key = True
+        for minor in record.minors:
+            if minor.member_id in member_keys:
+                has_key = True
+
+        for index, adult in enumerate(record.adults):
+            if not record.signatures[index]:
+                # Create a row
+                row = { ACCOUNT_NUM: adult.account_num,
+                        MEMBER_ID: adult.member_id,
+                        FIELD_KEY: has_key,
+                        FIELD_NAME: adult.name,
+                        FIELD_EMAIL: adult.email
+                       }
+                for minor_index, minor in enumerate(record.minors):
+                    row[HEADER[minor_index + 4]] = minor.name
+                rows.append(row)
+
+    csv_file = "output/single_signer_family_request.csv" 
+    if not csvfile.backup_file(csv_file):
+        return
+
+    print(f"Note: write {csv_file}")
+    with open(csv_file, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=HEADER)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        f.close()
+
 
 def generate_member_records(waiver_groups: waiverrec.memberwaivergroups,
                             member_keys: dict[str, keys.KeyEntry]) -> None:
