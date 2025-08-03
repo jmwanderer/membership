@@ -83,12 +83,11 @@ def select_parents(
     return possible_parents
 
 
-def generate_groups(membership: memberdata.Membership) -> MemberWaiverGroups:
+def generate_groups(membership: memberdata.Membership, member_keys) -> MemberWaiverGroups:
     """
     Generate groups of waiver requests
     """
     groups = MemberWaiverGroups()
-    member_keys = keys.gen_member_key_map(membership)
 
     # Iterate through accounts
     for account in membership.active_member_accounts():
@@ -171,7 +170,8 @@ def main():
     membership.read_csv_files()
 
     # Create new groups
-    groups = generate_groups(membership)
+    member_keys = keys.gen_member_key_map(membership)
+    groups = generate_groups(membership, member_keys)
     groups.write_csv_files()
 
 

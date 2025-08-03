@@ -2,8 +2,6 @@ Data:
 - fix attestaton warnings
 
 Code:
-- gen request format (sig request)
-- report multi-sig / multi-doc in member records
 
 Needed Features:
 - upload parents file to gdrive to save info

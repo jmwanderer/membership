@@ -40,7 +40,7 @@ def main(command: str):
     # Create new groups
     if command == "generate" or command == "all":
         print("Generate required waivers list")
-        waiver_groups = gen_waiver_groups.generate_groups(membership)
+        waiver_groups = gen_waiver_groups.generate_groups(membership, member_keys)
     else:
         waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
 

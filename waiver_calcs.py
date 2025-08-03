@@ -269,11 +269,11 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
                 row = { ACCOUNT_NUM: adult.account_num,
                         MEMBER_ID: adult.member_id,
                         FIELD_KEY: has_key,
-                        FIELD_NAME: adult.name,
+                        FIELD_NAME: adult.name.fullname(),
                         FIELD_EMAIL: adult.email
                        }
                 for minor_index, minor in enumerate(record.minors):
-                    row[HEADER[minor_index + 4]] = minor.name
+                    row[HEADER[minor_index + 5]] = minor.name.fullname()
                 rows.append(row)
 
     csv_file = "output/single_signer_family_request.csv" 
@@ -374,8 +374,8 @@ def report_waiver_record_stats(membership: memberdata.Membership,
     print()
     print("Stats - Progress")
     print(f"Unwaivered Adults without minors: {unwaivered_adult_count}")
-    print(f"Unwaiverd Adults without minors with keys: {unwaivered_adult_with_keys_count}")
-    print(f"Unwaiverd Adults without minors with enabled keys: {unwaivered_adult_with_enabled_keys_count}")
+    print(f"Unwaivered Adults without minors with keys: {unwaivered_adult_with_keys_count}")
+    print(f"Unwaiverde Adults without minors with enabled keys: {unwaivered_adult_with_enabled_keys_count}")
     print()
     print(f"Waivered Families: {waivered_family_members} members in {waivered_family_count} families")
     print(f"Unwaivered Families: {unwaivered_family_members} members in {unwaivered_family_count} families, {unwaivered_family_with_keys_count} with keys")
