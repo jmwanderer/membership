@@ -415,7 +415,7 @@ def report_waiver_record_stats(membership: memberdata.Membership,
     print("Stats - Progress")
     print(f"Unwaivered Adults without minors: {unwaivered_adult_count}")
     print(f"Unwaivered Adults without minors with keys: {unwaivered_adult_with_keys_count}")
-    print(f"Unwaiverde Adults without minors with enabled keys: {unwaivered_adult_with_enabled_keys_count}")
+    print(f"Unwaivered Adults without minors with enabled keys: {unwaivered_adult_with_enabled_keys_count}")
     print()
     print(f"Waivered Families: {waivered_family_members} members in {waivered_family_count} families")
     print(f"Unwaivered Families: {unwaivered_family_members} members in {unwaivered_family_count} families, {unwaivered_family_with_keys_count} with keys")
