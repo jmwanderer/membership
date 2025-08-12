@@ -42,12 +42,12 @@ for key_entry in keys.read_key_entries():
             )
 
     valid = False
-    if key_entry.member_name not in membership.member_names():
+    member_entries = membership.find_members_by_name(key_entry.member_name)
+    if len(member_entries) < 1:
         print(
             f"Error: Key with invalid member name {key_entry.member_name} acct# {key_entry.account_num}"
         )
     else:
-        member_entries = membership.get_members_by_name(key_entry.member_name)
         for member_entry in member_entries:
             # Find a matching member entry with the same account number
             valid = valid or member_entry.account_num == key_entry.account_num

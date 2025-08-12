@@ -6,6 +6,7 @@ import csv
 import os
 import datetime
 import sys
+import re
 from dataclasses import dataclass, field
 from collections.abc import Iterator
 
@@ -28,6 +29,18 @@ class MemberName:
 
     def fullname(self):
         return f"{self.first_name} {self.last_name}"
+
+    def allnames(self) -> list[str]:
+        """
+        Return a list of fullnames by which the member may be referred
+        """
+        names = [ self.fullname() ]
+        m = re.match(r"(.+)\s*\((.+)\)", self.first_name)
+        if m is not None:
+            names.append(f"{m.group(1).strip()} {self.last_name}")
+            names.append(f"{m.group(2).strip()} {self.last_name}")
+        return names
+        
 
     def __eq__(self, other):
         return self.first_name == other.first_name and self.last_name == other.last_name
@@ -157,6 +170,11 @@ class Membership:
         result = list(self.member_map.keys())
         return result
 
+    def all_member_names(self) -> list[MemberName]:
+        result: list[MemberName]
+        return list(self.member_name_map.keys())
+        
+
     def account_nums(self) -> list[str]:
         result: list[str]
         result = list(self.account_map.keys())
@@ -188,11 +206,18 @@ class Membership:
                 result.extend(members)
         if len(result) > 0:
             return result
+
         for name, members in self.member_map.items():
             if member_name.first_name.startswith(
                 name.first_name
             ) and member_name.last_name.startswith(name.last_name):
                 result.extend(members)
+        if len(result) > 0:
+            return result
+
+        for nick_name in member_name.allnames():
+            if nick_name.lower() in self.member_name_map:
+                return self.member_name_map[nick_name.lower()]
         return result
 
     def get_members_by_fullname(self, member_name: str) -> list[MemberEntry]:
@@ -328,9 +353,12 @@ class Membership:
                 )
                 if name not in self.member_map:
                     self.member_map[name] = []
-                    self.member_name_map[name.fullname().lower()] = []
                 self.member_map[name].append(member)
-                self.member_name_map[name.fullname().lower()].append(member)
+
+                for nick_name in name.allnames():
+                    if nick_name.lower() not in self.member_name_map:
+                        self.member_name_map[nick_name.lower()] = []
+                    self.member_name_map[nick_name.lower()].append(member)
 
                 # Birthday stuff
                 # if member.hasBirthdate():
