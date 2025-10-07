@@ -1,11 +1,13 @@
-Data:
-- fix attestaton warnings
 
 Code:
+- Add ability to run on either 2025 or 2026
+- Add report for waiver status by account
+- Add generation and use of families.csv - parents and minor children
+  * update function when new minors found, children are no longer minors
+- Move more data files onto GDrive
 
 Needed Features:
 - upload parents file to gdrive to save info
-
 
 Resources:
  - https://devnodes.in/blog/web/python-export-google-sheet-to-csv/. 
