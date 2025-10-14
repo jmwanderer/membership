@@ -22,12 +22,12 @@ def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
     files = gdrive.get_file_list(drive, folder_src_name)
     for file in files:
         name: str = file['name']
-        if name.endswith('pdf') and "Guest" in name:
+        if name.endswith('pdf') and "Guest" and docs.YEAR in name:
             print(f"move file {name}")
             gdrive.move_file(drive, file['id'], folder_dst_id)
 
 def upload_guest_waiver_list(drive, local_file_name):
-    remote_folder_name = "2025"
+    remote_folder_name = docs.YEAR
     remote_file_name = "guest_waivers.csv"
 
     remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
@@ -46,7 +46,7 @@ def main() -> None:
     waivers = docs.GuestWaiver.read_csv()
 
     folder_src_name = "Requested signatures"
-    folder_name = "2025 Guest Waivers"
+    folder_name = f"{docs.YEAR} Guest Waivers"
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
     move_new_signed_docs(drive, folder_src_name, folder_name)

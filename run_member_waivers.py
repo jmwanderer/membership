@@ -20,7 +20,7 @@ upload: bool = True
 def upload_member_waiver_records():
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
-    remote_folder_name = "2025"
+    remote_folder_name = docs.YEAR
     if upload:
         extract_members.upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
     else:

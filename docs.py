@@ -12,12 +12,15 @@ All saved as a row in CSV files.
 
 from __future__ import annotations
 from dataclasses import dataclass
+from dotenv import load_dotenv
 import datetime
 import csv
 import os
 
 import csvfile
 
+load_dotenv()
+YEAR = os.getenv('YEAR', default="2025")
 
 @dataclass
 class Signature:
