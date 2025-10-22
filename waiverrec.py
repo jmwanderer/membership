@@ -20,17 +20,21 @@ class AdultRecord:
     def __init__(self, member: MemberEntry):
         self.member = member
         self.key_address = ""
+        self.has_key = False
+        self.key_enabled = False
         self.signed = False
         self.web_link: str = ""
 
     FIELD_NAME = "name"
     FIELD_EMAIL = "email_address"
     FIELD_KEY_EMAIL = "key_email"
+    FIELD_HAS_KEY = "has_key"
+    FIELD_KEY_ENABLED = "key_enabled"
     FIELD_WEB_LINK = "web_link"
 
     @staticmethod
     def get_header() -> list[str]:
-        return [ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED,
+        return [ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED, AdultRecord.FIELD_HAS_KEY, AdultRecord.FIELD_KEY_ENABLED,
                 AdultRecord.FIELD_NAME, AdultRecord.FIELD_EMAIL, AdultRecord.FIELD_KEY_EMAIL, AdultRecord.FIELD_WEB_LINK]
 
     def get_row(self):
@@ -38,6 +42,8 @@ class AdultRecord:
         row[csvfile.ACCOUNT_NUM] = self.member.account_num
         row[csvfile.MEMBER_ID] = self.member.member_id
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
+        row[AdultRecord.FIELD_HAS_KEY] = csvfile.bool_str(self.has_key)
+        row[AdultRecord.FIELD_KEY_ENABLED] = csvfile.bool_str(self.key_enabled)
         row[AdultRecord.FIELD_NAME] = self.member.name.fullname()
         row[AdultRecord.FIELD_EMAIL] = self.member.email
         row[AdultRecord.FIELD_KEY_EMAIL] = self.key_address
@@ -54,6 +60,8 @@ class AdultRecord:
             return None
         record = AdultRecord(member_entry)
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
+        record.has_key = csvfile.is_true_value(row[AdultRecord.FIELD_HAS_KEY])
+        record.key_enabled = csvfile.is_true_value(row[AdultRecord.FIELD_KEY_ENABLED])
         record.key_address = row[AdultRecord.FIELD_KEY_EMAIL]
         record.web_link = row[AdultRecord.FIELD_WEB_LINK]
         return record

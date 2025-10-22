@@ -115,7 +115,9 @@ def generate_groups(membership: memberdata.Membership, member_keys) -> MemberWai
                 continue
             record = AdultRecord(member)
             if member.member_id in member_keys:
+                record.has_key = True
                 record.key_address = member_keys[member.member_id].member_email
+                record.key_enabled = member_keys[member.member_id].enabled
             groups.no_minor_children.append(record)
 
         # If this account has no minor aged children, we are done with it

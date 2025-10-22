@@ -55,6 +55,12 @@ def is_true_value(field_val: str) -> bool:
     field_val = field_val.strip()
     return len(field_val) > 0 and (field_val.lower()[0] == 't' or field_val.lower()[0] == 'y')
 
+def bool_str(value: bool) -> str:
+    if value:
+        return "yes"
+    else:
+        return ""
+
 ACCOUNT_NUM = "Account#"
 MEMBER_ID = "Member#"
 SIGNED = "signed"

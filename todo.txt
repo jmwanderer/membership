@@ -1,3 +1,4 @@
+- Load events and report last visit, # times used
 
 Code:
 - Add ability to run on either 2025 or 2026
