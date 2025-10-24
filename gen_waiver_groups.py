@@ -83,7 +83,7 @@ def select_parents(
     return possible_parents
 
 
-def generate_groups(membership: memberdata.Membership, member_keys) -> MemberWaiverGroups:
+def generate_groups(membership: memberdata.Membership, member_keys: keys.MemberKeys) -> MemberWaiverGroups:
     """
     Generate groups of waiver requests
     """
@@ -114,10 +114,10 @@ def generate_groups(membership: memberdata.Membership, member_keys) -> MemberWai
             if member.is_minor() or member in possible_parents:
                 continue
             record = AdultRecord(member)
-            if member.member_id in member_keys:
+            if member_keys.has_key(member.member_id):
                 record.has_key = True
-                record.key_address = member_keys[member.member_id].member_email
-                record.key_enabled = member_keys[member.member_id].enabled
+                record.key_address = member_keys.member_key_map[member.member_id].member_email
+                record.key_enabled = member_keys.has_enabled_key(member.member_id)
             groups.no_minor_children.append(record)
 
         # If this account has no minor aged children, we are done with it
@@ -154,10 +154,13 @@ def generate_groups(membership: memberdata.Membership, member_keys) -> MemberWai
 
         family = FamilyRecord()
         for member in parents:
+            print(f"*{member.member_id}")
             family.adults.append(member)
+            family.key_enabled = family.key_enabled or member_keys.has_enabled_key(member.member_id)
         for member in members:
             if member.is_minor():
                 family.minors.append(member)
+                family.key_enabled = family.key_enabled or member_keys.has_enabled_key(member.member_id)
 
         if known_parents:
             groups.with_minor_children.append(family)
@@ -172,7 +175,8 @@ def main():
     membership.read_csv_files()
 
     # Create new groups
-    member_keys = keys.gen_member_key_map(membership)
+    member_keys = keys.MemberKeys()
+    member_keys.load_keys(membership)
     groups = generate_groups(membership, member_keys)
     groups.write_csv_files()
 

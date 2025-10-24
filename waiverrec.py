@@ -112,7 +112,9 @@ class FamilyRecord:
         self.web_links: list[str] = ["", ""].copy()
         self.minors: list[MemberEntry] = []
         self.signed: bool = False
+        self.key_enabled: bool = False
 
+    FIELD_KEY_ENABLED = "key_enabled"
     FIELD_NAME1 ="name1"
     FIELD_EMAIL1 = "email_address1"
     FIELD_SIGNATURE1 = "name1_signed"
@@ -131,6 +133,7 @@ class FamilyRecord:
 
 
     HEADER = [ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED,
+              FIELD_KEY_ENABLED,
               FIELD_NAME1, FIELD_EMAIL1, FIELD_SIGNATURE1,
               FIELD_NAME2, FIELD_EMAIL2, FIELD_SIGNATURE2,
               FIELD_MINOR1 ,FIELD_MINOR2,
@@ -149,22 +152,23 @@ class FamilyRecord:
         row[csvfile.ACCOUNT_NUM] = self.adults[0].account_num
         row[csvfile.MEMBER_ID] = self.adults[0].member_id
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
+        row[FamilyRecord.FIELD_KEY_ENABLED] = csvfile.bool_str(self.key_enabled)
 
         member = self.adults[0]
-        row[FamilyRecord.HEADER[3]] = member.name.fullname()
-        row[FamilyRecord.HEADER[4]] = member.email
-        row[FamilyRecord.HEADER[5]] = csvfile.signed_str(self.signatures[0])
-        row[FamilyRecord.HEADER[14]] = self.web_links[0]
+        row[FamilyRecord.FIELD_NAME1] = member.name.fullname()
+        row[FamilyRecord.FIELD_EMAIL1] = member.email
+        row[FamilyRecord.FIELD_SIGNATURE1] = csvfile.signed_str(self.signatures[0])
+        row[FamilyRecord.FIELD_WEB_LINK1] = self.web_links[0]
 
         if len(self.adults) > 1:
             member = self.adults[1]
-            row[FamilyRecord.HEADER[6]] = member.name.fullname()
-            row[FamilyRecord.HEADER[7]] = member.email
-        row[FamilyRecord.HEADER[8]] = csvfile.signed_str(self.signatures[1])
-        row[FamilyRecord.HEADER[15]] = self.web_links[1]
+            row[FamilyRecord.FIELD_NAME2] = member.name.fullname()
+            row[FamilyRecord.FIELD_EMAIL2] = member.email
+        row[FamilyRecord.FIELD_SIGNATURE2] = csvfile.signed_str(self.signatures[1])
+        row[FamilyRecord.FIELD_WEB_LINK2] = self.web_links[1]
 
         for i, minor in enumerate(self.minors):
-            row[FamilyRecord.HEADER[i + 9]] = minor.name.fullname()
+            row[FamilyRecord.HEADER[i + 10]] = minor.name.fullname()
         return row
 
     @staticmethod
@@ -179,7 +183,8 @@ class FamilyRecord:
 
         record = FamilyRecord()
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
- 
+        record.key_enabled = csvfile.is_true_value(row[FamilyRecord.FIELD_KEY_ENABLED])
+
         # Populate adult 1 plus signature status and web link
         record.adults.append(member_entry)
         record.signatures[0] = csvfile.is_signed(row[FamilyRecord.FIELD_SIGNATURE1])
@@ -197,7 +202,7 @@ class FamilyRecord:
         record.web_links[1] = row[FamilyRecord.FIELD_WEB_LINK2]
 
         # Populate minors
-        for index in range(9, 14):
+        for index in range(10, 15):
             name = row[FamilyRecord.HEADER[index]]
             if len(name.strip()) > 0:
                 member_entry = membership.get_one_member_by_fullname(name, True)

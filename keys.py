@@ -23,6 +23,20 @@ class KeyEntry:
     member_email: str
     enabled: bool
 
+class MemberKeys:
+    """Set of keys held by members"""
+    def __init__(self):
+        self.member_key_map: dict[str, KeyEntry] = {}
+
+    def load_keys(self, membership: memberdata.Membership):
+        self.member_key_map = gen_member_key_map(membership)
+
+    def has_key(self, member_id: str) -> bool:
+        return member_id in self.member_key_map
+    
+    def has_enabled_key(self, member_id: str) -> bool:
+        return self.has_key(member_id) and self.member_key_map[member_id].enabled
+
 
 def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
     """
@@ -84,11 +98,17 @@ def gen_member_key_map(membership: memberdata.Membership) -> dict[str, KeyEntry]
     return member_key_map
 
 
+
+
 def simple_test():
     membership = memberdata.Membership()
     membership.read_csv_files()
 
-    member_keys = gen_member_key_map(membership)
+    key_map = gen_member_key_map(membership)
+
+    member_keys = MemberKeys()
+    member_keys.load_keys(membership)
+    member_keys.has_enabled_key("0")
 
 
 if __name__ == "__main__":

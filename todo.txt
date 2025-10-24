@@ -1,7 +1,10 @@
 - Load events and report last visit, # times used
+- 2025 waivers should take into account 2026
+- break into two steps
+  - process waiver PDFs
+  - updat waiver status 
 
 Code:
-- Add ability to run on either 2025 or 2026
 - Add report for waiver status by account
 - Add generation and use of families.csv - parents and minor children
   * update function when new minors found, children are no longer minors

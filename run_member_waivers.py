@@ -15,7 +15,7 @@ import gen_waiver_groups
 import waiverrec
 import waiver_calcs
 
-upload: bool = True
+upload: bool = False
 
 def upload_member_waiver_records():
     gdrive.login()
@@ -29,7 +29,8 @@ def upload_member_waiver_records():
 def main(command: str):
     membership = memberdata.Membership()
     membership.read_csv_files()
-    member_keys = keys.gen_member_key_map(membership)
+    member_keys = keys.MemberKeys()
+    member_keys.load_keys(membership)
 
     # Get new waiver files
     if command == "extract" or command == "all":
@@ -58,13 +59,13 @@ def main(command: str):
     if command == "update" or command == "all":
         waiver_calcs.update_waiver_record_status(waiver_groups, member_waivers, attestations)
         waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
-        waiver_calcs.report_waiver_record_stats(membership, waiver_groups, member_waivers, attestations, member_keys)
+        waiver_calcs.report_waiver_record_stats(membership, waiver_groups, member_waivers, attestations, member_keys.member_key_map)
 
     # Generate and save member records
     if command == "records"  or command == "all":
-        waiver_calcs.generate_single_signer_family_request(waiver_groups.with_minor_children, member_keys)
-        waiver_calcs.generate_single_signer_request(waiver_groups.no_minor_children, member_keys)
-        waiver_calcs.generate_member_records(waiver_groups, member_keys)
+        waiver_calcs.generate_single_signer_family_request(waiver_groups.with_minor_children, member_keys.member_key_map)
+        waiver_calcs.generate_single_signer_request(waiver_groups.no_minor_children, member_keys.member_key_map)
+        waiver_calcs.generate_member_records(waiver_groups, member_keys.member_key_map)
         upload_member_waiver_records()
 
 
