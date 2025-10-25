@@ -30,7 +30,8 @@ def check_waiver(membership: memberdata.Membership,
     account = membership.get_account_by_fullname(name)
 
     if account is None:
-        print(f"Warning: no account for name '{name}'")
+        if not waiver.reviewed:
+            print(f"Warning: no account for name in waiver'{name}'")
         return False
 
     family_record = groups.find_family_record(name)
@@ -53,7 +54,8 @@ def check_attestation(membership: memberdata.Membership,
     account = membership.get_account_by_fullname(name)
 
     if account is None:
-        print(f"Warning: no account for name '{name}'")
+        if not attest.reviewed:
+            print(f"Warning: no account for name in attest'{name}'")
         return False
 
     family_record = groups.find_family_record(name)
@@ -88,7 +90,7 @@ def review_member_waiver_docs(membership: memberdata.Membership, waiver_docs: li
             member = membership.get_one_member_by_fullname(signature.name, False)
             if member is None:
                 if not waiver_doc.is_reviewed():
-                    print(f"Warning: No member found for signature {signature.name} in {waiver_doc.web_view_link}")
+                    print(f"Warning: No member found for waiver signature {signature.name} in {waiver_doc.web_view_link}")
                 continue
             if account_num == '':
                 account_num = member.account_num 
@@ -105,7 +107,7 @@ def review_member_attest_docs(membership: memberdata.Membership, attest_docs: li
             adult = attest_doc.adults[0]
             member = membership.get_one_member_by_fullname(adult.name, False)
             if member is None and not attest_doc.is_reviewed():
-                print(f"Warning: No member found for signature {adult.name} in {attest_doc.web_view_link}")
+                print(f"Warning: No member found for attest signature {adult.name} in {attest_doc.web_view_link}")
 
 
 def review_and_update_waivers(membership: memberdata.Membership,

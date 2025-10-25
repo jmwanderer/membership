@@ -15,7 +15,7 @@ import gen_waiver_groups
 import waiverrec
 import waiver_calcs
 
-upload: bool = False
+upload: bool = True
 
 def upload_member_waiver_records():
     gdrive.login()

@@ -154,7 +154,6 @@ def generate_groups(membership: memberdata.Membership, member_keys: keys.MemberK
 
         family = FamilyRecord()
         for member in parents:
-            print(f"*{member.member_id}")
             family.adults.append(member)
             family.key_enabled = family.key_enabled or member_keys.has_enabled_key(member.member_id)
         for member in members:
