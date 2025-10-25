@@ -234,11 +234,13 @@ def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
+    FIELD_KEY_ENABLED = waiverrec.MemberRecord.FIELD_KEY_ENABLED
     FIELD_NAME = waiverrec.AdultRecord.FIELD_NAME
     FIELD_EMAIL = waiverrec.AdultRecord.FIELD_EMAIL
 
     HEADER = [ ACCOUNT_NUM, MEMBER_ID,
               FIELD_KEY,
+              FIELD_KEY_ENABLED,
               FIELD_NAME, FIELD_EMAIL ]
 
     rows: list[dict[str,str]] = []
@@ -246,11 +248,13 @@ def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
     for record in adult_records:
         # Check if anyone has a key
         has_key = member_keys.has_key(record.member.member_id)
+        key_enabled = member_keys.has_enabled_key(record.member.member_id)
         if not record.signed:
             # Create a row
             row = { ACCOUNT_NUM: record.member.account_num,
                 MEMBER_ID: record.member.member_id,
                 FIELD_KEY: has_key,
+                FIELD_KEY_ENABLED: key_enabled,
                 FIELD_NAME: record.member.name.fullname(),
                 FIELD_EMAIL: record.member.email
                }
@@ -274,6 +278,7 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
+    FIELD_KEY_ENABLED = waiverrec.MemberRecord.FIELD_KEY_ENABLED
     FIELD_NAME = waiverrec.AdultRecord.FIELD_NAME
     FIELD_EMAIL = waiverrec.AdultRecord.FIELD_EMAIL
     FIELD_MINOR1 = waiverrec.FamilyRecord.FIELD_MINOR1
@@ -284,6 +289,7 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
 
     HEADER = [ ACCOUNT_NUM, MEMBER_ID,
               FIELD_KEY,
+              FIELD_KEY_ENABLED,
               FIELD_NAME, FIELD_EMAIL,
               FIELD_MINOR1, 
               FIELD_MINOR2, 
@@ -296,12 +302,14 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
     for record in family_records:
         # Check if anyone has a key
         has_key = False
+        key_enabled = False
         for adult in record.adults:
-            if member_keys.has_key(adult.member_id):
-                has_key = True
+            has_key = has_key or member_keys.has_key(adult.member_id)
+            key_enabled = key_enabled or member_keys.has_enabled_key(adult.member_id)
+
         for minor in record.minors:
-            if member_keys.has_key(minor.member_id):
-                has_key = True
+            has_key = has_key or member_keys.has_key(minor.member_id)
+            key_enabled = key_enabled or member_keys.has_enabled_key(minor.member_id)
 
         for index, adult in enumerate(record.adults):
             if not record.signatures[index]:
@@ -309,11 +317,12 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
                 row = { ACCOUNT_NUM: adult.account_num,
                         MEMBER_ID: adult.member_id,
                         FIELD_KEY: has_key,
+                        FIELD_KEY_ENABLED: key_enabled,
                         FIELD_NAME: adult.name.fullname(),
                         FIELD_EMAIL: adult.email
                        }
                 for minor_index, minor in enumerate(record.minors):
-                    row[HEADER[minor_index + 5]] = minor.name.fullname()
+                    row[HEADER[minor_index + 6]] = minor.name.fullname()
                 rows.append(row)
 
     csv_file = "output/single_signer_family_request.csv" 
