@@ -230,7 +230,7 @@ def update_waiver_record_status(waiver_groups: waiverrec.memberwaivergroups,
         family_record.signed = all_signed
 
 def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
-                                   member_keys: dict[str, keys.KeyEntry]) -> None:
+                                   member_keys: keys.MemberKeys) -> None:
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
@@ -245,7 +245,7 @@ def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
 
     for record in adult_records:
         # Check if anyone has a key
-        has_key = record.member.member_id in member_keys
+        has_key = member_keys.has_key(record.member.member_id)
         if not record.signed:
             # Create a row
             row = { ACCOUNT_NUM: record.member.account_num,
@@ -270,7 +270,7 @@ def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
 
 
 def generate_single_signer_family_request(family_records: list[waiverrec.FamilyRecord],
-                                          member_keys: dict[str, keys.KeyEntry]) -> None:
+                                          member_keys: keys.MemberKeys) -> None:
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
@@ -297,10 +297,10 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
         # Check if anyone has a key
         has_key = False
         for adult in record.adults:
-            if adult.member_id in member_keys:
+            if member_keys.has_key(adult.member_id):
                 has_key = True
         for minor in record.minors:
-            if minor.member_id in member_keys:
+            if member_keys.has_key(minor.member_id):
                 has_key = True
 
         for index, adult in enumerate(record.adults):
@@ -330,7 +330,7 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
 
 
 def generate_member_records(waiver_groups: waiverrec.memberwaivergroups,
-                            member_keys: dict[str, keys.KeyEntry]) -> None:
+                            member_keys: keys.MemberKeys) -> None:
     member_records: list[waiverrec.MemberRecord] = []
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
     print("Note: writing member records CSV")
@@ -437,7 +437,8 @@ def main() -> None:
     waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
     attestations = docs.Attestation.read_csv()
     member_waivers = docs.MemberWaiver.read_csv()
-    member_keys = keys.gen_member_key_map(membership)
+    member_keys = keys.MemberKeys()
+    member_keys.load_keys(membership)
 
     review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
     update_waiver_record_status(waiver_groups, member_waivers, attestations)

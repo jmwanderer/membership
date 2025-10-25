@@ -19,6 +19,7 @@ class AdultRecord:
     """
     def __init__(self, member: MemberEntry):
         self.member = member
+        # We probably don't need key address here
         self.key_address = ""
         self.has_key = False
         self.key_enabled = False
@@ -428,7 +429,7 @@ class MemberRecord:
     member_csv = "output/member_records.csv"
 
     @staticmethod
-    def gen_records(groups: MemberWaiverGroups, member_keys: dict[str,keys.KeyEntry]) -> list[MemberRecord]:
+    def gen_records(groups: MemberWaiverGroups, member_keys: keys.MemberKeys) -> list[MemberRecord]:
         """
         """
         member_records: list[MemberRecord] = []
@@ -439,10 +440,8 @@ class MemberRecord:
             member_record.web_links[0] = adult_record.web_link
             member_record.signed = adult_record.signed
             member_record.signatures[0] = adult_record.signed
-            for member_id in member_record.get_member_ids():
-                if member_id in member_keys:
-                    member_record.has_key = True
-                    member_record.key_enabled = member_keys[member_id].enabled
+            member_record.has_key = member_keys.has_key(adult_record.member.member_id)
+            member_record.key_enabled = member_keys.has_enabled_key(adult_record.member.member_id)
             member_records.append(member_record)
 
         for family_record in groups.with_minor_children:
@@ -454,10 +453,8 @@ class MemberRecord:
             member_record.web_links = family_record.web_links.copy()
 
             for member_id in member_record.get_member_ids():
-                if member_id in member_keys:
-                    member_record.has_key = True
-                    if member_keys[member_id].enabled:
-                        member_record.key_enabled = True
+                member_record.has_key = member_record.has_key or member_keys.has_key(member_id)
+                member_record.key_enabled = member_record.key_enabled or member_keys.has_enabled_key(member_id)
             member_records.append(member_record)
 
         for family_record in groups.unknown_status:
@@ -465,11 +462,8 @@ class MemberRecord:
             member_record.adults = family_record.adults.copy()
             member_record.minors = family_record.minors.copy()
             for member_id in member_record.get_member_ids():
-                if member_id in member_keys:
-                    member_record.has_key = True
-                    if member_keys[member_id].enabled:
-                        member_record.key_enabled = True
- 
+                member_record.has_key = member_record.has_key or member_keys.has_key(member_id)
+                member_record.key_enabled = member_record.key_enabled or member_keys.has_enabled_key(member_id)
             member_records.append(member_record)
 
         member_records.sort(key=MemberRecord.key_func)
@@ -480,7 +474,8 @@ class MemberRecord:
 def simple_test() -> None:
     membership = memberdata.Membership()
     membership.read_csv_files()
-    member_keys = keys.gen_member_key_map(membership)
+    member_keys = keys.MemberKeys()
+    member_keys.load_keys(membership)
 
     adult_records: list[AdultRecord] = []
     family_records: list[FamilyRecord] = []
@@ -498,8 +493,7 @@ def simple_test() -> None:
         else:
             for member in members:
                 adult_record = AdultRecord(member)
-                if member.member_id in member_keys:
-                    adult_record.key_address = member_keys[member.member_id].member_email
+                adult_record.key_address = member_keys.member_email(member.member_id)
                 adult_records.append(adult_record)
 
     groups = MemberWaiverGroups()

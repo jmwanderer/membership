@@ -37,6 +37,12 @@ class MemberKeys:
     def has_enabled_key(self, member_id: str) -> bool:
         return self.has_key(member_id) and self.member_key_map[member_id].enabled
 
+    def member_email(self, member_id: str) -> str:
+        key_entry = self.member_key_map.get(member_id)
+        if key_entry is not None:
+            return key_entry.member_email
+        return ""
+
 
 def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
     """

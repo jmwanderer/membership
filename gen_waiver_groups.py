@@ -116,7 +116,7 @@ def generate_groups(membership: memberdata.Membership, member_keys: keys.MemberK
             record = AdultRecord(member)
             if member_keys.has_key(member.member_id):
                 record.has_key = True
-                record.key_address = member_keys.member_key_map[member.member_id].member_email
+                record.key_address = member_keys.member_email(member.member_id)
                 record.key_enabled = member_keys.has_enabled_key(member.member_id)
             groups.no_minor_children.append(record)
 
