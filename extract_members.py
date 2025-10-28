@@ -9,12 +9,9 @@ Skips previously downloaded files
 import time
 from googleapiclient.discovery import build  # type: ignore
 
-import memberdata
 import parse_pdf
 import docs
 import gdrive
-import waiverrec
-import waiver_calcs
 
 
 def move_new_signed_docs(drive, folder_src_name, folder_dst_name) -> int:

@@ -14,17 +14,20 @@ import docs
 import gdrive
 
 
-def move_new_signed_docs(drive, folder_src_name, folder_dst_name):
+def move_new_signed_docs(drive, folder_src_name, folder_dst_name) -> int:
 
     folder_src_id = gdrive.get_folder_id(drive, folder_src_name)
     folder_dst_id = gdrive.get_folder_id(drive, folder_dst_name)
 
     files = gdrive.get_file_list(drive, folder_src_name)
+    count = 0
     for file in files:
         name: str = file['name']
         if name.endswith('pdf') and "Guest" and docs.YEAR in name:
             print(f"move file {name}")
+            count += 1
             gdrive.move_file(drive, file['id'], folder_dst_id)
+    return count
 
 def upload_guest_waiver_list(drive, local_file_name):
     remote_folder_name = docs.YEAR
@@ -36,7 +39,7 @@ def upload_guest_waiver_list(drive, local_file_name):
     gdrive.update_csv_file(drive, remote_file_id, local_file_name)
 
 
-def main() -> None:
+def main(upload: bool = False) -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
     """
@@ -49,10 +52,11 @@ def main() -> None:
     folder_name = f"{docs.YEAR} Guest Waivers"
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
-    move_new_signed_docs(drive, folder_src_name, folder_name)
+    count = move_new_signed_docs(drive, folder_src_name, folder_name)
 
-    print("Sleeping 5 seconds to ensure gdrive syncs")
-    time.sleep(5)
+    if count > 0:
+        print("Sleeping 5 seconds to ensure gdrive syncs")
+        time.sleep(5)
 
     files = gdrive.get_file_list(drive, folder_name)
     if not files:
@@ -93,7 +97,10 @@ def main() -> None:
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     waivers.sort(key=docs.GuestWaiver.key_func)
     docs.GuestWaiver.write_csv(waivers)
-    upload_guest_waiver_list(drive, docs.guestwaiver_csv_filename)
+    if upload:
+        upload_guest_waiver_list(drive, docs.guestwaiver_csv_filename)
+    else:
+        print(f"Skipping upload of {docs.guestwaiver_csv_filename}")
 
 
 if __name__ == "__main__":
