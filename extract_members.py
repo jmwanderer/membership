@@ -41,7 +41,7 @@ def upload_member_csv_file(drive, local_file_name, remote_folder_name, remote_fi
         print(f"Upload new file {remote_file_name} to {remote_folder_id}")
         gdrive.upload_csv_file(drive, remote_folder_id, remote_file_name, local_file_name)
     else:
-        print(f"Update file {remote_file_id} in {remote_folder_id}")
+        print(f"Update file {remote_file_name} in {remote_folder_id}")
         gdrive.update_csv_file(drive, remote_file_id, local_file_name)
 
 

@@ -17,7 +17,7 @@ import waiver_calcs
 
 upload: bool = True
 
-def upload_member_waiver_records():
+def upload_waiver_records():
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
     remote_folder_name = docs.YEAR
@@ -25,6 +25,14 @@ def upload_member_waiver_records():
         extract_members.upload_member_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
     else:
         print("skipping upload of member_records.csv")
+    remote_folder_name = "HelloSign"
+    if upload:
+        extract_members.upload_member_csv_file(drive, memberdata.PARENTS_CSV, remote_folder_name, "parents.csv")
+    else:
+        print("skipping upload of parents.csv")
+ 
+
+
 
 def main(command: str):
     membership = memberdata.Membership()
@@ -66,7 +74,7 @@ def main(command: str):
         waiver_calcs.generate_single_signer_family_request(waiver_groups.with_minor_children, member_keys)
         waiver_calcs.generate_single_signer_request(waiver_groups.no_minor_children, member_keys)
         waiver_calcs.generate_member_records(waiver_groups, member_keys)
-        upload_member_waiver_records()
+        upload_waiver_records()
 
 
 arguments = ["all", "extract", "generate", "review", "update", "records"]

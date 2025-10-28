@@ -1,8 +1,14 @@
 - Load events and report last visit, # times used
 - 2025 waivers should take into account 2026
+
 - break into two steps
   - process waiver PDFs
-  - updat waiver status 
+  - update waiver status 
+
+- ability to read 2025 and 2026 docs
+  - change doc names to include year
+  - pass in year argument
+  - upload to earliest year
 
 Code:
 - Add report for waiver status by account
