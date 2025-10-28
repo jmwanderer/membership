@@ -16,8 +16,8 @@ MEMBERS_TEST_1_CSV = "test/members.test1.csv"
 MEMBERS_TEST_2_CSV = "test/members.test2.csv"
 ACCOUNTS_CSV = "input/accounts.csv"
 ACCOUNTS_TEST_CSV = "test/accounts.test.csv"
-PARENTS_CSV = "data/parents.csv"
-PARENTS_TEST_CSV = "test/parents.csv"
+PARENTS_CSV = "data/families.csv"
+PARENTS_TEST_CSV = "test/families.csv"
 
 
 @dataclass

@@ -37,9 +37,9 @@ def upload_waiver_records():
         print("skipping upload of member_records.csv")
     remote_folder_name = "HelloSign"
     if upload:
-        upload_csv_file(drive, memberdata.PARENTS_CSV, remote_folder_name, "parents.csv")
+        upload_csv_file(drive, memberdata.PARENTS_CSV, remote_folder_name, memberdata.PARENTS_CSV)
     else:
-        print("skipping upload of parents.csv")
+        print(f"skipping upload of {memberdata.PARENTS_CSV}")
  
 
 def main():
