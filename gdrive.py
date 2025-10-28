@@ -5,6 +5,7 @@ Utility functions for accessing files on Google Drive
 
 import os.path
 import io
+import hashlib
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -120,6 +121,24 @@ def move_file(drive, file_id, new_folder_id):
     print(f"Moved {file_id} to {new_folder_id}")
 
 def update_csv_file(drive, file_id, name: str):
+    # Update only if changed. Calculate md5 digest
+    print(f"Calculate md5 for {name}")
+    with open(name, 'rb') as f:
+        data = f.read()
+        md5_local = hashlib.md5(data).hexdigest()
+    print(f"csum local: {md5_local}")
+
+    print(f"Calculate md5 remote file id {file_id}")
+    with download_file(drive, file_id) as f:
+        f.seek(0)
+        data = f.read()
+        md5_remote = hashlib.md5(data).hexdigest()
+    print(f"csum remote: {md5_remote}")
+
+    if md5_local == md5_remote:
+        print("File not changed, skip update...")
+        return None
+
     media = MediaFileUpload(name, mimetype='text/csv')
     updated_file = drive.files().update(
         fileId=file_id,
