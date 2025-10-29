@@ -20,7 +20,7 @@ import keys
 
 
 def check_waiver(membership: memberdata.Membership, 
-                 groups: waiverrec.MemberWaiverGroups, 
+                 groups: waiverrec.RequiredWaivers, 
                  waiver: docs.MemberWaiver) -> bool:
     """
     Return True if waiver is considered to be complete.
@@ -44,7 +44,7 @@ def check_waiver(membership: memberdata.Membership,
 
 
 def check_attestation(membership: memberdata.Membership, 
-                      groups: waiverrec.MemberWaiverGroups, 
+                      groups: waiverrec.RequiredWaivers, 
                       attest: docs.Attestation) -> bool:
     """
     Return True if an attestaton waiver is considered complete
@@ -69,7 +69,7 @@ def check_attestation(membership: memberdata.Membership,
 
 
 def update_waivers_complete(membership: memberdata.Membership, 
-                            waiver_groups: waiverrec.MemberWaiverGroups, 
+                            waiver_groups: waiverrec.RequiredWaivers, 
                             waiver_docs: list[docs.MemberWaiver],
                             attest_docs: list[docs.Attestation]) -> None:
 
@@ -111,7 +111,7 @@ def review_member_attest_docs(membership: memberdata.Membership, attest_docs: li
 
 
 def review_and_update_waivers(membership: memberdata.Membership,
-                              waiver_groups: waiverrec.MemberWaiverGroups,
+                              waiver_groups: waiverrec.RequiredWaivers,
                               waiver_docs: list[docs.MemberWaiver],
                               attest_docs: list[docs.Attestation]) -> None:
     """
@@ -173,7 +173,7 @@ def create_attest_doc_map(attestations: list[docs.Attestation]) -> dict[str, doc
 
     return doc_map
 
-def update_waiver_record_status(waiver_groups: waiverrec.MemberWaiverGroups,
+def update_waiver_record_status(waiver_groups: waiverrec.RequiredWaivers,
                                 member_waivers: list[docs.MemberWaiver],
                                 attestations: list[docs.Attestation]) -> None:
     """
@@ -340,7 +340,7 @@ def generate_single_signer_family_request(family_records: list[waiverrec.FamilyR
         f.close()
 
 
-def generate_member_records(waiver_groups: waiverrec.MemberWaiverGroups,
+def generate_member_records(waiver_groups: waiverrec.RequiredWaivers,
                             member_keys: keys.MemberKeys) -> None:
     member_records: list[waiverrec.MemberRecord] = []
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
@@ -349,7 +349,7 @@ def generate_member_records(waiver_groups: waiverrec.MemberWaiverGroups,
 
     
 def report_waiver_record_stats(membership: memberdata.Membership,
-                        waiver_groups: waiverrec.MemberWaiverGroups,
+                        waiver_groups: waiverrec.RequiredWaivers,
                         member_waivers: list[docs.MemberWaiver],
                         attestations: list[docs.Attestation],
                         member_keys: dict[str, keys.KeyEntry]) -> None:
@@ -445,7 +445,7 @@ def main() -> None:
 
     membership = memberdata.Membership()
     membership.read_csv_files()
-    waiver_groups = waiverrec.MemberWaiverGroups.read_csv_files(membership)
+    waiver_groups = waiverrec.RequiredWaivers.read_csv_files(membership)
     attestations = docs.Attestation.read_csv()
     member_waivers = docs.MemberWaiver.read_csv()
     member_keys = keys.MemberKeys()
@@ -457,7 +457,7 @@ def main() -> None:
 
     generate_member_records(waiver_groups, member_keys)
 
-    waiverrec.MemberWaiverGroups.write_csv_files(waiver_groups)
+    waiverrec.RequiredWaivers.write_csv_files(waiver_groups)
     docs.MemberWaiver.write_csv(member_waivers)
     docs.Attestation.write_csv(attestations)
 

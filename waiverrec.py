@@ -246,7 +246,7 @@ class FamilyRecord:
             f.close()
         
 
-class MemberWaiverGroups:
+class RequiredWaivers:
     """
     Results of generating groupings for member waiver requests
     """
@@ -284,17 +284,17 @@ class MemberWaiverGroups:
     unknown_waiver_filename = "output/unknown_families.csv"
 
     @staticmethod
-    def read_csv_files(membership: memberdata.Membership) -> MemberWaiverGroups:
-        groupings = MemberWaiverGroups()
-        groupings.no_minor_children = AdultRecord.read_csv(membership, MemberWaiverGroups.adult_waiver_filename)
-        groupings.with_minor_children = FamilyRecord.read_csv(membership, MemberWaiverGroups.familey_waiver_filename)
-        groupings.unknown_status = FamilyRecord.read_csv(membership, MemberWaiverGroups.unknown_waiver_filename)
+    def read_csv_files(membership: memberdata.Membership) -> RequiredWaivers:
+        groupings = RequiredWaivers()
+        groupings.no_minor_children = AdultRecord.read_csv(membership, RequiredWaivers.adult_waiver_filename)
+        groupings.with_minor_children = FamilyRecord.read_csv(membership, RequiredWaivers.familey_waiver_filename)
+        groupings.unknown_status = FamilyRecord.read_csv(membership, RequiredWaivers.unknown_waiver_filename)
         return groupings
 
     def write_csv_files(self) -> None:
-        AdultRecord.write_csv(self.no_minor_children, MemberWaiverGroups.adult_waiver_filename)
-        FamilyRecord.write_csv(self.with_minor_children, MemberWaiverGroups.familey_waiver_filename)
-        FamilyRecord.write_csv(self.unknown_status, MemberWaiverGroups.unknown_waiver_filename)
+        AdultRecord.write_csv(self.no_minor_children, RequiredWaivers.adult_waiver_filename)
+        FamilyRecord.write_csv(self.with_minor_children, RequiredWaivers.familey_waiver_filename)
+        FamilyRecord.write_csv(self.unknown_status, RequiredWaivers.unknown_waiver_filename)
  
 class MemberRecord:
     """
@@ -429,12 +429,12 @@ class MemberRecord:
     member_csv = "output/member_records.csv"
 
     @staticmethod
-    def gen_records(groups: MemberWaiverGroups, member_keys: keys.MemberKeys) -> list[MemberRecord]:
+    def gen_records(required_waivers: RequiredWaivers, member_keys: keys.MemberKeys) -> list[MemberRecord]:
         """
         """
         member_records: list[MemberRecord] = []
 
-        for adult_record in groups.no_minor_children:
+        for adult_record in required_waivers.no_minor_children:
             member_record = MemberRecord()
             member_record.adults.append(adult_record.member)
             member_record.web_links[0] = adult_record.web_link
@@ -444,7 +444,7 @@ class MemberRecord:
             member_record.key_enabled = member_keys.has_enabled_key(adult_record.member.member_id)
             member_records.append(member_record)
 
-        for family_record in groups.with_minor_children:
+        for family_record in required_waivers.with_minor_children:
             member_record = MemberRecord()
             member_record.adults = family_record.adults.copy()
             member_record.minors = family_record.minors.copy()
@@ -457,7 +457,7 @@ class MemberRecord:
                 member_record.key_enabled = member_record.key_enabled or member_keys.has_enabled_key(member_id)
             member_records.append(member_record)
 
-        for family_record in groups.unknown_status:
+        for family_record in required_waivers.unknown_status:
             member_record = MemberRecord()
             member_record.adults = family_record.adults.copy()
             member_record.minors = family_record.minors.copy()
@@ -496,10 +496,10 @@ def simple_test() -> None:
                 adult_record.key_address = member_keys.member_email(member.member_id)
                 adult_records.append(adult_record)
 
-    groups = MemberWaiverGroups()
-    groups.no_minor_children = adult_records
-    groups.with_minor_children = family_records
-    member_records: list[MemberRecord] = MemberRecord.gen_records(groups, member_keys)
+    required_waivers = RequiredWaivers()
+    required_waivers.no_minor_children = adult_records
+    required_waivers.with_minor_children = family_records
+    member_records: list[MemberRecord] = MemberRecord.gen_records(required_waivers, member_keys)
     member_csv = "test/member_records.csv"
     MemberRecord.write_csv(member_records, member_csv)
 

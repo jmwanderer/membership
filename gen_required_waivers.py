@@ -12,9 +12,8 @@ family waivers, and which minors are include on the waiver.
 
 
 import memberdata
-from  waiverrec import MemberWaiverGroups, AdultRecord, FamilyRecord
+from  waiverrec import RequiredWaivers, AdultRecord, FamilyRecord
 import keys
-import waiver_calcs
 
 
 def select_possible_parents(
@@ -83,11 +82,11 @@ def select_parents(
     return possible_parents
 
 
-def generate_groups(membership: memberdata.Membership, member_keys: keys.MemberKeys) -> MemberWaiverGroups:
+def generate(membership: memberdata.Membership, member_keys: keys.MemberKeys) -> RequiredWaivers:
     """
     Generate groups of waiver requests
     """
-    groups = MemberWaiverGroups()
+    groups = RequiredWaivers()
 
     # Iterate through accounts
     for account in membership.active_member_accounts():
@@ -176,8 +175,8 @@ def main():
     # Create new groups
     member_keys = keys.MemberKeys()
     member_keys.load_keys(membership)
-    groups = generate_groups(membership, member_keys)
-    groups.write_csv_files()
+    required_waivers = generate(membership, member_keys)
+    required_waivers.write_csv_files()
 
 
 if __name__ == "__main__":
