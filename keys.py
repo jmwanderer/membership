@@ -25,7 +25,7 @@ class KeyEntry:
 
 class MemberKeys:
     """Set of keys held by members"""
-    def __init__(self):
+    def __init__(self) -> None:
         self.member_key_map: dict[str, KeyEntry] = {}
 
     def load_keys(self, membership: memberdata.Membership):

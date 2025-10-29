@@ -391,7 +391,7 @@ class Attestation:
         """
         Read attestations from a CSV file
         """
-        result = []
+        result: list[Attestation] = []
         print(f"Note: reading attestations file '{attestations_csv_file}'")
         if not os.path.exists(attestations_csv_file):
             return result

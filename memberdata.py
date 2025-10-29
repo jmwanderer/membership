@@ -170,11 +170,6 @@ class Membership:
         result = list(self.member_map.keys())
         return result
 
-    def all_member_names(self) -> list[MemberName]:
-        result: list[MemberName]
-        return list(self.member_name_map.keys())
-        
-
     def account_nums(self) -> list[str]:
         result: list[str]
         result = list(self.account_map.keys())

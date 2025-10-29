@@ -1,6 +1,7 @@
 - Load events and report last visit, # times used
 - 2025 waivers should take into account 2026
 
+Can we simplify the waiver processing and data rep?
 
 - ability to read 2025 and 2026 docs
   - change doc names to include year - add year name to local files
