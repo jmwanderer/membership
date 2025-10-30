@@ -4,6 +4,7 @@ Generate list of accounts and number of proxess keys
 
 TODO: better handling of staff accounts
 """
+from dataclasses import dataclass
 
 import csv
 import memberdata
@@ -18,7 +19,13 @@ output_filename = "output/account_keys.csv"
 membership = memberdata.Membership()
 membership.read_csv_files()
 
-# Map { account_num, key_count }
+@dataclass
+class AccountEntry:
+    account_num: str
+    key_count: int  = 0
+    enabled_key_count: int = 0
+
+# Map { account_num, AccountEntry }
 account_key_count = {}
 
 # Read mobile key information
@@ -56,9 +63,13 @@ for key_entry in keys.read_key_entries():
                 f"Error: Key account '{key_entry.account_num}' does not match name {key_entry.member_name}"
             )
 
-    if key_entry.account_num not in account_key_count:
-        account_key_count[key_entry.account_num] = 0
-    account_key_count[key_entry.account_num] += 1
+    entry = account_key_count.get(key_entry.account_num)
+    if entry is None:
+        entry = AccountEntry(key_entry.account_num)
+        account_key_count[key_entry.account_num] = entry
+    entry.key_count += 1
+    if key_entry.enabled:
+        entry.enabled_key_count += 1
 
 
 # Open output file
@@ -69,33 +80,41 @@ output_csv = csv.writer(output_file)
 output_csv.writerow(["AccountNum", "first_name", "last_name", "email", "key_count"])
 
 account_with_keys_count = 0
+account_with_enabled_keys_count = 0
 account_without_keys_count = 0
 max_account_keys = 0
 total_keys = 0
+enabled_keys = 0
 
 for account in membership.accounts():
-    key_count = account_key_count.get(account.account_num, 0)
+    entry: AccountEntry = account_key_count.get(account.account_num)
+    if entry is None:
+        entry = AccountEntry(account.account_num)
     if account.is_staff():
         # Skip staff accounts
         continue
 
     if not account.is_proprietary_member():
         # Skip non -proprietary member accounts, but check if there is a key
-        if key_count > 0:
+        if entry.key_count > 0:
             print(
                 f"Note: non-proprietary account with keys '{account.account_num}' {account.billing_name}"
             )
         continue
 
-    total_keys += key_count
+    total_keys += entry.key_count
+    enabled_keys += entry.enabled_key_count
+    
 
-    if key_count > 0:
+    if entry.key_count > 0:
         account_with_keys_count += 1
+        if entry.enabled_key_count > 0:
+            account_with_enabled_keys_count += 1
     else:
         account_without_keys_count += 1
 
-    if key_count > max_account_keys:
-        max_account_keys = key_count
+    if entry.key_count > max_account_keys:
+        max_account_keys = entry.key_count
 
     output_csv.writerow(
         [
@@ -103,7 +122,8 @@ for account in membership.accounts():
             account.billing_name.first_name,
             account.billing_name.last_name,
             account.email,
-            key_count,
+            entry.key_count,
+            entry.enabled_key_count
         ]
     )
 
@@ -111,7 +131,9 @@ for account in membership.accounts():
 output_file.close()
 
 print(f"Total keys: {total_keys}")
+print(f"Total enabled keys: {enabled_keys}")
 print(f"Accounts with keys: {account_with_keys_count}")
+print(f"Accounts with enabled keys: {account_with_enabled_keys_count}")
 print(f"Accounts without keys: {account_without_keys_count}")
 print(f"Max keys for an account: {max_account_keys}")
 if account_with_keys_count > 0:
