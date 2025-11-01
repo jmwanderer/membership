@@ -54,6 +54,23 @@ class MemberName:
     def __str__(self):
         return f"{self.last_name}, {self.first_name}"
 
+    @staticmethod
+    def CreateMemberName(fullname: str):
+        m = re.match(r"^(\S+)\s+(\S+)$", fullname) # first last
+        if m is not None:
+            return MemberName(m.group(1), m.group(2))
+        m = re.match(r"^(\S+\s+\S\.?)\s*(\S+)$", fullname) # w/ middle initial
+        if m is not None:
+            return MemberName(m.group(1), m.group(2))
+        m = re.match(r"^(\S+)\s*\(\S+\)\s*(\S+)$", fullname) # w/ nic name
+        if m is not None:
+            return MemberName(m.group(1), m.group(2))
+        m = re.match(r"^(\S+)\s+(.+)$", fullname) # multiple last names
+        if m is not None:
+            return MemberName(m.group(1), m.group(2))
+        return None
+
+
 
 @dataclass
 class MemberEntry:
@@ -66,6 +83,9 @@ class MemberEntry:
     email: str
     birthdate: datetime.date
 
+    def __hash__(self):
+        return hash((self.name, self.account_num, self.member_id, self.member_type, self.email, self.birthdate))
+
     def has_birthdate(self) -> bool:
         age = self.age()
         return age >= 0 and age < 110
@@ -75,6 +95,9 @@ class MemberEntry:
 
     def is_adult_type(self) -> bool:
         return self.member_type == "Adult"
+
+    def is_caretaker_type(self) -> bool:
+        return self.member_type == "Family Caretaker"
 
     def age(self) -> int:
         today = datetime.date.today()
@@ -431,8 +454,33 @@ class Membership:
                 self.parent_map[account_num].append(parent_rec)
                 # print(f"Add parent rec for account {account_num}")
 
+def test() -> None:
+    name = MemberName.CreateMemberName("William Jones")
+    assert(name is not None)
+    assert(name.first_name == "William")
+    assert(name.last_name == "Jones")
+    name = MemberName.CreateMemberName("William M. Jones")
+    assert(name is not None)
+    assert(name.first_name == "William M.")
+    assert(name.last_name == "Jones")
+
+    name = MemberName.CreateMemberName("William M Jones")
+    assert(name is not None)
+    assert(name.first_name == "William M")
+    assert(name.last_name == "Jones")
+
+    name = MemberName.CreateMemberName("William (Bill) Jones")
+    assert(name is not None)
+    assert(name.first_name == "William")
+    assert(name.last_name == "Jones")
+    name = MemberName.CreateMemberName("William Fong Jones")
+    assert(name is not None)
+    assert(name.first_name == "William")
+    assert(name.last_name == "Fong Jones")
+
 
 if __name__ == "__main__":
+    test()
     members = Membership()
     members.read_csv_files(ACCOUNTS_TEST_CSV, MEMBERS_TEST_1_CSV, PARENTS_TEST_CSV)
     members.read_csv_files(ACCOUNTS_TEST_CSV, MEMBERS_TEST_2_CSV, PARENTS_TEST_CSV)
