@@ -87,7 +87,7 @@ def main(upload: bool = False) -> None:
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     remote_folder_name = f"{docs.YEAR} Member Waivers"
 
-    if parsed_count > 0:
+    if parsed_count >= 0:
         docs.Attestation.write_csv(attestations)
         print(f"Wrote output: {docs.attestations_csv_filename}")
         # TODO: Should probably be done somewhere else - may be modified later

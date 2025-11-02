@@ -238,6 +238,14 @@ class Membership:
                 return self.member_name_map[nick_name.lower()]
         return result
 
+    def find_one_member_by_name(self, member_name: MemberName) -> MemberEntry | None:
+        members = self.find_members_by_name(member_name)
+        if len(members) == 0:
+            return None
+        if len(members) > 1:
+            print(f"Warning: found multiple members for {member_name.fullname()}")
+        return members[0]
+
     def get_members_by_fullname(self, member_name: str) -> list[MemberEntry]:
         if member_name.lower() not in self.member_name_map:
             return []

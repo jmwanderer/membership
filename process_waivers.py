@@ -62,7 +62,7 @@ def main():
     docs.MemberWaiver.write_csv(member_waivers)
     docs.Attestation.write_csv(attestations)
 
-    waiver_calcs.update_waiver_record_status(required_waivers, member_waivers, attestations)
+    waiver_calcs.update_waiver_record_status(membership, required_waivers, member_waivers, attestations)
     waiverrec.RequiredWaivers.write_csv_files(required_waivers)
     waiver_calcs.report_waiver_record_stats(membership, required_waivers, member_waivers, attestations, member_keys.member_key_map)
 
