@@ -57,6 +57,9 @@ class RequiredWaiver:
               FIELD_MINOR3, FIELD_MINOR4, FIELD_MINOR5, 
               FIELD_WEB_LINK1, FIELD_WEB_LINK2 ]
 
+    def adult(self) -> MemberEntry:
+        return self.adults[0]
+
     @staticmethod
     def get_header() -> list[str]:
         return RequiredWaiver.HEADER
@@ -66,13 +69,13 @@ class RequiredWaiver:
         if len(self.adults) == 0:
             return row
 
-        row[csvfile.ACCOUNT_NUM] = self.adults[0].account_num
-        row[csvfile.MEMBER_ID] = self.adults[0].member_id
+        row[csvfile.ACCOUNT_NUM] = self.adult().account_num
+        row[csvfile.MEMBER_ID] = self.adult().member_id
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
         row[RequiredWaiver.FIELD_KEY_ENABLED] = csvfile.bool_str(self.key_enabled)
         row[RequiredWaiver.FIELD_HAS_KEY] = csvfile.bool_str(self.has_key)
 
-        member = self.adults[0]
+        member = self.adult()
         row[RequiredWaiver.FIELD_NAME1] = member.name.fullname()
         row[RequiredWaiver.FIELD_EMAIL1] = member.email
         row[RequiredWaiver.FIELD_SIGNATURE1] = csvfile.signed_str(self.signatures[0])
@@ -186,7 +189,7 @@ class RequiredWaivers:
 
     def find_adult_record(self, name: str) -> RequiredWaiver|None:
         for record in self.no_minor_children:
-            if record.adults[0].name.fullname() == name:
+            if record.adult().name.fullname() == name:
                 return record
         return None
     
@@ -354,12 +357,12 @@ class MemberRecord:
 
         for adult_record in required_waivers.no_minor_children:
             member_record = MemberRecord()
-            member_record.adults.append(adult_record.adults[0])
+            member_record.adults.append(adult_record.adult())
             member_record.web_links[0] = adult_record.web_links[0]
             member_record.signed = adult_record.signed
             member_record.signatures[0] = adult_record.signed
-            member_record.has_key = member_keys.has_key(adult_record.adults[0].member_id)
-            member_record.key_enabled = member_keys.has_enabled_key(adult_record.adults[0].member_id)
+            member_record.has_key = member_keys.has_key(adult_record.adult().member_id)
+            member_record.key_enabled = member_keys.has_enabled_key(adult_record.adult().member_id)
             member_records.append(member_record)
 
         for family_record in required_waivers.with_minor_children:

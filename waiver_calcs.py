@@ -50,7 +50,7 @@ def check_attestation(membership: memberdata.Membership,
     Return True if an attestaton waiver is considered complete
     A complete waiver is one that includes all minors of the signatory
     """
-    name = attest.adults[0].name
+    name = attest.adult().name
     account = membership.get_account_by_fullname(name)
 
     if account is None:
@@ -104,7 +104,7 @@ def review_member_attest_docs(membership: memberdata.Membership, attest_docs: li
         if len(attest_doc.adults) < 1:
             print(f"Warning: missing a signatory in {attest_doc.web_view_link}")
         else:
-            adult = attest_doc.adults[0]
+            adult = attest_doc.adult()
             member = membership.get_one_member_by_fullname(adult.name, False)
             if member is None and not attest_doc.is_reviewed():
                 print(f"Warning: No member found for attest signature {adult.name} in {attest_doc.web_view_link}")
@@ -166,7 +166,7 @@ def create_attest_doc_map(membership: memberdata.Membership, attestations: list[
     doc_map: dict[str, docs.Attestation] = {}
     for attestation in attestations:
         # Use lower case name
-        name = attestation.adults[0].name
+        name = attestation.adult().name
 
         member_name = memberdata.MemberName.CreateMemberName(name)
         if member_name is None:
@@ -212,14 +212,14 @@ def update_waiver_record_status(membership: memberdata.Membership,
     for adult_record in waiver_groups.no_minor_children:
         adult_record.signed = False
 
-        waiver_doc = waiver_doc_map.get(adult_record.adults[0].member_id)
+        waiver_doc = waiver_doc_map.get(adult_record.adult().member_id)
         if waiver_doc is not None:
             adult_record.web_links[0] = waiver_doc.web_view_link
             adult_record.signatures[0] = waiver_doc.is_complete() 
             adult_record.signed = waiver_doc.is_complete()
             continue
 
-        attest_doc = attest_doc_map.get(adult_record.adults[0].member_id)
+        attest_doc = attest_doc_map.get(adult_record.adult().member_id)
         if attest_doc is not None:
             adult_record.web_links[0] = attest_doc.web_view_link
             adult_record.signatures[0] = attest_doc.is_complete() 
@@ -270,12 +270,12 @@ def generate_single_signer_request(adult_records: list[waiverrec.RequiredWaiver]
         # Check if anyone has a key
         if not record.signed:
             # Create a row
-            row = { ACCOUNT_NUM: record.adults[0].account_num,
-                MEMBER_ID: record.adults[0].member_id,
+            row = { ACCOUNT_NUM: record.adult().account_num,
+                MEMBER_ID: record.adult().member_id,
                 FIELD_KEY: record.has_key,
                 FIELD_KEY_ENABLED: record.key_enabled,
-                FIELD_NAME: record.adults[0].name.fullname(),
-                FIELD_EMAIL: record.adults[0].email
+                FIELD_NAME: record.adult().name.fullname(),
+                FIELD_EMAIL: record.adult().email
                }
             rows.append(row)
 
@@ -355,7 +355,7 @@ def generate_member_records(waiver_groups: waiverrec.RequiredWaivers, member_key
     print("Note: writing member records CSV")
     waiverrec.MemberRecord.write_csv(member_records, waiverrec.MemberRecord.member_csv)
 
-    
+#TODO: should no longer need member_keys here    
 def report_waiver_record_stats(membership: memberdata.Membership,
                         waiver_groups: waiverrec.RequiredWaivers,
                         member_keys: dict[str, keys.KeyEntry]) -> None:
@@ -406,9 +406,9 @@ def report_waiver_record_stats(membership: memberdata.Membership,
             waivered_adults += 1
         else:
             unwaivered_adult_count += 1
-            if waiver.adults[0].member_id in member_keys:
+            if waiver.adult().member_id in member_keys:
                 unwaivered_adult_with_keys_count += 1
-                if member_keys[waiver.adults[0].member_id].enabled:
+                if member_keys[waiver.adult().member_id].enabled:
                     unwaivered_adult_with_enabled_keys_count += 1
 
     total_keys = len(member_keys)

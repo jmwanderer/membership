@@ -247,6 +247,9 @@ class Attestation:
         self.adults: list[AttestEntry] = []
         self.minors: list[AttestEntry] = []
 
+    def adult(self) -> AttestEntry:
+        return self.adults[0]
+
     def __str__(self) -> str:
         result = self.file_name
         result += "\n\t" + self.web_view_link

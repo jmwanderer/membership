@@ -16,7 +16,7 @@ class AccountAttest:
 account_attest_map: dict[str,AccountAttest] = {}
 
 def record_attestation(membership: memberdata.Membership, attestation: docs.Attestation) -> None:
-    primary_name = attestation.adults[0].name
+    primary_name = attestation.adult().name
     account = membership.get_account_by_fullname(primary_name)
     if account is None:
         print(f"Failed to find account for {primary_name}")
