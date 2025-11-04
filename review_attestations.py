@@ -52,7 +52,7 @@ def report_once(account: memberdata.AccountEntry):
 # print count of accounts
 def review_account(membership: memberdata.Membership, member_keys: keys.MemberKeys, account: memberdata.AccountEntry):
     # Get Attestation for the account
-    account_attest: AccountAttest = account_attest_map.get(account.account_num)
+    account_attest: AccountAttest | None = account_attest_map.get(account.account_num)
     if account_attest is None:
        return
     reported = False

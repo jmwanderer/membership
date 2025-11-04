@@ -26,7 +26,7 @@ class AccountEntry:
     enabled_key_count: int = 0
 
 # Map { account_num, AccountEntry }
-account_key_count = {}
+account_key_count: dict[str, AccountEntry] = {}
 
 # Read mobile key information
 # Iterate over keys, counting keys
@@ -63,7 +63,7 @@ for key_entry in keys.read_key_entries():
                 f"Error: Key account '{key_entry.account_num}' does not match name {key_entry.member_name}"
             )
 
-    entry = account_key_count.get(key_entry.account_num)
+    entry: AccountEntry | None = account_key_count.get(key_entry.account_num)
     if entry is None:
         entry = AccountEntry(key_entry.account_num)
         account_key_count[key_entry.account_num] = entry
@@ -87,7 +87,7 @@ total_keys = 0
 enabled_keys = 0
 
 for account in membership.accounts():
-    entry: AccountEntry = account_key_count.get(account.account_num)
+    entry = account_key_count.get(account.account_num)
     if entry is None:
         entry = AccountEntry(account.account_num)
     if account.is_staff():
