@@ -256,8 +256,8 @@ def generate_single_signer_request(adult_records: list[waiverrec.RequiredWaiver]
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.RequiredWaiver.FIELD_HAS_KEY
     FIELD_KEY_ENABLED = waiverrec.RequiredWaiver.FIELD_KEY_ENABLED
-    FIELD_NAME = waiverrec.AdultRecord.FIELD_NAME
-    FIELD_EMAIL = waiverrec.AdultRecord.FIELD_EMAIL
+    FIELD_NAME = "name"
+    FIELD_EMAIL = "email"
 
     HEADER = [ ACCOUNT_NUM, MEMBER_ID,
               FIELD_KEY,
@@ -297,8 +297,8 @@ def generate_single_signer_family_request(family_records: list[waiverrec.Require
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
     FIELD_KEY_ENABLED = waiverrec.MemberRecord.FIELD_KEY_ENABLED
-    FIELD_NAME = waiverrec.AdultRecord.FIELD_NAME
-    FIELD_EMAIL = waiverrec.AdultRecord.FIELD_EMAIL
+    FIELD_NAME = "name"
+    FIELD_EMAIL = "email"
     FIELD_MINOR1 = waiverrec.RequiredWaiver.FIELD_MINOR1
     FIELD_MINOR2 = waiverrec.RequiredWaiver.FIELD_MINOR2
     FIELD_MINOR3 = waiverrec.RequiredWaiver.FIELD_MINOR3
