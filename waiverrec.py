@@ -102,7 +102,7 @@ class AdultRecord:
                 writer.writerow(record.get_row())
             f.close()
 
-class FamilyRecord:
+class RequiredWaiver:
     """
     Represents a family or potential family for which we need more information
     """
@@ -143,7 +143,7 @@ class FamilyRecord:
 
     @staticmethod
     def get_header() -> list[str]:
-        return FamilyRecord.HEADER
+        return RequiredWaiver.HEADER
    
     def get_row(self):
         row = {}
@@ -153,58 +153,58 @@ class FamilyRecord:
         row[csvfile.ACCOUNT_NUM] = self.adults[0].account_num
         row[csvfile.MEMBER_ID] = self.adults[0].member_id
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
-        row[FamilyRecord.FIELD_KEY_ENABLED] = csvfile.bool_str(self.key_enabled)
+        row[RequiredWaiver.FIELD_KEY_ENABLED] = csvfile.bool_str(self.key_enabled)
 
         member = self.adults[0]
-        row[FamilyRecord.FIELD_NAME1] = member.name.fullname()
-        row[FamilyRecord.FIELD_EMAIL1] = member.email
-        row[FamilyRecord.FIELD_SIGNATURE1] = csvfile.signed_str(self.signatures[0])
-        row[FamilyRecord.FIELD_WEB_LINK1] = self.web_links[0]
+        row[RequiredWaiver.FIELD_NAME1] = member.name.fullname()
+        row[RequiredWaiver.FIELD_EMAIL1] = member.email
+        row[RequiredWaiver.FIELD_SIGNATURE1] = csvfile.signed_str(self.signatures[0])
+        row[RequiredWaiver.FIELD_WEB_LINK1] = self.web_links[0]
 
         if len(self.adults) > 1:
             member = self.adults[1]
-            row[FamilyRecord.FIELD_NAME2] = member.name.fullname()
-            row[FamilyRecord.FIELD_EMAIL2] = member.email
-        row[FamilyRecord.FIELD_SIGNATURE2] = csvfile.signed_str(self.signatures[1])
-        row[FamilyRecord.FIELD_WEB_LINK2] = self.web_links[1]
+            row[RequiredWaiver.FIELD_NAME2] = member.name.fullname()
+            row[RequiredWaiver.FIELD_EMAIL2] = member.email
+        row[RequiredWaiver.FIELD_SIGNATURE2] = csvfile.signed_str(self.signatures[1])
+        row[RequiredWaiver.FIELD_WEB_LINK2] = self.web_links[1]
 
         for i, minor in enumerate(self.minors):
-            row[FamilyRecord.HEADER[i + 10]] = minor.name.fullname()
+            row[RequiredWaiver.HEADER[i + 10]] = minor.name.fullname()
         return row
 
     @staticmethod
-    def read_row(membership: memberdata.Membership, row: dict[str, str]) -> FamilyRecord|None:
+    def read_row(membership: memberdata.Membership, row: dict[str, str]) -> RequiredWaiver|None:
         member_id = row[csvfile.MEMBER_ID]
-        name = row[FamilyRecord.FIELD_NAME1]
+        name = row[RequiredWaiver.FIELD_NAME1]
         member_entry = membership.get_member_by_id(member_id)
         if member_entry is None:
             print(f"Warning: no member id: {member_id} name: '{name}' found.")
             return None
 
 
-        record = FamilyRecord()
+        record = RequiredWaiver()
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
-        record.key_enabled = csvfile.is_true_value(row[FamilyRecord.FIELD_KEY_ENABLED])
+        record.key_enabled = csvfile.is_true_value(row[RequiredWaiver.FIELD_KEY_ENABLED])
 
         # Populate adult 1 plus signature status and web link
         record.adults.append(member_entry)
-        record.signatures[0] = csvfile.is_signed(row[FamilyRecord.FIELD_SIGNATURE1])
-        record.web_links[0] = row[FamilyRecord.FIELD_WEB_LINK1]
+        record.signatures[0] = csvfile.is_signed(row[RequiredWaiver.FIELD_SIGNATURE1])
+        record.web_links[0] = row[RequiredWaiver.FIELD_WEB_LINK1]
 
         # Populate adult 2 plus signature status and web link
-        name = row[FamilyRecord.FIELD_NAME2]
+        name = row[RequiredWaiver.FIELD_NAME2]
         if len(name.strip()) > 0:
             member_entry = membership.get_one_member_by_fullname(name, False)
             if member_entry is not None:
                 record.adults.append(member_entry)
             else:
                 print(f"Warning: member in family record not found {name}")
-        record.signatures[1] = csvfile.is_signed(row[FamilyRecord.FIELD_SIGNATURE2])
-        record.web_links[1] = row[FamilyRecord.FIELD_WEB_LINK2]
+        record.signatures[1] = csvfile.is_signed(row[RequiredWaiver.FIELD_SIGNATURE2])
+        record.web_links[1] = row[RequiredWaiver.FIELD_WEB_LINK2]
 
         # Populate minors
         for index in range(10, 15):
-            name = row[FamilyRecord.HEADER[index]]
+            name = row[RequiredWaiver.HEADER[index]]
             if len(name.strip()) > 0:
                 member_entry = membership.get_one_member_by_fullname(name, True)
                 if member_entry is not None:
@@ -215,11 +215,11 @@ class FamilyRecord:
         return record
     
     @staticmethod 
-    def read_csv(membership: memberdata.Membership, csv_file: str) -> list[FamilyRecord]:
+    def read_csv(membership: memberdata.Membership, csv_file: str) -> list[RequiredWaiver]:
         """
         Read CSV file of family waiver records
         """
-        result: list[FamilyRecord] = []
+        result: list[RequiredWaiver] = []
 
         if not os.path.exists(csv_file):
             return result
@@ -227,19 +227,19 @@ class FamilyRecord:
         with open(csv_file, "r", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                record = FamilyRecord.read_row(membership, row)
+                record = RequiredWaiver.read_row(membership, row)
                 if record is not None:
                     result.append(record)
         return result
 
     @staticmethod
-    def write_csv(records: list[FamilyRecord], csv_file: str) -> None:
+    def write_csv(records: list[RequiredWaiver], csv_file: str) -> None:
         if not csvfile.backup_file(csv_file):
             return
 
         print(f"Note: Write {csv_file}")
         with open(csv_file, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=FamilyRecord.get_header())
+            writer = csv.DictWriter(f, fieldnames=RequiredWaiver.get_header())
             writer.writeheader()
             for record in records:
                 writer.writerow(record.get_row())
@@ -256,10 +256,10 @@ class RequiredWaivers:
         self.no_minor_children: list[AdultRecord] = []
 
         # Parents and minor children
-        self.with_minor_children: list[FamilyRecord] = []
+        self.with_minor_children: list[RequiredWaiver] = []
 
         # Adults potentially with minor children and minor children
-        self.unknown_status: list[FamilyRecord] = []
+        self.unknown_status: list[RequiredWaiver] = []
 
         # Statistics for membership
         self.no_minors_count = 0
@@ -272,7 +272,7 @@ class RequiredWaivers:
                 return record
         return None
     
-    def find_family_record(self, name: str) -> FamilyRecord|None:
+    def find_family_record(self, name: str) -> RequiredWaiver|None:
         for record in self.with_minor_children:
             for adult in record.adults:
                 if adult.name.fullname().lower() == name.lower():
@@ -287,14 +287,14 @@ class RequiredWaivers:
     def read_csv_files(membership: memberdata.Membership) -> RequiredWaivers:
         groupings = RequiredWaivers()
         groupings.no_minor_children = AdultRecord.read_csv(membership, RequiredWaivers.adult_waiver_filename)
-        groupings.with_minor_children = FamilyRecord.read_csv(membership, RequiredWaivers.familey_waiver_filename)
-        groupings.unknown_status = FamilyRecord.read_csv(membership, RequiredWaivers.unknown_waiver_filename)
+        groupings.with_minor_children = RequiredWaiver.read_csv(membership, RequiredWaivers.familey_waiver_filename)
+        groupings.unknown_status = RequiredWaiver.read_csv(membership, RequiredWaivers.unknown_waiver_filename)
         return groupings
 
     def write_csv_files(self) -> None:
         AdultRecord.write_csv(self.no_minor_children, RequiredWaivers.adult_waiver_filename)
-        FamilyRecord.write_csv(self.with_minor_children, RequiredWaivers.familey_waiver_filename)
-        FamilyRecord.write_csv(self.unknown_status, RequiredWaivers.unknown_waiver_filename)
+        RequiredWaiver.write_csv(self.with_minor_children, RequiredWaivers.familey_waiver_filename)
+        RequiredWaiver.write_csv(self.unknown_status, RequiredWaivers.unknown_waiver_filename)
  
 class MemberRecord:
     """
@@ -478,12 +478,12 @@ def simple_test() -> None:
     member_keys.load_keys(membership)
 
     adult_records: list[AdultRecord] = []
-    family_records: list[FamilyRecord] = []
+    family_records: list[RequiredWaiver] = []
 
     for account in membership.active_member_accounts():
         members = membership.get_members_for_account_num(account.account_num)
         if membership.has_minor_children(account.account_num):
-            family_record = FamilyRecord()
+            family_record = RequiredWaiver()
             for member in members:
                 if not member.is_minor():
                     family_record.adults.append(member)
@@ -506,19 +506,19 @@ def simple_test() -> None:
     family_csv = "test/family_records.csv"
     adult_csv = "test/adult_records.csv"
 
-    FamilyRecord.write_csv(family_records, family_csv)
+    RequiredWaiver.write_csv(family_records, family_csv)
     AdultRecord.write_csv(adult_records, adult_csv)
 
-    families = FamilyRecord.read_csv(membership, family_csv)
+    families = RequiredWaiver.read_csv(membership, family_csv)
     adults = AdultRecord.read_csv(membership, adult_csv)
 
     assert len(families) == len(family_records)
     assert len(adults) == len(adult_records)
 
-    FamilyRecord.write_csv(families, family_csv)
+    RequiredWaiver.write_csv(families, family_csv)
     AdultRecord.write_csv(adults, adult_csv)
 
-    families = FamilyRecord.read_csv(membership, family_csv)
+    families = RequiredWaiver.read_csv(membership, family_csv)
     adults = AdultRecord.read_csv(membership, adult_csv)
 
     assert len(families) == len(family_records)
