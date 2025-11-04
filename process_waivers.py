@@ -64,11 +64,11 @@ def main():
 
     waiver_calcs.update_waiver_record_status(membership, required_waivers, member_waivers, attestations)
     waiverrec.RequiredWaivers.write_csv_files(required_waivers)
-    waiver_calcs.report_waiver_record_stats(membership, required_waivers, member_waivers, attestations, member_keys.member_key_map)
+    waiver_calcs.report_waiver_record_stats(membership, required_waivers, member_keys.member_key_map)
 
     # Generate and save member records
-    waiver_calcs.generate_single_signer_family_request(required_waivers.with_minor_children, member_keys)
-    waiver_calcs.generate_single_signer_request(required_waivers.no_minor_children, member_keys)
+    waiver_calcs.generate_single_signer_family_request(required_waivers.with_minor_children)
+    waiver_calcs.generate_single_signer_request(required_waivers.no_minor_children)
     waiver_calcs.generate_member_records(required_waivers, member_keys)
     upload_waiver_records()
 

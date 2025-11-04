@@ -212,15 +212,17 @@ def update_waiver_record_status(membership: memberdata.Membership,
     for adult_record in waiver_groups.no_minor_children:
         adult_record.signed = False
 
-        waiver_doc = waiver_doc_map.get(adult_record.member.member_id)
+        waiver_doc = waiver_doc_map.get(adult_record.adults[0].member_id)
         if waiver_doc is not None:
-            adult_record.web_link = waiver_doc.web_view_link
+            adult_record.web_links[0] = waiver_doc.web_view_link
+            adult_record.signatures[0] = waiver_doc.is_complete() 
             adult_record.signed = waiver_doc.is_complete()
             continue
 
-        attest_doc = attest_doc_map.get(adult_record.member.member_id)
+        attest_doc = attest_doc_map.get(adult_record.adults[0].member_id)
         if attest_doc is not None:
-            adult_record.web_link = attest_doc.web_view_link
+            adult_record.web_links[0] = attest_doc.web_view_link
+            adult_record.signatures[0] = attest_doc.is_complete() 
             adult_record.signed = True
 
     # Update signed state of family waivers
@@ -249,12 +251,11 @@ def update_waiver_record_status(membership: memberdata.Membership,
 
         family_record.signed = all_signed
 
-def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
-                                   member_keys: keys.MemberKeys) -> None:
+def generate_single_signer_request(adult_records: list[waiverrec.RequiredWaiver]) -> None:
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
-    FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
-    FIELD_KEY_ENABLED = waiverrec.MemberRecord.FIELD_KEY_ENABLED
+    FIELD_KEY = waiverrec.RequiredWaiver.FIELD_HAS_KEY
+    FIELD_KEY_ENABLED = waiverrec.RequiredWaiver.FIELD_KEY_ENABLED
     FIELD_NAME = waiverrec.AdultRecord.FIELD_NAME
     FIELD_EMAIL = waiverrec.AdultRecord.FIELD_EMAIL
 
@@ -267,16 +268,14 @@ def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
 
     for record in adult_records:
         # Check if anyone has a key
-        has_key = member_keys.has_key(record.member.member_id)
-        key_enabled = member_keys.has_enabled_key(record.member.member_id)
         if not record.signed:
             # Create a row
-            row = { ACCOUNT_NUM: record.member.account_num,
-                MEMBER_ID: record.member.member_id,
-                FIELD_KEY: has_key,
-                FIELD_KEY_ENABLED: key_enabled,
-                FIELD_NAME: record.member.name.fullname(),
-                FIELD_EMAIL: record.member.email
+            row = { ACCOUNT_NUM: record.adults[0].account_num,
+                MEMBER_ID: record.adults[0].member_id,
+                FIELD_KEY: record.has_key,
+                FIELD_KEY_ENABLED: record.key_enabled,
+                FIELD_NAME: record.adults[0].name.fullname(),
+                FIELD_EMAIL: record.adults[0].email
                }
             rows.append(row)
 
@@ -293,8 +292,7 @@ def generate_single_signer_request(adult_records: list[waiverrec.AdultRecord],
         f.close()
 
 
-def generate_single_signer_family_request(family_records: list[waiverrec.RequiredWaiver],
-                                          member_keys: keys.MemberKeys) -> None:
+def generate_single_signer_family_request(family_records: list[waiverrec.RequiredWaiver]) -> None:
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
@@ -321,15 +319,8 @@ def generate_single_signer_family_request(family_records: list[waiverrec.Require
 
     for record in family_records:
         # Check if anyone has a key
-        has_key = False
-        key_enabled = False
-        for adult in record.adults:
-            has_key = has_key or member_keys.has_key(adult.member_id)
-            key_enabled = key_enabled or member_keys.has_enabled_key(adult.member_id)
-
-        for minor in record.minors:
-            has_key = has_key or member_keys.has_key(minor.member_id)
-            key_enabled = key_enabled or member_keys.has_enabled_key(minor.member_id)
+        has_key = record.has_key
+        key_enabled = record.key_enabled
 
         for index, adult in enumerate(record.adults):
             if not record.signatures[index]:
@@ -358,8 +349,7 @@ def generate_single_signer_family_request(family_records: list[waiverrec.Require
         f.close()
 
 
-def generate_member_records(waiver_groups: waiverrec.RequiredWaivers,
-                            member_keys: keys.MemberKeys) -> None:
+def generate_member_records(waiver_groups: waiverrec.RequiredWaivers, member_keys: keys.MemberKeys) -> None:
     member_records: list[waiverrec.MemberRecord] = []
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
     print("Note: writing member records CSV")
@@ -368,8 +358,6 @@ def generate_member_records(waiver_groups: waiverrec.RequiredWaivers,
     
 def report_waiver_record_stats(membership: memberdata.Membership,
                         waiver_groups: waiverrec.RequiredWaivers,
-                        member_waivers: list[docs.MemberWaiver],
-                        attestations: list[docs.Attestation],
                         member_keys: dict[str, keys.KeyEntry]) -> None:
 
 
@@ -398,20 +386,9 @@ def report_waiver_record_stats(membership: memberdata.Membership,
         total_members += 1
 
     for family_record in waiver_groups.with_minor_children:
-        has_key = False
-        key_enabled = False
-        for index, adult in enumerate(family_record.adults):
-            if adult.member_id in member_keys:
-                has_key = True
-                if member_keys[adult.member_id].enabled:
-                    key_enabled = True
+        has_key = family_record.has_key
+        key_enabled = family_record.key_enabled
 
-        for minor in family_record.minors:
-            if minor.member_id in member_keys:
-                has_key = True
-                if member_keys[minor.member_id].enabled:
-                    key_enabled = True
- 
         if family_record.signed:
             waivered_family_count += 1
             waivered_minors += len(family_record.minors)
@@ -429,9 +406,9 @@ def report_waiver_record_stats(membership: memberdata.Membership,
             waivered_adults += 1
         else:
             unwaivered_adult_count += 1
-            if waiver.member.member_id in member_keys:
+            if waiver.adults[0].member_id in member_keys:
                 unwaivered_adult_with_keys_count += 1
-                if member_keys[waiver.member.member_id].enabled:
+                if member_keys[waiver.adults[0].member_id].enabled:
                     unwaivered_adult_with_enabled_keys_count += 1
 
     total_keys = len(member_keys)
@@ -471,7 +448,7 @@ def main() -> None:
 
     review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
     update_waiver_record_status(membership, waiver_groups, member_waivers, attestations)
-    report_waiver_record_stats(membership, waiver_groups, member_waivers, attestations, member_keys.member_key_map)
+    report_waiver_record_stats(membership, waiver_groups, member_keys.member_key_map)
 
     generate_member_records(waiver_groups, member_keys)
 

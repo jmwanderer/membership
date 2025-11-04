@@ -12,7 +12,7 @@ family waivers, and which minors are include on the waiver.
 
 
 import memberdata
-from  waiverrec import RequiredWaivers, AdultRecord, RequiredWaiver
+from  waiverrec import RequiredWaivers, RequiredWaiver
 import keys
 
 
@@ -112,10 +112,9 @@ def generate(membership: memberdata.Membership, member_keys: keys.MemberKeys) ->
         for member in members:
             if member.is_minor() or member in possible_parents:
                 continue
-            record = AdultRecord(member)
+            record = RequiredWaiver(member)
             if member_keys.has_key(member.member_id):
                 record.has_key = True
-                record.key_address = member_keys.member_email(member.member_id)
                 record.key_enabled = member_keys.has_enabled_key(member.member_id)
             groups.no_minor_children.append(record)
 

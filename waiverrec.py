@@ -19,8 +19,6 @@ class AdultRecord:
     """
     def __init__(self, member: MemberEntry):
         self.member = member
-        # We probably don't need key address here
-        self.key_address = ""
         self.has_key = False
         self.key_enabled = False
         self.signed = False
@@ -47,7 +45,6 @@ class AdultRecord:
         row[AdultRecord.FIELD_KEY_ENABLED] = csvfile.bool_str(self.key_enabled)
         row[AdultRecord.FIELD_NAME] = self.member.name.fullname()
         row[AdultRecord.FIELD_EMAIL] = self.member.email
-        row[AdultRecord.FIELD_KEY_EMAIL] = self.key_address
         row[AdultRecord.FIELD_WEB_LINK] = self.web_link
         return row
 
@@ -63,7 +60,6 @@ class AdultRecord:
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
         record.has_key = csvfile.is_true_value(row[AdultRecord.FIELD_HAS_KEY])
         record.key_enabled = csvfile.is_true_value(row[AdultRecord.FIELD_KEY_ENABLED])
-        record.key_address = row[AdultRecord.FIELD_KEY_EMAIL]
         record.web_link = row[AdultRecord.FIELD_WEB_LINK]
         return record
 
@@ -107,14 +103,18 @@ class RequiredWaiver:
     Represents a family or potential family for which we need more information
     """
 
-    def __init__(self) -> None: 
+    def __init__(self, member: MemberEntry|None = None) -> None: 
         self.adults: list[MemberEntry] = []
         self.signatures: list[bool] = [False, False].copy()
         self.web_links: list[str] = ["", ""].copy()
         self.minors: list[MemberEntry] = []
         self.signed: bool = False
+        self.has_key: bool = False
         self.key_enabled: bool = False
+        if member is not None:
+            self.adults.append(member)
 
+    FIELD_HAS_KEY = "has_key"
     FIELD_KEY_ENABLED = "key_enabled"
     FIELD_NAME1 ="name1"
     FIELD_EMAIL1 = "email_address1"
@@ -134,7 +134,7 @@ class RequiredWaiver:
 
 
     HEADER = [ csvfile.ACCOUNT_NUM, csvfile.MEMBER_ID, csvfile.SIGNED,
-              FIELD_KEY_ENABLED,
+              FIELD_HAS_KEY, FIELD_KEY_ENABLED,
               FIELD_NAME1, FIELD_EMAIL1, FIELD_SIGNATURE1,
               FIELD_NAME2, FIELD_EMAIL2, FIELD_SIGNATURE2,
               FIELD_MINOR1 ,FIELD_MINOR2,
@@ -154,6 +154,7 @@ class RequiredWaiver:
         row[csvfile.MEMBER_ID] = self.adults[0].member_id
         row[csvfile.SIGNED] = csvfile.signed_str(self.signed)
         row[RequiredWaiver.FIELD_KEY_ENABLED] = csvfile.bool_str(self.key_enabled)
+        row[RequiredWaiver.FIELD_HAS_KEY] = csvfile.bool_str(self.has_key)
 
         member = self.adults[0]
         row[RequiredWaiver.FIELD_NAME1] = member.name.fullname()
@@ -169,7 +170,7 @@ class RequiredWaiver:
         row[RequiredWaiver.FIELD_WEB_LINK2] = self.web_links[1]
 
         for i, minor in enumerate(self.minors):
-            row[RequiredWaiver.HEADER[i + 10]] = minor.name.fullname()
+            row[RequiredWaiver.HEADER[i + 11]] = minor.name.fullname()
         return row
 
     @staticmethod
@@ -184,6 +185,7 @@ class RequiredWaiver:
 
         record = RequiredWaiver()
         record.signed = csvfile.is_signed(row[csvfile.SIGNED])
+        record.has_key = csvfile.is_true_value(row[RequiredWaiver.FIELD_HAS_KEY])
         record.key_enabled = csvfile.is_true_value(row[RequiredWaiver.FIELD_KEY_ENABLED])
 
         # Populate adult 1 plus signature status and web link
@@ -203,7 +205,7 @@ class RequiredWaiver:
         record.web_links[1] = row[RequiredWaiver.FIELD_WEB_LINK2]
 
         # Populate minors
-        for index in range(10, 15):
+        for index in range(11, 16):
             name = row[RequiredWaiver.HEADER[index]]
             if len(name.strip()) > 0:
                 member_entry = membership.get_one_member_by_fullname(name, True)
@@ -253,7 +255,7 @@ class RequiredWaivers:
 
     def __init__(self) -> None:
         # Adult members with no minor children as members
-        self.no_minor_children: list[AdultRecord] = []
+        self.no_minor_children: list[RequiredWaiver] = []
 
         # Parents and minor children
         self.with_minor_children: list[RequiredWaiver] = []
@@ -266,9 +268,9 @@ class RequiredWaivers:
         self.unknown_parents_count = 0
         self.known_parents_count = 0
 
-    def find_adult_record(self, name: str) -> AdultRecord|None:
+    def find_adult_record(self, name: str) -> RequiredWaiver|None:
         for record in self.no_minor_children:
-            if record.member.name.fullname() == name:
+            if record.adults[0].name.fullname() == name:
                 return record
         return None
     
@@ -286,13 +288,13 @@ class RequiredWaivers:
     @staticmethod
     def read_csv_files(membership: memberdata.Membership) -> RequiredWaivers:
         groupings = RequiredWaivers()
-        groupings.no_minor_children = AdultRecord.read_csv(membership, RequiredWaivers.adult_waiver_filename)
+        groupings.no_minor_children = RequiredWaiver.read_csv(membership, RequiredWaivers.adult_waiver_filename)
         groupings.with_minor_children = RequiredWaiver.read_csv(membership, RequiredWaivers.familey_waiver_filename)
         groupings.unknown_status = RequiredWaiver.read_csv(membership, RequiredWaivers.unknown_waiver_filename)
         return groupings
 
     def write_csv_files(self) -> None:
-        AdultRecord.write_csv(self.no_minor_children, RequiredWaivers.adult_waiver_filename)
+        RequiredWaiver.write_csv(self.no_minor_children, RequiredWaivers.adult_waiver_filename)
         RequiredWaiver.write_csv(self.with_minor_children, RequiredWaivers.familey_waiver_filename)
         RequiredWaiver.write_csv(self.unknown_status, RequiredWaivers.unknown_waiver_filename)
  
@@ -436,12 +438,12 @@ class MemberRecord:
 
         for adult_record in required_waivers.no_minor_children:
             member_record = MemberRecord()
-            member_record.adults.append(adult_record.member)
-            member_record.web_links[0] = adult_record.web_link
+            member_record.adults.append(adult_record.adults[0])
+            member_record.web_links[0] = adult_record.web_links[0]
             member_record.signed = adult_record.signed
             member_record.signatures[0] = adult_record.signed
-            member_record.has_key = member_keys.has_key(adult_record.member.member_id)
-            member_record.key_enabled = member_keys.has_enabled_key(adult_record.member.member_id)
+            member_record.has_key = member_keys.has_key(adult_record.adults[0].member_id)
+            member_record.key_enabled = member_keys.has_enabled_key(adult_record.adults[0].member_id)
             member_records.append(member_record)
 
         for family_record in required_waivers.with_minor_children:
@@ -477,7 +479,7 @@ def simple_test() -> None:
     member_keys = keys.MemberKeys()
     member_keys.load_keys(membership)
 
-    adult_records: list[AdultRecord] = []
+    adult_records: list[RequiredWaiver] = []
     family_records: list[RequiredWaiver] = []
 
     for account in membership.active_member_accounts():
@@ -492,8 +494,7 @@ def simple_test() -> None:
             family_records.append(family_record)
         else:
             for member in members:
-                adult_record = AdultRecord(member)
-                adult_record.key_address = member_keys.member_email(member.member_id)
+                adult_record = RequiredWaiver(member)
                 adult_records.append(adult_record)
 
     required_waivers = RequiredWaivers()
@@ -507,19 +508,19 @@ def simple_test() -> None:
     adult_csv = "test/adult_records.csv"
 
     RequiredWaiver.write_csv(family_records, family_csv)
-    AdultRecord.write_csv(adult_records, adult_csv)
+    RequiredWaiver.write_csv(adult_records, adult_csv)
 
     families = RequiredWaiver.read_csv(membership, family_csv)
-    adults = AdultRecord.read_csv(membership, adult_csv)
+    adults = RequiredWaiver.read_csv(membership, adult_csv)
 
     assert len(families) == len(family_records)
     assert len(adults) == len(adult_records)
 
     RequiredWaiver.write_csv(families, family_csv)
-    AdultRecord.write_csv(adults, adult_csv)
+    RequiredWaiver.write_csv(adults, adult_csv)
 
     families = RequiredWaiver.read_csv(membership, family_csv)
-    adults = AdultRecord.read_csv(membership, adult_csv)
+    adults = RequiredWaiver.read_csv(membership, adult_csv)
 
     assert len(families) == len(family_records)
     assert len(adults) == len(adult_records)
