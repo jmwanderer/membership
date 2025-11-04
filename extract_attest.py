@@ -39,7 +39,7 @@ def upload_attestation_csv_file(drive, local_file_name, remote_folder_name, remo
         gdrive.update_csv_file(drive, remote_file_id, local_file_name)
 
 
-def main(upload: bool = False) -> None:
+def run(upload: bool = False) -> None:
     """
     Scrape all attestation PDF files and create a CSV file
     """
@@ -98,6 +98,3 @@ def main(upload: bool = False) -> None:
         else:
             print("Skipping upload of attestations.csv")
  
-
-if __name__ == "__main__":
-    main()

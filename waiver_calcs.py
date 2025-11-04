@@ -435,27 +435,3 @@ def report_waiver_record_stats(membership: memberdata.Membership,
     print()
     print()
 
-def main() -> None:
-    print("Usage: {sys.argv[0]} [ update ]")
-
-    membership = memberdata.Membership()
-    membership.read_csv_files()
-    waiver_groups = waiverrec.RequiredWaivers.read_csv_files(membership)
-    attestations = docs.Attestation.read_csv()
-    member_waivers = docs.MemberWaiver.read_csv()
-    member_keys = keys.MemberKeys()
-    member_keys.load_keys(membership)
-
-    review_and_update_waivers(membership, waiver_groups, member_waivers, attestations)
-    update_waiver_record_status(membership, waiver_groups, member_waivers, attestations)
-    report_waiver_record_stats(membership, waiver_groups, member_keys.member_key_map)
-
-    generate_member_records(waiver_groups, member_keys)
-
-    waiverrec.RequiredWaivers.write_csv_files(waiver_groups)
-    docs.MemberWaiver.write_csv(member_waivers)
-    docs.Attestation.write_csv(attestations)
-
-
-if __name__ == "__main__":
-    main()

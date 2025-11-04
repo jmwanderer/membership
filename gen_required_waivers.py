@@ -164,19 +164,3 @@ def generate(membership: memberdata.Membership, member_keys: keys.MemberKeys) ->
         else:
             groups.unknown_status.append(family)
     return groups
-
-
-def main():
-    # Read membership data
-    membership = memberdata.Membership()
-    membership.read_csv_files()
-
-    # Create new groups
-    member_keys = keys.MemberKeys()
-    member_keys.load_keys(membership)
-    required_waivers = generate(membership, member_keys)
-    required_waivers.write_csv_files()
-
-
-if __name__ == "__main__":
-    main()

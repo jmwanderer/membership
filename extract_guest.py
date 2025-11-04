@@ -39,7 +39,7 @@ def upload_guest_waiver_list(drive, local_file_name):
     gdrive.update_csv_file(drive, remote_file_id, local_file_name)
 
 
-def main(upload: bool = False) -> None:
+def run(upload: bool = False) -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
     """
@@ -102,6 +102,3 @@ def main(upload: bool = False) -> None:
     else:
         print(f"Skipping upload of {docs.guestwaiver_csv_filename}")
 
-
-if __name__ == "__main__":
-    main()

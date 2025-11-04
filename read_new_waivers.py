@@ -14,9 +14,9 @@ upload: bool = True
 def main():
     print("Extract information from new documents.")
     print(f"Reading waiver files for year {docs.YEAR}\n")
-    extract_members.main(upload)
-    extract_attest.main(upload)
-    extract_guest.main(upload)
+    extract_members.run(upload)
+    extract_attest.run(upload)
+    extract_guest.run(upload)
 
 if __name__ == "__main__":
     if "noupload" in sys.argv:

@@ -44,7 +44,7 @@ def upload_member_csv_file(drive, local_file_name, remote_folder_name, remote_fi
 
 
 
-def main(upload: bool = False) -> None:
+def run(upload: bool = False) -> None:
     """
     Scrape guest waiver PDF files and create a CSV file
     """
@@ -116,6 +116,3 @@ def main(upload: bool = False) -> None:
         else:
             print("skipping upload of member_waivers.csv")
   
-
-if __name__ == "__main__":
-    main()
