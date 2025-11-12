@@ -23,7 +23,7 @@ def move_new_signed_docs(drive, folder_src_name, folder_dst_name) -> int:
     count = 0
     for file in files:
         name: str = file['name']
-        if name.endswith('pdf') and "Guest" and docs.YEAR in name:
+        if name.endswith('pdf') and "Guest" in name and docs.YEAR in name:
             print(f"move file {name}")
             count += 1
             gdrive.move_file(drive, file['id'], folder_dst_id)

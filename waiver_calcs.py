@@ -349,6 +349,12 @@ def generate_single_signer_family_request(family_records: list[waiverrec.Require
         f.close()
 
 
+# TODO: Add support for signature requested tracking
+# Read name and email from a CSV file - save in data/sigs_requested - include date
+#   - new module: update_requested <csv file>
+# Read data/sigs_requested and include a field in the signature_request files
+
+
 def generate_member_records(waiver_groups: waiverrec.RequiredWaivers, member_keys: keys.MemberKeys) -> None:
     member_records: list[waiverrec.MemberRecord] = []
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
