@@ -43,31 +43,49 @@ def login():
         with open("token.json", "w") as token:
             token.write(creds.to_json())
 
-def get_folder_id(drive, folder_name):
+def get_folder_id(drive, folder_path):
     """
-    Return ID of a single folder matching folder_name
+    Return ID of a single folder matching the path
+    The path is not absolute. We do not search for specific drives
+    This just ensures the folder has ancestors of the expected names
+    We could enhance this to include the drive name - but then we would
+    need to handle shared folders where we do not see a parent name....
     """
-    folderId = (
-        drive.files()
-        .list(
-            q="mimeType = 'application/vnd.google-apps.folder' and name = '"
-            + folder_name
-            + "'",
-            pageSize=10,
-            includeItemsFromAllDrives=True,
-            supportsAllDrives=True,
-            fields="nextPageToken, files(id, name, webViewLink)",
-        )
-        .execute()
-    )
+    parents = []
 
-    # this gives us a list of all folders with that name
-    folderIdResult = folderId.get("files", [])
-    # however, we know there is only 1 folder with that name, so we just get the id of the 1st item in the list
-    if len(folderIdResult) == 0:
-        print(f"Error: no folders found for '{folder_name}'")
+    for folder_name in folder_path.split('/'):
+        qresult = (
+            drive.files()
+            .list(
+                q="mimeType = 'application/vnd.google-apps.folder' and name = '"
+                + folder_name
+                + "'",
+                pageSize=10,
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True,
+                fields="nextPageToken, files(id, parents)",
+            ).execute()
+        )
+        folders = qresult.get("files", [])
+        matches = []
+
+        for folder in folders:
+            # Find sub-folders of current parents
+            parent = folder.get('parents', [''])[0] 
+            if len(parents) == 0 or parent in parents:
+                matches.append(folder.get('id'))
+
+        if len(matches) == 0:
+            print(f"Error: no folders found for '{folder_path}'")
+            return None
+
+        parents = matches
+
+    if len(matches) > 1:
+        print(f"Error: found multiple folders for '{folder_name}'")
         return None
-    fid = folderIdResult[0].get("id")
+        
+    fid = matches[0]
     return fid
 
 
@@ -139,6 +157,7 @@ def update_csv_file(drive, file_id, name: str):
         print("File not changed, skip update...")
         return None
 
+    print("Writing file...")
     media = MediaFileUpload(name, mimetype='text/csv')
     updated_file = drive.files().update(
         fileId=file_id,
@@ -150,6 +169,7 @@ def upload_csv_file(drive, folder_id: str, filename: str, name: str):
     media = MediaFileUpload(name, mimetype='text/csv')
     metadata = {'name': filename, 
                 'parents': [folder_id]}
+    print("Writing file...")
     updated_file = drive.files().create(
         body=metadata,
         media_body=media,

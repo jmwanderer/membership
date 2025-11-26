@@ -54,10 +54,10 @@ def run(upload: bool = False) -> None:
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
-    folder_name = f"{docs.YEAR} Member Waivers"
+    folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Member Waivers"
 
 
-    folder_src_name = "Requested signatures"
+    folder_src_name = f"{docs.ROOT_DIR}/Requested signatures"
     count = move_new_signed_docs(drive, folder_src_name, folder_name)
     print(f"Moved {count} files")
 
@@ -109,7 +109,7 @@ def run(upload: bool = False) -> None:
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     if parsed_count > 0:
         docs.MemberWaiver.write_csv(waivers)
-        remote_folder_name = f"{docs.YEAR} Member Waivers"
+        remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Member Waivers"
         print(f"Upload member_records to Google Drive in '{remote_folder_name}'")
         if upload:
             upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")

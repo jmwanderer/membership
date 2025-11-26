@@ -30,12 +30,13 @@ def upload_csv_file(drive, local_file_name, remote_folder_name, remote_file_name
 def upload_waiver_records():
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
-    remote_folder_name = docs.YEAR
+    remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}"
+
     if upload:
         upload_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
     else:
         print("skipping upload of member_records.csv")
-    remote_folder_name = "HelloSign"
+    remote_folder_name = f"{docs.ROOT_DIR}"
     if upload:
         upload_csv_file(drive, memberdata.PARENTS_CSV, remote_folder_name, memberdata.PARENTS_CSV)
     else:

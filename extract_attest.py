@@ -48,8 +48,8 @@ def run(upload: bool = False) -> None:
 
     gdrive.login()
     drive = build("drive", "v3", credentials=gdrive.creds)
-    folder_name = f"{docs.YEAR} Household Attestations and Household Waivers"
-    folder_src_name = "Requested signatures"
+    folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Household Attestations and Household Waivers"
+    folder_src_name = f"{docs.ROOT_DIR}/Requested signatures"
     count = move_new_signed_docs(drive, folder_src_name, folder_name)
     print(f"Moved {count} files.")
 
@@ -85,14 +85,14 @@ def run(upload: bool = False) -> None:
         parsed_count += 1
 
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
-    remote_folder_name = f"{docs.YEAR} Member Waivers"
+    remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Member Waivers"
 
-    if parsed_count >= 0:
+    if parsed_count > 0:
         docs.Attestation.write_csv(attestations)
         print(f"Wrote output: {docs.attestations_csv_filename}")
         # TODO: Should probably be done somewhere else - may be modified later
-        print(f"Update attestations.csv to Google Drive in '{remote_folder_name}")
-        remote_folder_name = docs.YEAR
+        remote_folder_name = f"{docs.ROOT_DIR}/docs.YEAR"
+        print(f"Update attestations.csv to Google Drive in '{remote_folder_name}'")
         if upload:
             upload_attestation_csv_file(drive, docs.attestations_csv_filename, remote_folder_name, "attestations.csv")
         else:

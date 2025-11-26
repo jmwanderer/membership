@@ -21,6 +21,7 @@ import csvfile
 
 load_dotenv()
 YEAR = os.getenv('YEAR', default="2025")
+ROOT_DIR = os.getenv('ROOT_DIR', default="HelloSign")
 
 @dataclass
 class Signature:
