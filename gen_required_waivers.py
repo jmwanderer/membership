@@ -154,13 +154,20 @@ def generate(membership: memberdata.Membership, member_keys: keys.MemberKeys) ->
         for member in parents:
             family.adults.append(member)
             family.key_enabled = family.key_enabled or member_keys.has_enabled_key(member.member_id)
+            if member_keys.has_key(member.member_id):
+                family.has_key = True
+
         for member in members:
             if member.is_minor():
                 family.minors.append(member)
-                family.key_enabled = family.key_enabled or member_keys.has_enabled_key(member.member_id)
+            family.key_enabled = family.key_enabled or member_keys.has_enabled_key(member.member_id)
+            if member_keys.has_key(member.member_id):
+                family.has_key = True
 
         if known_parents:
             groups.with_minor_children.append(family)
         else:
             groups.unknown_status.append(family)
+
+
     return groups

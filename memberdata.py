@@ -337,6 +337,18 @@ class Membership:
     def get_account(self, account_num: str) -> AccountEntry:
         return self.account_map[account_num]
 
+    def get_primary_account_member(self, account_num: str) -> MemberEntry | None:
+        account_entry = self.account_map.get(account_num)
+        if account_entry is None:
+            print("Warning: Account {account_num} does not exist.")
+            return None
+
+        for member in self.all_members():
+            if member.account_num == account_num:
+                if member.name == account_entry.billing_name:
+                    return member
+        return None
+
     def _read_members_csv(self, filename):
         print(f"Note: reading member list '{filename}'")
         self.member_map = {}

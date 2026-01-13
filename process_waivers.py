@@ -13,7 +13,7 @@ import gen_required_waivers
 import waiverrec
 import waiver_calcs
 
-upload: bool = True
+upload: bool = False
 
 def upload_csv_file(drive, local_file_name, remote_folder_name, remote_file_name):
 
@@ -68,8 +68,9 @@ def main():
     waiver_calcs.report_waiver_record_stats(membership, required_waivers, member_keys.member_key_map)
 
     # Generate and save member records
-    waiver_calcs.generate_single_signer_family_request(required_waivers.with_minor_children)
-    waiver_calcs.generate_single_signer_request(required_waivers.no_minor_children)
+    waiver_calcs.generate_single_signer_family_request(membership, required_waivers.with_minor_children)
+    waiver_calcs.generate_single_signer_request(membership, required_waivers.no_minor_children)
+    waiver_calcs.generate_attest_request(membership, attestations, required_waivers.with_minor_children)
     waiver_calcs.generate_member_records(required_waivers, member_keys)
     upload_waiver_records()
 

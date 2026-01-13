@@ -37,7 +37,7 @@ class Signature:
         return fullname[index+1:]
 
 
-memberwaiver_csv_filename = "data/member_waivers.csv"
+memberwaiver_csv_filename = f"data/member_waivers_{YEAR}.csv"
 
 class MemberWaiver:
     """
@@ -223,7 +223,7 @@ class MemberWaiver:
 
 
 # Default location to store attestations.
-attestations_csv_filename = "data/attestations.csv"
+attestations_csv_filename = f"data/attestations_{YEAR}.csv"
 
 
 @dataclass
@@ -435,7 +435,7 @@ class Attestation:
         print(f"Note: write {len(attestations)} attestation records")
 
 
-guestwaiver_csv_filename = "data/guest_waivers.csv"
+guestwaiver_csv_filename = f"data/guest_waivers_{YEAR}.csv"
 class GuestWaiver:
     """
     Represents data for a guest waiver.

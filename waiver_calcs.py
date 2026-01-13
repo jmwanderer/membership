@@ -251,17 +251,19 @@ def update_waiver_record_status(membership: memberdata.Membership,
 
         family_record.signed = all_signed
 
-def generate_single_signer_request(adult_records: list[waiverrec.RequiredWaiver]) -> None:
+def generate_single_signer_request(membership: memberdata.Membership, adult_records: list[waiverrec.RequiredWaiver]) -> None:
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.RequiredWaiver.FIELD_HAS_KEY
     FIELD_KEY_ENABLED = waiverrec.RequiredWaiver.FIELD_KEY_ENABLED
+    FIELD_ATTEST = "attest_req"
     FIELD_NAME = "name"
     FIELD_EMAIL = "email"
 
     HEADER = [ ACCOUNT_NUM, MEMBER_ID,
               FIELD_KEY,
               FIELD_KEY_ENABLED,
+              FIELD_ATTEST,
               FIELD_NAME, FIELD_EMAIL ]
 
     rows: list[dict[str,str]] = []
@@ -270,10 +272,18 @@ def generate_single_signer_request(adult_records: list[waiverrec.RequiredWaiver]
         # Check if anyone has a key
         if not record.signed:
             # Create a row
+
+            # Note if this member is already been requested to sign an attestation
+            attest_requested = False
+            primary_member = membership.get_primary_account_member(record.adult().account_num)
+            if primary_member is not None and primary_member.member_id == record.adult().member_id:
+                attest_requested = True
+           
             row = { ACCOUNT_NUM: record.adult().account_num,
                 MEMBER_ID: record.adult().member_id,
                 FIELD_KEY: record.has_key,
                 FIELD_KEY_ENABLED: record.key_enabled,
+                FIELD_ATTEST: attest_requested,
                 FIELD_NAME: record.adult().name.fullname(),
                 FIELD_EMAIL: record.adult().email
                }
@@ -292,11 +302,12 @@ def generate_single_signer_request(adult_records: list[waiverrec.RequiredWaiver]
         f.close()
 
 
-def generate_single_signer_family_request(family_records: list[waiverrec.RequiredWaiver]) -> None:
+def generate_single_signer_family_request(membership: memberdata.Membership, family_records: list[waiverrec.RequiredWaiver]) -> None:
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_KEY = waiverrec.MemberRecord.FIELD_HAS_KEY
     FIELD_KEY_ENABLED = waiverrec.MemberRecord.FIELD_KEY_ENABLED
+    FIELD_ATTEST = "attest_req"
     FIELD_NAME = "name"
     FIELD_EMAIL = "email"
     FIELD_MINOR1 = waiverrec.RequiredWaiver.FIELD_MINOR1
@@ -308,6 +319,7 @@ def generate_single_signer_family_request(family_records: list[waiverrec.Require
     HEADER = [ ACCOUNT_NUM, MEMBER_ID,
               FIELD_KEY,
               FIELD_KEY_ENABLED,
+              FIELD_ATTEST,
               FIELD_NAME, FIELD_EMAIL,
               FIELD_MINOR1, 
               FIELD_MINOR2, 
@@ -325,10 +337,18 @@ def generate_single_signer_family_request(family_records: list[waiverrec.Require
         for index, adult in enumerate(record.adults):
             if not record.signatures[index]:
                 # Create a row
+
+                # Note if this member is already been requested to sign an attestation
+                attest_requested = False
+                primary_member = membership.get_primary_account_member(adult.account_num)
+                if primary_member is not None and primary_member.member_id == adult.member_id:
+                    attest_requested = True
+ 
                 row = { ACCOUNT_NUM: adult.account_num,
                         MEMBER_ID: adult.member_id,
                         FIELD_KEY: has_key,
                         FIELD_KEY_ENABLED: key_enabled,
+                        FIELD_ATTEST: attest_requested,
                         FIELD_NAME: adult.name.fullname(),
                         FIELD_EMAIL: adult.email
                        }
@@ -337,6 +357,75 @@ def generate_single_signer_family_request(family_records: list[waiverrec.Require
                 rows.append(row)
 
     csv_file = "output/single_signer_family_request.csv" 
+    if not csvfile.backup_file(csv_file):
+        return
+
+    print(f"Note: write {csv_file}")
+    with open(csv_file, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=HEADER)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        f.close()
+
+def generate_attest_request(membership: memberdata.Membership, attest_docs: list[docs.Attestation], family_records: list[waiverrec.RequiredWaiver]) -> None:
+    ACCOUNT_NUM = csvfile.ACCOUNT_NUM
+    MEMBER_ID = csvfile.MEMBER_ID
+    FIELD_NAME = "name"
+    FIELD_EMAIL = "email"
+    FIELD_MINOR1 = waiverrec.RequiredWaiver.FIELD_MINOR1
+    FIELD_MINOR2 = waiverrec.RequiredWaiver.FIELD_MINOR2
+    FIELD_MINOR3 = waiverrec.RequiredWaiver.FIELD_MINOR3
+    FIELD_MINOR4 = waiverrec.RequiredWaiver.FIELD_MINOR4
+    FIELD_MINOR5 = waiverrec.RequiredWaiver.FIELD_MINOR5
+
+    HEADER = [ ACCOUNT_NUM, MEMBER_ID,
+              FIELD_NAME, FIELD_EMAIL,
+              FIELD_MINOR1, 
+              FIELD_MINOR2, 
+              FIELD_MINOR3, 
+              FIELD_MINOR4, 
+              FIELD_MINOR5 ]
+
+    rows: list[dict[str,str]] = []
+
+    attest_doc_map = create_attest_doc_map(membership, attest_docs)
+
+    for account in membership.active_member_accounts():
+        primary_member = membership.get_primary_account_member(account.account_num)
+        if primary_member is None:
+            print(f"Warning: skipping attest req for account {account.account_num}")
+            continue
+
+        attest_signed = False
+        for member in membership.get_members_for_account_num(account.account_num):
+            attest_doc = attest_doc_map.get(member.member_id)
+            if attest_doc is not None and attest_doc.is_complete():
+                attest_signed = True
+
+        if attest_signed:
+            continue
+
+        row = { ACCOUNT_NUM: primary_member.account_num,
+                MEMBER_ID: primary_member.member_id,
+                FIELD_NAME: primary_member.name.fullname(),
+                FIELD_EMAIL: primary_member.email
+               }
+
+        # Search for minor children
+        family_record = None
+        for record in family_records:
+            for adult in record.adults:
+                if adult.member_id == primary_member.member_id:
+                    family_record = record
+                    break
+
+        if family_record is not None:
+            for minor_index, minor in enumerate(family_record.minors):
+                row[HEADER[minor_index + 4]] = minor.name.fullname()
+        rows.append(row)
+
+    csv_file = "output/attestation_request.csv" 
     if not csvfile.backup_file(csv_file):
         return
 
