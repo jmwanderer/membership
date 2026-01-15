@@ -353,7 +353,7 @@ def generate_single_signer_family_request(membership: memberdata.Membership, fam
                         FIELD_EMAIL: adult.email
                        }
                 for minor_index, minor in enumerate(record.minors):
-                    row[HEADER[minor_index + 6]] = minor.name.fullname()
+                    row[HEADER[minor_index + 7]] = minor.name.fullname()
                 rows.append(row)
 
     csv_file = "output/single_signer_family_request.csv" 
@@ -442,6 +442,17 @@ def generate_attest_request(membership: memberdata.Membership, attest_docs: list
 # Read name and email from a CSV file - save in data/sigs_requested - include date
 #   - new module: update_requested <csv file>
 # Read data/sigs_requested and include a field in the signature_request files
+
+def generate_account_status(membership: memberdata.Membership,
+                            waiver_groups: waiverrec.RequiredWaivers):
+    # Account#, Primary Last Name, #keys, #keys enabled, attest status, minors waivered status, key holders waivered status, all waivered
+    # Iterate through active accounts
+    # review waivers for each account
+    # check minors waivered - family waiver
+    # check adult waivers - all
+    # gather key data - all
+    pass
+    
 
 
 def generate_member_records(waiver_groups: waiverrec.RequiredWaivers, member_keys: keys.MemberKeys) -> None:
