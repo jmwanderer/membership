@@ -245,6 +245,7 @@ class Attestation:
         self.web_view_link: str = ""
         self.complete = "?"
         self.reviewed: str = ""
+        self.ignore: str = ""
         self.adults: list[AttestEntry] = []
         self.minors: list[AttestEntry] = []
 
@@ -260,6 +261,9 @@ class Attestation:
             result += "\n\t" + str(minor)
 
         return result
+
+    def is_ignored(self) -> bool:
+        return csvfile.is_true_value(self.ignore)
 
     def is_reviewed(self) -> bool:
         return csvfile.is_true_value(self.reviewed)
@@ -277,6 +281,7 @@ class Attestation:
             self.complete = "N"
 
     # CSV fields
+    FIELD_IGNORE = "ignore"
     FIELD_ADULT1 = "adult1"
     FIELD_ADULT1_EMAIL = "adult1_email"
     FIELD_ADULT1_BIRTHDATE = "adult1_birthdate"
@@ -301,10 +306,11 @@ class Attestation:
     FIELD_MINOR5_BIRTHDATE = "minor5_birthdate"
     FIELD_REVIEWED = "reviewed"
     FIELD_COMPLETE = "minors_complete"
-    FIELD_LINK = "name"
-    FIELD_NAME = "link"
+    FIELD_NAME = "name"
+    FIELD_LINK = "link"
 
     HEADER = [
+        FIELD_IGNORE,
         FIELD_ADULT1,
         FIELD_ADULT1_EMAIL,
         FIELD_ADULT1_BIRTHDATE,
@@ -329,8 +335,8 @@ class Attestation:
         FIELD_MINOR5_BIRTHDATE,
         FIELD_COMPLETE,
         FIELD_REVIEWED,
-        FIELD_LINK,
         FIELD_NAME,
+        FIELD_LINK,
     ]
 
     def get_row(self):
@@ -340,10 +346,11 @@ class Attestation:
         row = {}
         row[Attestation.FIELD_COMPLETE] = self.complete
         row[Attestation.FIELD_REVIEWED] = self.reviewed
+        row[Attestation.FIELD_IGNORE] = self.ignore
         row[Attestation.FIELD_NAME] = self.file_name
         row[Attestation.FIELD_LINK] = self.web_view_link
 
-        index = 0
+        index = 1
         for adult in self.adults:
             row[Attestation.HEADER[index]] = adult.name
             row[Attestation.HEADER[index + 1]] = adult.email
@@ -351,7 +358,7 @@ class Attestation:
                 row[Attestation.HEADER[index + 2]] = adult.birthdate.isoformat()
             index += 3
 
-        index = 12
+        index = 13
         for minor in self.minors:
             row[Attestation.HEADER[index]] = minor.name
             if minor.birthdate != datetime.date.min:
@@ -364,23 +371,23 @@ class Attestation:
         """
         Initialize an attestation from a CSV row
         """
-
         self.complete = row[Attestation.FIELD_COMPLETE]
         self.reviewed = row[Attestation.FIELD_REVIEWED]
+        self.ignore = row[Attestation.FIELD_IGNORE]
         self.file_name = row[Attestation.FIELD_NAME]
         self.web_view_link = row[Attestation.FIELD_LINK]
         for index in range(0, 4):
-            name = row[Attestation.HEADER[index * 3]].strip()
-            email = row[Attestation.HEADER[index * 3 + 1]].strip()
-            birthdate = row[Attestation.HEADER[index * 3 + 2]].strip()
+            name = row[Attestation.HEADER[index * 3 + 1]].strip()
+            email = row[Attestation.HEADER[index * 3 + 2]].strip()
+            birthdate = row[Attestation.HEADER[index * 3 + 3]].strip()
             date = datetime.date.min
             if len(birthdate) > 0:
                 date = datetime.date.fromisoformat(birthdate)
             if len(name) > 0:
                 self.adults.append(AttestEntry(name, email, date))
         for index in range(0, 5):
-            name = row[Attestation.HEADER[12 + index * 2]].strip()
-            birthdate = row[Attestation.HEADER[12 + index * 2 + 1]].strip()
+            name = row[Attestation.HEADER[13 + index * 2]].strip()
+            birthdate = row[Attestation.HEADER[13 + index * 2 + 1]].strip()
             date = datetime.date.min
             if len(birthdate) > 0:
                 date = datetime.date.fromisoformat(birthdate)

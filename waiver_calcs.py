@@ -56,7 +56,7 @@ def check_attestation(membership: memberdata.Membership,
     if account is None:
         if not attest.reviewed:
             print(f"Warning: no account for name in attest'{name}'")
-        return False
+        return attest.is_complete()
 
     family_record = groups.find_family_record(name)
     if family_record is None:
