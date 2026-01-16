@@ -301,8 +301,8 @@ class Attestation:
     FIELD_MINOR5_BIRTHDATE = "minor5_birthdate"
     FIELD_REVIEWED = "reviewed"
     FIELD_COMPLETE = "minors_complete"
-    FIELD_LINK = "link"
-    FIELD_NAME = "name"
+    FIELD_LINK = "name"
+    FIELD_NAME = "link"
 
     HEADER = [
         FIELD_ADULT1,
@@ -337,25 +337,25 @@ class Attestation:
         """
         Generate a CSV row for this attestation
         """
-        row = [""] * 26
-        row[22] = self.complete
-        row[23] = self.reviewed
-        row[24] = self.file_name
-        row[25] = self.web_view_link
+        row = {}
+        row[Attestation.FIELD_COMPLETE] = self.complete
+        row[Attestation.FIELD_REVIEWED] = self.reviewed
+        row[Attestation.FIELD_NAME] = self.file_name
+        row[Attestation.FIELD_LINK] = self.web_view_link
 
         index = 0
         for adult in self.adults:
-            row[index] = adult.name
-            row[index + 1] = adult.email
+            row[Attestation.HEADER[index]] = adult.name
+            row[Attestation.HEADER[index + 1]] = adult.email
             if adult.birthdate != datetime.date.min:
-                row[index + 2] = adult.birthdate.isoformat()
+                row[Attestation.HEADER[index + 2]] = adult.birthdate.isoformat()
             index += 3
 
         index = 12
         for minor in self.minors:
-            row[index] = minor.name
+            row[Attestation.HEADER[index]] = minor.name
             if minor.birthdate != datetime.date.min:
-                row[index + 1] = minor.birthdate.isoformat()
+                row[Attestation.HEADER[index + 1]] = minor.birthdate.isoformat()
 
             index += 2
         return row
@@ -365,22 +365,22 @@ class Attestation:
         Initialize an attestation from a CSV row
         """
 
-        self.complete = row[22]
-        self.reviewed = row[23]
-        self.file_name = row[24]
-        self.web_view_link = row[25]
+        self.complete = row[Attestation.FIELD_COMPLETE]
+        self.reviewed = row[Attestation.FIELD_REVIEWED]
+        self.file_name = row[Attestation.FIELD_NAME]
+        self.web_view_link = row[Attestation.FIELD_LINK]
         for index in range(0, 4):
-            name = row[index * 3].strip()
-            email = row[index * 3 + 1].strip()
-            birthdate = row[index * 3 + 2].strip()
+            name = row[Attestation.HEADER[index * 3]].strip()
+            email = row[Attestation.HEADER[index * 3 + 1]].strip()
+            birthdate = row[Attestation.HEADER[index * 3 + 2]].strip()
             date = datetime.date.min
             if len(birthdate) > 0:
                 date = datetime.date.fromisoformat(birthdate)
             if len(name) > 0:
                 self.adults.append(AttestEntry(name, email, date))
         for index in range(0, 5):
-            name = row[12 + index * 2].strip()
-            birthdate = row[12 + index * 2 + 1].strip()
+            name = row[Attestation.HEADER[12 + index * 2]].strip()
+            birthdate = row[Attestation.HEADER[12 + index * 2 + 1]].strip()
             date = datetime.date.min
             if len(birthdate) > 0:
                 date = datetime.date.fromisoformat(birthdate)
@@ -401,12 +401,10 @@ class Attestation:
             return result
 
         with open(attestations_csv_file, "r", newline="") as f:
-            reader = csv.reader(f)
+            reader = csv.DictReader(f)
             count = 0
             for row in reader:
                 count += 1
-                if count == 1:
-                    continue
                 attestation = Attestation()
                 attestation.parse_row(row)
                 result.append(attestation)
@@ -427,8 +425,8 @@ class Attestation:
         print(f"Note: writing attestations file '{attestations_csv_file}'")
 
         with open(attestations_csv_file, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(Attestation.HEADER)
+            writer = csv.DictWriter(f, fieldnames=Attestation.HEADER)
+            writer.writeheader()
             for attestation in attestations:
                 writer.writerow(attestation.get_row())
             f.close()
@@ -669,6 +667,8 @@ def simple_test_attest():
 
     Attestation.write_csv(attests, attestations_csv_file=attest_filename)
     attests = Attestation.read_csv(attestations_csv_file=attest_filename)
+    print(len(attests))
+    print(attests)
     assert len(attests) == 2
     os.unlink(attest_filename)
     for name in csvfile.get_backup_filenames(attest_filename):

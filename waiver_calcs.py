@@ -456,7 +456,7 @@ def generate_account_status(membership: memberdata.Membership,
         # check minors waivered - family waiver
         # check adult waivers - all members
         # gather key data - all members
-        waiver_groups.
+        pass
 
     pass
     
