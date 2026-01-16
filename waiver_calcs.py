@@ -444,13 +444,20 @@ def generate_attest_request(membership: memberdata.Membership, attest_docs: list
 # Read data/sigs_requested and include a field in the signature_request files
 
 def generate_account_status(membership: memberdata.Membership,
+                            attestations: list[docs.Attestation],
                             waiver_groups: waiverrec.RequiredWaivers):
+    # Output:
     # Account#, Primary Last Name, #keys, #keys enabled, attest status, minors waivered status, key holders waivered status, all waivered
+
     # Iterate through active accounts
-    # review waivers for each account
-    # check minors waivered - family waiver
-    # check adult waivers - all
-    # gather key data - all
+    for account in membership.accounts():
+        # check status of attestation
+        # review waivers for each account
+        # check minors waivered - family waiver
+        # check adult waivers - all members
+        # gather key data - all members
+        waiver_groups.
+
     pass
     
 
