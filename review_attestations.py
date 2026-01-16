@@ -7,26 +7,37 @@ import keys
 import attest_calcs
 
 
-reported: dict[str,bool] = {}
+reported: dict[str, bool] = {}
+
+
 def report_once(account: memberdata.AccountEntry):
     if account.account_num in reported:
         return
 
     reported[account.account_num] = True
-    print(f"Account: {account.account_num} {account.billing_name} - {account.account_type}")
+    print(
+        f"Account: {account.account_num} {account.billing_name} - {account.account_type}"
+    )
     account_attest = attest_calcs.account_attest_map.get(account.account_num)
     if account_attest is not None:
         for web_link in account_attest.web_view_links:
             print(f"\t{web_link}")
 
+
 # check caretaker type
 # add info on web links
 # print count of accounts
-def review_account(membership: memberdata.Membership, member_keys: keys.MemberKeys, account: memberdata.AccountEntry):
+def review_account(
+    membership: memberdata.Membership,
+    member_keys: keys.MemberKeys,
+    account: memberdata.AccountEntry,
+):
     # Get Attestation for the account
-    account_attest: attest_calcs.AccountAttest | None = attest_calcs.account_attest_map.get(account.account_num)
+    account_attest: attest_calcs.AccountAttest | None = (
+        attest_calcs.account_attest_map.get(account.account_num)
+    )
     if account_attest is None:
-       return
+        return
     reported = False
 
     known_members = membership.get_members_for_account_num(account.account_num)
@@ -60,13 +71,16 @@ def review_account(membership: memberdata.Membership, member_keys: keys.MemberKe
                     key_status = "has key"
                 if member_keys.has_enabled_key(member.member_id):
                     key_status = "has enabled key"
-                print(f"\tMember {member.name.fullname()} is not attested. Key status: {key_status}")
+                print(
+                    f"\tMember {member.name.fullname()} is not attested. Key status: {key_status}"
+                )
 
     # Check if attestation have emails when memberdata does not and check
     # if birthdays differ
-    if (reported):
+    if reported:
         print("")
     # TODO
+
 
 def main():
     attestations = docs.Attestation.read_csv()
@@ -89,7 +103,6 @@ def main():
                     key_status = True
             if key_status:
                 print(f"\tBut account has an electronic key issued")
-
 
     for account in membership.accounts():
         review_account(membership, member_keys, account)
