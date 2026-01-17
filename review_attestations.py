@@ -18,7 +18,7 @@ def report_once(account: memberdata.AccountEntry):
     print(
         f"Account: {account.account_num} {account.billing_name} - {account.account_type}"
     )
-    account_attest = attest_calcs.account_attest_map.get(account.account_num)
+    account_attest = attest_calcs.get_account_attest(account.account_num)
     if account_attest is not None:
         for web_link in account_attest.web_view_links:
             print(f"\t{web_link}")
@@ -34,7 +34,7 @@ def review_account(
 ):
     # Get Attestation for the account
     account_attest: attest_calcs.AccountAttest | None = (
-        attest_calcs.account_attest_map.get(account.account_num)
+        attest_calcs.get_account_attest(account.account_num)
     )
     if account_attest is None:
         return
@@ -94,7 +94,7 @@ def main():
         attest_calcs.record_attestation(membership, attestation)
 
     for account in membership.accounts():
-        if not account.account_num in attest_calcs.account_attest_map:
+        if attest_calcs.get_account_attest(account.account_num) is None:
             report_once(account)
             print(f"\tError: no attestation for account {account.account_num}")
             key_status = False

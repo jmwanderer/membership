@@ -60,6 +60,12 @@ class RequiredWaiver:
     def adult(self) -> MemberEntry:
         return self.adults[0]
 
+    def account_num(self) -> str:
+        return self.adult().account_num
+
+    def has_minors(self) -> str:
+        return len(self.minors) > 0
+
     @staticmethod
     def get_header() -> list[str]:
         return RequiredWaiver.HEADER

@@ -71,6 +71,7 @@ def main():
     waiver_calcs.generate_single_signer_family_request(membership, required_waivers.with_minor_children)
     waiver_calcs.generate_single_signer_request(membership, required_waivers.no_minor_children)
     waiver_calcs.generate_attest_request(membership, attestations, required_waivers.with_minor_children)
+    waiver_calcs.generate_account_status(membership, attestations, required_waivers, member_keys)
     waiver_calcs.generate_member_records(required_waivers, member_keys)
     upload_waiver_records()
 

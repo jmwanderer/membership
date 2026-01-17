@@ -17,6 +17,7 @@ import csvfile
 import memberdata
 import waiverrec
 import keys
+import attest_calcs
 
 
 def check_waiver(membership: memberdata.Membership, 
@@ -445,20 +446,65 @@ def generate_attest_request(membership: memberdata.Membership, attest_docs: list
 
 def generate_account_status(membership: memberdata.Membership,
                             attestations: list[docs.Attestation],
-                            waiver_groups: waiverrec.RequiredWaivers):
+                            waiver_groups: waiverrec.RequiredWaivers,
+                            member_keys: keys.MemberKeys):
     # Output:
-    # Account#, Primary Last Name, #keys, #keys enabled, attest status, minors waivered status, key holders waivered status, all waivered
+    # Account#, Primary Last Name, #keys, #keys enabled, attest status, minors waivered status, unwaivered keys, all waivered
+
+    attest_calcs.record_attestations(membership, attestations)
+    waiver_map = {}
+    for waiver in waiver_groups.no_minor_children:
+        if waiver.account_num() not in waiver_map:
+            waiver_map[waiver.account_num()] = []
+        waiver_map[waiver.account_num()].append(waiver)
+
+    for waiver in waiver_groups.with_minor_children:
+        if waiver.account_num() not in waiver_map:
+            waiver_map[waiver.account_num()] = []
+        waiver_map[waiver.account_num()].append(waiver)
 
     # Iterate through active accounts
     for account in membership.accounts():
         # check status of attestation
-        # review waivers for each account
-        # check minors waivered - family waiver
-        # check adult waivers - all members
-        # gather key data - all members
-        pass
+        attest_status = "None"
+        attest = attest_calcs.get_account_attest(account.account_num)
+        if attest is not None:
+            if attest_calcs.get_attest_status(membership, attest):
+                attest_status = "Good"
+            else:
+                attest_status = "Present"
+    
+        # review waivers
+        waivers = waiver_map.get(account.account_num, [])
+        num_minors = 0
+        minors_waivered = True
+        unwaivered_keys = False
+        all_waivered = True
 
-    pass
+        for waiver in waivers:
+            # check minors waivered - family waiver
+            if waiver.has_minors():
+                num_minors = len(waiver.minors)
+                minors_waivered = waiver.signed
+
+            # check adult waivers - all members
+            if not waiver.signed:
+                all_waivered = False
+                if waiver.key_enabled:
+                    unwaivered_keys = True
+
+        # gather key data - all members
+        num_keys = 0
+        num_enabled_keys = 0
+
+        for member in membership.get_members_for_account_num(account.account_num):
+            if member_keys.has_key(member.member_id):
+                num_keys += 1
+            if member_keys.has_enabled_key(member.member_id):
+                num_enabled_keys += 1
+
+        # Report
+        print(f"Account {account.account_num} {account.billing_name.last_name} attest: {attest_status} num_minors {num_minors} minors waivered: {minors_waivered} unwaivered keys {unwaivered_keys} all waivered {all_waivered} num keys {num_keys} num enabled keys {num_enabled_keys}")
     
 
 
