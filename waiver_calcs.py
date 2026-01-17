@@ -450,6 +450,15 @@ def generate_account_status(membership: memberdata.Membership,
                             member_keys: keys.MemberKeys):
     # Output:
     # Account#, Primary Last Name, #keys, #keys enabled, attest status, minors waivered status, unwaivered keys, all waivered
+    ACCOUNT_NUM = csvfile.ACCOUNT_NUM
+    NAME = "Name"
+    ATTEST = "Attestation Status"
+    NUM_KEYS = "Number of Keys"
+    KEYS_ENABLED = "Keys Enabled"
+    MINORS_WAIVERED = "Minors Waivered"
+    UNWAIVERED_KEYS = "Keys w/o Waivers"
+    ALL_WAIVERED = "All Waivered"
+
 
     attest_calcs.record_attestations(membership, attestations)
     waiver_map = {}
@@ -462,6 +471,9 @@ def generate_account_status(membership: memberdata.Membership,
         if waiver.account_num() not in waiver_map:
             waiver_map[waiver.account_num()] = []
         waiver_map[waiver.account_num()].append(waiver)
+
+    # CSV Rows to write
+    rows = []
 
     # Iterate through active accounts
     for account in membership.accounts():
@@ -503,9 +515,38 @@ def generate_account_status(membership: memberdata.Membership,
             if member_keys.has_enabled_key(member.member_id):
                 num_enabled_keys += 1
 
-        # Report
-        print(f"Account {account.account_num} {account.billing_name.last_name} attest: {attest_status} num_minors {num_minors} minors waivered: {minors_waivered} unwaivered keys {unwaivered_keys} all waivered {all_waivered} num keys {num_keys} num enabled keys {num_enabled_keys}")
-    
+        row = { ACCOUNT_NUM : account.account_num,
+                NAME : account.billing_name.last_name,
+                ATTEST : attest_status,
+                MINORS_WAIVERED  : minors_waivered,
+                UNWAIVERED_KEYS : unwaivered_keys,
+                NUM_KEYS : num_keys,
+                KEYS_ENABLED : num_enabled_keys,
+               ALL_WAIVERED : all_waivered }
+        rows.append(row)
+
+    # Report
+    csv_file = "output/account_status.csv" 
+    if not csvfile.backup_file(csv_file):
+        return
+
+    HEADER = [ ACCOUNT_NUM,
+               NAME,
+               ATTEST,
+               NUM_KEYS,
+               KEYS_ENABLED,
+               MINORS_WAIVERED,
+               UNWAIVERED_KEYS,
+               ALL_WAIVERED ]
+
+    print(f"Note: write {csv_file}")
+    with open(csv_file, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=HEADER)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        f.close()
+
 
 
 def generate_member_records(waiver_groups: waiverrec.RequiredWaivers, member_keys: keys.MemberKeys) -> None:
