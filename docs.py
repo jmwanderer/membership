@@ -20,7 +20,7 @@ import os
 import csvfile
 
 load_dotenv()
-YEAR = os.getenv('YEAR', default="2025")
+YEAR = os.getenv('YEAR', default="2026")
 ROOT_DIR = os.getenv('ROOT_DIR', default="HelloSign")
 
 @dataclass

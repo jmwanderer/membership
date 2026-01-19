@@ -87,14 +87,14 @@ def run(upload: bool = False) -> None:
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
     remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Member Waivers"
 
-    if parsed_count > 0:
-        docs.Attestation.write_csv(attestations)
-        print(f"Wrote output: {docs.attestations_csv_filename}")
-        # TODO: Should probably be done somewhere else - may be modified later
-        remote_folder_name = f"{docs.ROOT_DIR}/docs.YEAR"
-        print(f"Update attestations.csv to Google Drive in '{remote_folder_name}'")
-        if upload:
-            upload_attestation_csv_file(drive, docs.attestations_csv_filename, remote_folder_name, "attestations.csv")
-        else:
-            print("Skipping upload of attestations.csv")
+    docs.Attestation.write_csv(attestations)
+    print(f"Wrote output: {docs.attestations_csv_filename}")
+    # TODO: Should probably be done somewhere else - may be modified later
+    remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Household Attestations and Household Waivers"
+    print(f"Update attestations.csv to Google Drive in '{remote_folder_name}'")
+    if upload:
+        upload_attestation_csv_file(drive, docs.attestations_csv_filename, remote_folder_name, "attestations.csv")
+    else:
+        print("Skipping upload of attestations.csv")
+    print()
  

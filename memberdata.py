@@ -138,7 +138,7 @@ class AccountEntry:
         return self.account_type == "Special Leave with Alumni Passes"
 
     def is_active_member(self) -> bool:
-        return self.is_proprietary_member() or self.is_alumni_pass()
+        return self.is_proprietary_member()
 
     def is_staff(self) -> bool:
         return self.account_type == "Staff"

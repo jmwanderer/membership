@@ -9,7 +9,7 @@ import extract_members
 import extract_guest
 
 
-upload: bool = False
+upload: bool = True
 
 def main():
     print("Extract information from new documents.")

@@ -476,7 +476,7 @@ def generate_account_status(membership: memberdata.Membership,
     rows = []
 
     # Iterate through active accounts
-    for account in membership.accounts():
+    for account in membership.active_member_accounts():
         # check status of attestation
         attest_status = "None"
         attest = attest_calcs.get_account_attest(account.account_num)

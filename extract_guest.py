@@ -30,14 +30,14 @@ def move_new_signed_docs(drive, folder_src_name, folder_dst_name) -> int:
     return count
 
 def upload_guest_waiver_list(drive, local_file_name):
-    remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}"
+    remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Guest Waivers"
     remote_file_name = "guest_waivers.csv"
 
     remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
     if remote_file_id is None:
-        print(f"Upload new file {remote_file_id} in {remote_folder_id}")
-        gdrive.upload_csv_file(drive, remote_file_id, remote_file_name, local_file_name)
+        print(f"Upload new file in {remote_folder_id}")
+        gdrive.upload_csv_file(drive, remote_folder_id, remote_file_name, local_file_name)
     else:
         print(f"Update file {remote_file_id} in {remote_folder_id}")
         gdrive.update_csv_file(drive, remote_file_id, local_file_name)
@@ -105,4 +105,4 @@ def run(upload: bool = False) -> None:
         upload_guest_waiver_list(drive, docs.guestwaiver_csv_filename)
     else:
         print(f"Skipping upload of {docs.guestwaiver_csv_filename}")
-
+    print()

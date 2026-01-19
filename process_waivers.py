@@ -13,17 +13,17 @@ import gen_required_waivers
 import waiverrec
 import waiver_calcs
 
-upload: bool = False
+upload: bool = True
 
 def upload_csv_file(drive, local_file_name, remote_folder_name, remote_file_name):
 
     remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
     if remote_file_id is None:
-        print(f"Upload new file {remote_file_name} to {remote_folder_id}")
+        print(f"Upload new file {remote_file_name} to {remote_folder_id} - {remote_folder_name}")
         gdrive.upload_csv_file(drive, remote_folder_id, remote_file_name, local_file_name)
     else:
-        print(f"Update file {remote_file_name} in {remote_folder_id}")
+        print(f"Update file {remote_file_name} in {remote_folder_id} - {remote_folder_name}")
         gdrive.update_csv_file(drive, remote_file_id, local_file_name)
 
 
@@ -36,11 +36,20 @@ def upload_waiver_records():
         upload_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
     else:
         print("skipping upload of member_records.csv")
+
+    filename = "account_status.csv"
+    if upload:
+        upload_csv_file(drive, f"output/{filename}", remote_folder_name, filename)
+    else:
+        print(f"skipping upload of {filename}")
+ 
     remote_folder_name = f"{docs.ROOT_DIR}"
     if upload:
         upload_csv_file(drive, memberdata.PARENTS_CSV, remote_folder_name, memberdata.PARENTS_CSV)
     else:
         print(f"skipping upload of {memberdata.PARENTS_CSV}")
+
+
  
 
 def main():

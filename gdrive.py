@@ -53,6 +53,8 @@ def get_folder_id(drive, folder_path):
     """
     parents = []
 
+    print(f"Get folder id for: {folder_path}")
+
     for folder_name in folder_path.split('/'):
         qresult = (
             drive.files()
@@ -86,6 +88,7 @@ def get_folder_id(drive, folder_path):
         return None
         
     fid = matches[0]
+    print(f"Found folder id {fid} for {folder_path}")
     return fid
 
 
@@ -93,12 +96,14 @@ def get_file_id(drive, folder_id, filename) -> str|None:
     query = f"name='{filename}' and '{folder_id}' in parents"
     results = drive.files().list(q=query).execute()
     files = results.get('files', [])
+    print(f"Lookup remote {filename} in {folder_id}")
     if files is None or len(files) == 0:
         print(f"file {filename} in {folder_id} not found")
         return None
     if len(files) != 1:
         print(f"Found more than 1 ({len(files)}) for {filename}")
         return None
+    print(f"found {files[0]['id']}")
     return files[0]['id']
 
 
@@ -140,7 +145,7 @@ def move_file(drive, file_id, new_folder_id):
 
 def update_csv_file(drive, file_id, name: str):
     # Update only if changed. Calculate md5 digest
-    print(f"Calculate md5 for {name}")
+    print(f"update file: Calculate md5 for {name}")
     with open(name, 'rb') as f:
         data = f.read()
         md5_local = hashlib.md5(data).hexdigest()
@@ -169,7 +174,7 @@ def upload_csv_file(drive, folder_id: str, filename: str, name: str):
     media = MediaFileUpload(name, mimetype='text/csv')
     metadata = {'name': filename, 
                 'parents': [folder_id]}
-    print("Writing file...")
+    print(f"Upload file {name} to {filename} in {folder_id} - Writing file...")
     updated_file = drive.files().create(
         body=metadata,
         media_body=media,

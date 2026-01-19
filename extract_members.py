@@ -107,12 +107,12 @@ def run(upload: bool = False) -> None:
         parsed_count += 1
 
     print(f"Parsed {parsed_count} new documents. Skipped {skipped_count} existing documents.")
-    if parsed_count > 0:
-        docs.MemberWaiver.write_csv(waivers)
-        remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Member Waivers"
-        print(f"Upload member_records to Google Drive in '{remote_folder_name}'")
-        if upload:
-            upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
-        else:
-            print("skipping upload of member_waivers.csv")
-  
+
+    docs.MemberWaiver.write_csv(waivers)
+    remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}/{docs.YEAR} Member Waivers"
+    print(f"Upload member_records to Google Drive in '{remote_folder_name}'")
+    if upload:
+        upload_member_csv_file(drive, docs.memberwaiver_csv_filename, remote_folder_name, "member_waivers.csv")
+    else:
+        print("skipping upload of member_waivers.csv")
+    print() 
