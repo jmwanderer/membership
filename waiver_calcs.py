@@ -369,7 +369,13 @@ def generate_single_signer_family_request(membership: memberdata.Membership, fam
             writer.writerow(row)
         f.close()
 
+
 def generate_attest_request(membership: memberdata.Membership, attest_docs: list[docs.Attestation], family_records: list[waiverrec.RequiredWaiver]) -> None:
+    """
+    Generate a CSV to use to make signature requests for attestations.
+    Uses the primary member name and email and includes minors on the
+    acount if we want to pre-populate the waiver.
+    """
     ACCOUNT_NUM = csvfile.ACCOUNT_NUM
     MEMBER_ID = csvfile.MEMBER_ID
     FIELD_NAME = "name"
@@ -439,11 +445,6 @@ def generate_attest_request(membership: memberdata.Membership, attest_docs: list
         f.close()
 
 
-# TODO: Add support for signature requested tracking
-# Read name and email from a CSV file - save in data/sigs_requested - include date
-#   - new module: update_requested <csv file>
-# Read data/sigs_requested and include a field in the signature_request files
-
 def generate_account_status(membership: memberdata.Membership,
                             attestations: list[docs.Attestation],
                             waiver_groups: waiverrec.RequiredWaivers,
@@ -460,7 +461,10 @@ def generate_account_status(membership: memberdata.Membership,
     ALL_WAIVERED = "All Waivered"
 
 
+    # Save attest date for later use
     attest_calcs.record_attestations(membership, attestations)
+
+    # Build map of account numbers to waivers
     waiver_map = {}
     for waiver in waiver_groups.no_minor_children:
         if waiver.account_num() not in waiver_map:
@@ -484,7 +488,7 @@ def generate_account_status(membership: memberdata.Membership,
             if attest_calcs.get_attest_status(membership, attest):
                 attest_status = "Good"
             else:
-                attest_status = "Present"
+                attest_status = "Inconsistent"
     
         # review waivers
         waivers = waiver_map.get(account.account_num, [])
@@ -525,7 +529,7 @@ def generate_account_status(membership: memberdata.Membership,
                ALL_WAIVERED : all_waivered }
         rows.append(row)
 
-    # Report
+    # Write the report
     csv_file = "output/account_status.csv" 
     if not csvfile.backup_file(csv_file):
         return
