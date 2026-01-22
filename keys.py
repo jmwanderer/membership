@@ -13,23 +13,32 @@ import csvfile
 # Input file
 keys_filename = "input/keys.csv"
 
-
 @dataclass
 class KeyEntry:
     """Reprents a user key record"""
-
     member_name: memberdata.MemberName
     account_num: str
     member_email: str
     enabled: bool
+    member_id: str = ""
+    key_id: str = ""
+
+    def is_staff(self) -> bool:
+        return self.account_num.lower().startswith("staff")
+
+    def has_id(self) -> bool:
+        return len(self.member_id) > 0
+
 
 class MemberKeys:
     """Set of keys held by members"""
     def __init__(self) -> None:
         self.member_key_map: dict[str, KeyEntry] = {}
+        self.key_entry_list: list[KeyEntry] = []
 
     def load_keys(self, membership: memberdata.Membership):
-        self.member_key_map = gen_member_key_map(membership)
+        self.key_entry_list = read_key_entries()
+        self.member_key_map = gen_member_key_map(membership, self.key_entry_list)
 
     def has_key(self, member_id: str) -> bool:
         return member_id in self.member_key_map
@@ -42,6 +51,9 @@ class MemberKeys:
         if key_entry is not None:
             return key_entry.member_email
         return ""
+
+    def key_entries(self) -> list[KeyEntry]:
+        return self.key_entry_list
 
 
 def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
@@ -67,10 +79,12 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
         email = row["Email"].strip()
         account_num = row["UserName"]
         enabled = csvfile.is_true_value(row["EnableMobileCredential"])
+        key_id = row["ExternalId"]
 
         member_name = memberdata.MemberName(first_name=first_name, last_name=last_name)
         entry = KeyEntry(
-            member_name=member_name, account_num=account_num, member_email=email, enabled=enabled
+            member_name=member_name, account_num=account_num, member_email=email, enabled=enabled,
+            key_id=key_id
         )
         key_entry_list.append(entry)
 
@@ -79,23 +93,29 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
     return key_entry_list
 
 
-def gen_member_key_map(membership: memberdata.Membership) -> dict[str, KeyEntry]:
+#### TODO::: IN PROGRESS -- develop a set of keys that include no members
+
+def gen_member_key_map(membership: memberdata.Membership,
+                       key_entries: list[KeyEntry]) -> dict[str, KeyEntry]:
     """
     Generate a dictionary mapping member ids to KeyEntries
     Used to find key information for a specific member
     """
     member_key_map = {}
 
-    for key_entry in read_key_entries():
-        if key_entry.account_num.lower().startswith("staff"):
+    for key_entry in key_entries:
+        if key_entry.is_staff():
             continue
+
         members = membership.find_members_by_name(key_entry.member_name)
         if len(members) == 0:
             print(f"Warning: no members found for key file name {key_entry.member_name}")
             continue
         elif len(members) > 1:
             print(f"Warning: muiltiple members found for key file name {key_entry.member_name}")
+
         member = members[0]
+        key_entry.member_id = member.member_id
         if member.account_num != key_entry.account_num:
             print(
                 f"Warning: key and member account numbers don't match key file name for {key_entry.member_name}"
@@ -104,13 +124,11 @@ def gen_member_key_map(membership: memberdata.Membership) -> dict[str, KeyEntry]
     return member_key_map
 
 
-
-
 def simple_test():
     membership = memberdata.Membership()
     membership.read_csv_files()
 
-    key_map = gen_member_key_map(membership)
+    key_map = gen_member_key_map(membership, read_key_entries())
 
     member_keys = MemberKeys()
     member_keys.load_keys(membership)

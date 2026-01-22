@@ -63,7 +63,7 @@ class RequiredWaiver:
     def account_num(self) -> str:
         return self.adult().account_num
 
-    def has_minors(self) -> str:
+    def has_minors(self) -> bool:
         return len(self.minors) > 0
 
     @staticmethod

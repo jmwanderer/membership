@@ -47,7 +47,6 @@ def record_attestation(
 
 def record_attestations(membership: memberdata.Membership,
                         attestations: list[docs.Attestation]):
-    account_maps = {}
     for attest in attestations:
         record_attestation(membership, attest)
 

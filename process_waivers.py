@@ -12,10 +12,14 @@ import keys
 import gen_required_waivers
 import waiverrec
 import waiver_calcs
+import report
 
 upload: bool = True
 
 def upload_csv_file(drive, local_file_name, remote_folder_name, remote_file_name):
+    if not upload:
+        print(f"skipping upload of {local_file_name}")
+        return 
 
     remote_folder_id = gdrive.get_folder_id(drive, remote_folder_name)
     remote_file_id = gdrive.get_file_id(drive, remote_folder_id, remote_file_name)
@@ -32,22 +36,12 @@ def upload_waiver_records():
     drive = build("drive", "v3", credentials=gdrive.creds)
     remote_folder_name = f"{docs.ROOT_DIR}/{docs.YEAR}"
 
-    if upload:
-        upload_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
-    else:
-        print("skipping upload of member_records.csv")
-
-    filename = "account_status.csv"
-    if upload:
-        upload_csv_file(drive, f"output/{filename}", remote_folder_name, filename)
-    else:
-        print(f"skipping upload of {filename}")
+    upload_csv_file(drive, waiverrec.MemberRecord.member_csv, remote_folder_name, "member_records.csv")
+    upload_csv_file(drive, f"output/account_status.csv", remote_folder_name, "account_status.csv")
+    upload_csv_file(drive, f"output/key_status.csv", remote_folder_name, "key_status.csv")
  
     remote_folder_name = f"{docs.ROOT_DIR}"
-    if upload:
-        upload_csv_file(drive, memberdata.PARENTS_CSV, remote_folder_name, memberdata.PARENTS_CSV)
-    else:
-        print(f"skipping upload of {memberdata.PARENTS_CSV}")
+    upload_csv_file(drive, memberdata.PARENTS_CSV, remote_folder_name, memberdata.PARENTS_CSV)
 
 
  
@@ -77,11 +71,12 @@ def main():
     waiver_calcs.report_waiver_record_stats(membership, required_waivers, member_keys.member_key_map)
 
     # Generate and save member records
-    waiver_calcs.generate_single_signer_family_request(membership, required_waivers.with_minor_children)
-    waiver_calcs.generate_single_signer_request(membership, required_waivers.no_minor_children)
-    waiver_calcs.generate_attest_request(membership, attestations, required_waivers.with_minor_children)
-    waiver_calcs.generate_account_status(membership, attestations, required_waivers, member_keys)
-    waiver_calcs.generate_member_records(required_waivers, member_keys)
+    report.generate_single_signer_family_request(membership, required_waivers.with_minor_children)
+    report.generate_single_signer_request(membership, required_waivers.no_minor_children)
+    report.generate_attest_request(membership, attestations, required_waivers.with_minor_children)
+    report.generate_account_status(membership, attestations, required_waivers, member_keys)
+    report.generate_member_records(required_waivers, member_keys)
+    report.generate_key_status(membership, member_keys)
     upload_waiver_records()
 
 
