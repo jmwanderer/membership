@@ -155,6 +155,7 @@ class AccountEntry:
         "Proprietary Member Annual",
         #"Staff",
         "Special Leave with Alumni Passes",
+        "Special Leave",
     ]
 
 
