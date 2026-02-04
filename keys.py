@@ -12,6 +12,7 @@ import csvfile
 
 # Input file
 keys_filename = "input/keys.csv"
+updated_keys_filename = "output/credential_update.csv"
 
 @dataclass
 class KeyEntry:
@@ -56,6 +57,40 @@ class MemberKeys:
         return self.key_entry_list
 
 
+
+def read_key_file(filename=keys_filename) -> list[dict[str,str]] | None:
+    if not os.path.exists(filename):
+        print(f"Note: no filename {filename}")
+        return  None
+
+    key_file = open(filename, newline="", encoding="utf-8-sig")
+    reader = csv.DictReader(key_file)
+    rows = list(reader)
+    key_file.close()
+    return rows
+
+def write_key_file(filename: str, rows: dict[str,str]):
+    # Assume at least one element
+    fieldnames = rows[0].keys()
+    with open(filename, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+        f.close()
+
+FORCE_UPDATE = "ForceUpdate"
+FIRST_NAME = "FirstName"
+LAST_NAME = "LastName"
+USER_NAME = "UserName"
+EMAIL = "Email"
+EXTERNAL_ID = "ExternalId"
+EXPIRATION = "CredentialExpirationDateTime"
+REMOVE_USER = "RemoveUser"
+CREDENTIAL_STATUS = "CredentialStatus"
+ACTIVE = "Active"
+MOBILE_ENABLED = "EnableMobileCredential"
+
 def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
     """
     Read the CSV file and return a list of key entry records
@@ -64,22 +99,20 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
     key_entry_list: list[KeyEntry] = []
     print(f"Loading mobile keyfile: {filename}")
 
-    if not os.path.exists(filename):
+    rows = read_key_file(filename)
+    if rows is None:
         print(f"Note: no filename {filename}")
         return key_entry_list
 
-    key_file = open(filename, newline="", encoding="utf-8-sig")
-    reader = csv.DictReader(key_file)
-
 
     # Iterate over keys
-    for row in reader:
-        first_name = row["FirstName"].strip()
-        last_name = row["LastName"].strip()
-        email = row["Email"].strip()
-        account_num = row["UserName"]
-        enabled = csvfile.is_true_value(row["EnableMobileCredential"])
-        key_id = row["ExternalId"]
+    for row in rows:
+        first_name = row[FIRST_NAME].strip()
+        last_name = row[LAST_NAME].strip()
+        email = row[EMAIL].strip()
+        account_num = row[USER_NAME]
+        enabled = row[CREDENTIAL_STATUS] == ACTIVE
+        key_id = row[EXTERNAL_ID]
 
         member_name = memberdata.MemberName(first_name=first_name, last_name=last_name)
         entry = KeyEntry(
@@ -88,11 +121,38 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
         )
         key_entry_list.append(entry)
 
-    key_file.close()
-
     return key_entry_list
 
+def gen_updated_keyfile(membership: memberdata.Membership,
+                        out_file=updated_keys_filename):
 
+    rows = read_key_file()
+    for entry in rows:
+        # Skip staff entries
+        if entry[USER_NAME].lower().startswith("staff"):
+            continue
+
+        # Check if user exists
+        first_name = entry[FIRST_NAME].strip()
+        last_name = entry[LAST_NAME].strip()
+        member_name = memberdata.MemberName(first_name=first_name, last_name=last_name)
+        members = membership.find_members_by_name(member_name)
+        if len(members) == 0:
+            print(f"Removing key for {member_name.fullname()}")
+            entry[REMOVE_USER] = "True"
+            entry[FORCE_UPDATE] = "True"
+            continue
+
+        account = membership.get_account(members[0].account_num)
+        if not account.is_active_member():
+            print(f"Disabling key for non-active member {member_name.fullname()}")
+            entry[MOBILE_ENABLED] = "False"
+            entry[FORCE_UPDATE] = "True"
+            continue
+
+    write_key_file(out_file, rows)
+    
+ 
 #### TODO::: IN PROGRESS -- develop a set of keys that include no members
 
 def gen_member_key_map(membership: memberdata.Membership,
@@ -134,6 +194,7 @@ def simple_test():
     member_keys.load_keys(membership)
     member_keys.has_enabled_key("0")
 
+    gen_updated_keyfile(membership)
 
 if __name__ == "__main__":
     simple_test()
