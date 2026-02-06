@@ -9,6 +9,7 @@ import sys
 import re
 from dataclasses import dataclass, field
 from collections.abc import Iterator
+import csvfile
 
 # Default filenames for CSVs
 MEMBERS_CSV = "input/members.csv"
@@ -18,6 +19,7 @@ ACCOUNTS_CSV = "input/accounts.csv"
 ACCOUNTS_TEST_CSV = "test/accounts.test.csv"
 PARENTS_CSV = "data/families.csv"
 PARENTS_TEST_CSV = "test/families.csv"
+DUES_CSV = "input/dues_tracking.csv"
 
 
 @dataclass
@@ -130,6 +132,7 @@ class AccountEntry:
     account_type: str
     billing_name: MemberName
     email: str
+    paid: bool = False
 
     def is_proprietary_member(self) -> bool:
         return self.account_type == "Proprietary Member Annual"
@@ -180,6 +183,7 @@ class Membership:
         accounts_file=ACCOUNTS_CSV,
         members_file=MEMBERS_CSV,
         parents_file=PARENTS_CSV,
+        dues_file=DUES_CSV,
     ):
         """
         Read account and member CSV files.
@@ -188,6 +192,7 @@ class Membership:
         self._read_accounts_csv(accounts_file)
         self._read_members_csv(members_file)
         self._read_parents_csv(parents_file)
+        self._read_dues_csv(dues_file)
 
     def member_names(self) -> list[MemberName]:
         result: list[MemberName]
@@ -474,6 +479,34 @@ class Membership:
 
                 self.parent_map[account_num].append(parent_rec)
                 # print(f"Add parent rec for account {account_num}")
+
+    def _read_dues_csv(self, filename: str):
+        if not os.path.exists(filename):
+            print("Skip reading dues tracking - no file")
+            return
+
+        print(f"Reading dues file {filename}")
+
+        with open(filename, newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                account_num = row["Acct"].strip()
+                last_name = row["Last Name"].strip()
+                status = row["Payment Status"].strip()
+
+                # Check that account exists, ignore otherwise
+                if not account_num  in self.account_map:
+                    print(f"Warning: no account {account_num} / {last_name}")
+                    continue
+
+                account = self.get_account(account_num)
+
+                if account.billing_name.last_name != last_name:
+                    print(f"Warning: account name doesn't match{account_num}: {last_name} vs {account.billing_name.last_name}")
+                    continue
+
+                account.paid = csvfile.is_true_value(status)
+                
 
 def test() -> None:
     name = MemberName.CreateMemberName("William Jones")

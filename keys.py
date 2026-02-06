@@ -58,10 +58,10 @@ class MemberKeys:
 
 
 
-def read_key_file(filename=keys_filename) -> list[dict[str,str]] | None:
+def read_key_file(filename=keys_filename) -> list[dict[str,str]]:
     if not os.path.exists(filename):
         print(f"Note: no filename {filename}")
-        return  None
+        return  []
 
     key_file = open(filename, newline="", encoding="utf-8-sig")
     reader = csv.DictReader(key_file)
@@ -69,7 +69,7 @@ def read_key_file(filename=keys_filename) -> list[dict[str,str]] | None:
     key_file.close()
     return rows
 
-def write_key_file(filename: str, rows: dict[str,str]):
+def write_key_file(filename: str, rows: list[dict[str,str]]):
     # Assume at least one element
     fieldnames = rows[0].keys()
     with open(filename, "w", newline="", encoding="utf-8-sig") as f:
@@ -89,6 +89,7 @@ EXPIRATION = "CredentialExpirationDateTime"
 REMOVE_USER = "RemoveUser"
 CREDENTIAL_STATUS = "CredentialStatus"
 ACTIVE = "Active"
+INACTIVE = "Deactivated"
 MOBILE_ENABLED = "EnableMobileCredential"
 
 def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
@@ -123,35 +124,7 @@ def read_key_entries(filename=keys_filename) -> list[KeyEntry]:
 
     return key_entry_list
 
-def gen_updated_keyfile(membership: memberdata.Membership,
-                        out_file=updated_keys_filename):
-
-    rows = read_key_file()
-    for entry in rows:
-        # Skip staff entries
-        if entry[USER_NAME].lower().startswith("staff"):
-            continue
-
-        # Check if user exists
-        first_name = entry[FIRST_NAME].strip()
-        last_name = entry[LAST_NAME].strip()
-        member_name = memberdata.MemberName(first_name=first_name, last_name=last_name)
-        members = membership.find_members_by_name(member_name)
-        if len(members) == 0:
-            print(f"Removing key for {member_name.fullname()}")
-            entry[REMOVE_USER] = "True"
-            entry[FORCE_UPDATE] = "True"
-            continue
-
-        account = membership.get_account(members[0].account_num)
-        if not account.is_active_member():
-            print(f"Disabling key for non-active member {member_name.fullname()}")
-            entry[MOBILE_ENABLED] = "False"
-            entry[FORCE_UPDATE] = "True"
-            continue
-
-    write_key_file(out_file, rows)
-    
+   
  
 #### TODO::: IN PROGRESS -- develop a set of keys that include no members
 
@@ -194,7 +167,6 @@ def simple_test():
     member_keys.load_keys(membership)
     member_keys.has_enabled_key("0")
 
-    gen_updated_keyfile(membership)
 
 if __name__ == "__main__":
     simple_test()

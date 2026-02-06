@@ -77,6 +77,8 @@ def main():
     report.generate_account_status(membership, attestations, required_waivers, member_keys)
     report.generate_member_records(required_waivers, member_keys)
     report.generate_key_status(membership, member_keys)
+    report.generate_key_status(membership, member_keys)
+    report.generate_credential_update(membership)
     upload_waiver_records()
 
 

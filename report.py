@@ -397,3 +397,45 @@ def generate_member_records(waiver_groups: waiverrec.RequiredWaivers, member_key
     member_records = waiverrec.MemberRecord.gen_records(waiver_groups, member_keys)
     print("Note: writing member records CSV")
     waiverrec.MemberRecord.write_csv(member_records, waiverrec.MemberRecord.member_csv)
+
+def generate_credential_update(membership: memberdata.Membership):
+
+    rows = keys.read_key_file()
+    for entry in rows:
+        # Skip staff entries
+        if entry[keys.USER_NAME].lower().startswith("staff"):
+            continue
+
+        # Check if user exists
+        first_name = entry[keys.FIRST_NAME].strip()
+        last_name = entry[keys.LAST_NAME].strip()
+        member_name = memberdata.MemberName(first_name=first_name, last_name=last_name)
+        members = membership.find_members_by_name(member_name)
+        if len(members) == 0:
+            print(f"Removing key for {member_name.fullname()}")
+            entry[keys.REMOVE_USER] = "True"
+            entry[keys.FORCE_UPDATE] = "True"
+            continue
+
+        account = membership.get_account(members[0].account_num)
+        if not account.is_active_member() and entry[keys.CREDENTIAL_STATUS] == keys.ACTIVE:
+            print(f"Disabling key for non-active member {member_name.fullname()}")
+            entry[keys.CREDENTIAL_STATUS] = keys.INACTIVE
+            entry[keys.FORCE_UPDATE] = "True"
+            continue
+
+        if not account.paid and entry[keys.CREDENTIAL_STATUS] == keys.ACTIVE:
+            print(f"Disabling key for non-paid member {member_name.fullname()}")
+            entry[keys.CREDENTIAL_STATUS] = keys.INACTIVE
+            entry[keys.FORCE_UPDATE] = "True"
+            continue
+
+        if account.is_active_member() and account.paid and entry[keys.CREDENTIAL_STATUS] != keys.ACTIVE:
+            print(f"Enabling key for member {member_name.fullname()}")
+            entry[keys.CREDENTIAL_STATUS] = keys.ACTIVE
+            entry[keys.FORCE_UPDATE] = "True"
+
+
+
+    keys.write_key_file(keys.updated_keys_filename, rows)
+ 
