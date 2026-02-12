@@ -78,7 +78,7 @@ def main():
     report.generate_member_records(required_waivers, member_keys)
     report.generate_key_status(membership, member_keys)
     report.generate_key_status(membership, member_keys)
-    report.generate_credential_update(membership)
+    report.generate_credential_update(membership, member_keys)
     upload_waiver_records()
 
 
