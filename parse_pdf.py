@@ -148,7 +148,6 @@ class GuestWaiverPDF:
 # Strings in the PDF file to scrape
 GUEST_MARKERS = [
     "Adult Non-Member/Guest:",
-    "",
     "Children (under 18):",
     "[Print Name]",
     "[Print Name]",
@@ -175,17 +174,17 @@ def parse_guest_waiver_pdf(in_file: io.BufferedReader | io.BytesIO) -> GuestWaiv
     adult = True
 
     for line in lines:
-        # print(line)
+        #print(line)
         if marker < len(GUEST_MARKERS) and GUEST_MARKERS[marker] == line.strip():
-            # print(f"found marker {GUEST_MARKERS[marker]}")
+            #print(f"found marker {GUEST_MARKERS[marker]}")
             marker_found = True
             marker += 1
         elif marker_found:
             marker_found = False
             if len(line.strip()) > 0:
-                if marker == 2:
+                if marker == 1:
                     waiver.adult = line.strip()
-                elif marker > 2 and line.strip() != GUEST_EXCLUDE_STR:
+                elif marker > 1 and line.strip() != GUEST_EXCLUDE_STR:
                     waiver.minors.append(line.strip())
         else:
             # Look for DATE_STR
